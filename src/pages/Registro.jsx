@@ -12,8 +12,8 @@ const C = {
     rojo: "#ED1E28",
     grisClaro: "#999999",
     grisOsc: "#7D7765",
-    blanco: "#FFFFFF",
-    negro: "#231F20",
+    blanco: "#ffffff",
+    negro: "#1f2321",
 };
 
 export default function Registro({ usuario, onRegistroCompleto }) {
@@ -244,7 +244,7 @@ function PantallaBienvenida({ aceptado, setAceptado }) {
             <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", cursor: "pointer", textAlign: "left" }}>
                 <input type="checkbox" checked={aceptado} onChange={(e) => setAceptado(e.target.checked)}
                     style={{ accentColor: C.naranja, width: "16px", height: "16px", marginTop: "2px", flexShrink: 0 }} />
-                <span style={{ color: "#D1D5DB", fontSize: "14px" }}>
+                <span style={{ color: "#848588", fontSize: "14px" }}>
                     Acepto los <a href="#" style={{ color: C.naranja }}>términos y condiciones</a> y el
                     tratamiento de mis datos personales (Habeas Data)
                 </span>
@@ -256,7 +256,7 @@ function PantallaBienvenida({ aceptado, setAceptado }) {
 function PantallaOpcion({ titulo, opciones, valor, onChange, error }) {
     return (
         <div>
-            <h2 style={{ color: C.blanco, fontSize: "17px", fontWeight: 700, marginBottom: "18px", lineHeight: 1.3 }}>
+            <h2 style={{ color: C.negro, fontSize: "17px", fontWeight: 700, marginBottom: "18px", lineHeight: 1.3 }}>
                 {titulo}
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -264,9 +264,9 @@ function PantallaOpcion({ titulo, opciones, valor, onChange, error }) {
                     <button key={op.valor} onClick={() => onChange(op.valor)} style={{
                         display: "flex", alignItems: "center", gap: "14px",
                         padding: "13px 16px", border: "1.5px solid",
-                        borderColor: valor === op.valor ? C.naranja : "rgba(255,255,255,0.1)",
+                        borderColor: valor === op.valor ? C.naranja : C.negro,
                         background: valor === op.valor ? `${C.naranja}18` : "rgba(255,255,255,0.03)",
-                        color: valor === op.valor ? C.naranja : C.grisClaro,
+                        color: valor === op.valor ? C.naranja : C.negro,
                         borderRadius: "12px", cursor: "pointer", textAlign: "left", width: "100%",
                         transition: "all 0.2s",
                     }}>
@@ -283,7 +283,7 @@ function PantallaOpcion({ titulo, opciones, valor, onChange, error }) {
 function PantallaReferido({ valor, onChange, error }) {
     return (
         <div>
-            <h2 style={{ color: C.blanco, fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>
+            <h2 style={{ color: C.negro, fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>
                 ¿Eres referido de otro jugador CLTiene?
             </h2>
             <p style={{ color: C.grisClaro, fontSize: "14px", marginBottom: "22px" }}>
@@ -312,15 +312,15 @@ function PantallaReferido({ valor, onChange, error }) {
 function PantallaInput({ titulo, descripcion, placeholder, tipo = "text", valor, onChange, error }) {
     return (
         <div>
-            <h2 style={{ color: C.blanco, fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>{titulo}</h2>
+            <h2 style={{ color: C.negro, fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>{titulo}</h2>
             {descripcion && <p style={{ color: C.grisClaro, fontSize: "14px", marginBottom: "18px" }}>{descripcion}</p>}
             <input type={tipo} placeholder={placeholder} value={valor}
                 onChange={(e) => onChange(e.target.value)}
                 style={{
                     width: "100%", padding: "13px 16px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: `1.5px solid ${error ? C.rojo : "rgba(255,255,255,0.1)"}`,
-                    borderRadius: "12px", color: C.blanco, fontSize: "15px",
+                    background: "rgba(255, 255, 255, 0.05)",
+                    border: `1.5px solid ${error ? C.rojo : "rgba(255, 255, 255, 0.1)"}`,
+                    borderRadius: "12px", color: C.negro, fontSize: "15px",
                     outline: "none", boxSizing: "border-box",
                 }}
                 autoFocus />
