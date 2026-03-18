@@ -4,6 +4,8 @@ import { auth, db } from "../firebase/config";
 import { signOut } from "firebase/auth";
 import logo from "../assets/logo.png";
 import client from "../api/client";
+import { obtenerNoticiasMundial } from "../api/gemini";
+import { useNotificaciones } from "../hooks/useNotificaciones";
 
 const C = {
   naranja: "#FD7751", dorado: "#ECA82D", morado: "#822BD2",
@@ -32,6 +34,8 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const [tab, setTab] = useState("inicio");
   const [partidos, setPartidos] = useState([]);
   const [ranking, setRanking] = useState([]);
+
+  useNotificaciones({ uid: usuario?.uid, client });
 
   const cargarPerfil = async () => {
     const snap = await getDoc(doc(db, "jugadores", usuario.uid));
@@ -86,11 +90,17 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       {/* NAVBAR */}
       <div style={{ background: "rgba(15,10,30,0.95)", borderBottom: "2px solid #FD7751", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <img src={logo} style={{ height: 28 }} alt="CLTiene" />
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
-          <span style={{ fontSize: 18 }}>🪙</span>
-          <span style={{ color: C.dorado, fontWeight: 900, fontSize: 18 }}>{monedas}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
+            <span style={{ fontSize: 16 }}>🪙</span>
+            <span style={{ color: C.dorado, fontWeight: 900, fontSize: 16 }}>{monedas}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 12px" }}>
+            <span style={{ fontSize: 16 }}>⚽</span>
+            <span style={{ color: C.verde, fontWeight: 900, fontSize: 16 }}>{perfil?.goles || 0}</span>
+          </div>
+          <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 13 }}>Salir</button>
         </div>
-        <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 13 }}>Salir</button>
       </div>
 
       {/* HERO */}
@@ -129,6 +139,8 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         {tab === "polla"    && <Polla    monedas={monedas} usuario={usuario} cargarPerfil={cargarPerfil} partidos={partidos} />}
         {tab === "ranking"  && <Ranking  ranking={ranking} />}
         {tab === "misiones" && <Misiones />}
+        {tab === "noticias" && <Noticias />}
+        {tab === "perfil"   && <Perfil   perfil={perfil} nombre={nombre} monedas={monedas} posicion={posicion} ranking={ranking} usuario={usuario} />}
       </div>
 
       {/* BOTTOM NAV */}
@@ -138,6 +150,8 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           { id: "polla",    i: "⚽", l: "Polla"    },
           { id: "ranking",  i: "🏆", l: "Ranking"  },
           { id: "misiones", i: "🎯", l: "Misiones" },
+          { id: "noticias", i: "📰", l: "Noticias" },
+          { id: "perfil",   i: "👤", l: "Perfil"   },
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
             <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
@@ -307,7 +321,7 @@ function Polla({ monedas, usuario, cargarPerfil, partidos }) {
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 6, fontWeight: 700 }}>🪙 Monedas a apostar</div>
+              
               <input type="number" min="10" placeholder="10" value={preds[p.id]?.apuesta || ""} onChange={(e) => set(p.id, "apuesta", e.target.value)} style={{ width: "100%", padding: "8px", textAlign: "center", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "#ECA82D", fontSize: 15, fontWeight: 700, outline: "none", boxSizing: "border-box" }} />
             </div>
           </div>
@@ -353,18 +367,25 @@ function Ranking({ ranking }) {
 
 function Misiones() {
   const lista = [
-    { icono: "✅", titulo: "Perfil creado",      desc: "Completaste tu registro",          monedas: 100, ok: true  },
-    { icono: "⚽", titulo: "Primera predicción", desc: "Predice tu primer partido",         monedas: 50,  ok: false },
-    { icono: "🤝", titulo: "Invita un amigo",    desc: "Refiere un jugador y ganan ambos",  monedas: 50,  ok: false },
-    { icono: "▶️", titulo: "Ver video CLTiene",  desc: "Mira un video de la marca",         monedas: 30,  ok: false },
-    { icono: "🧠", titulo: "Trivia del Mundial", desc: "Responde 5 preguntas de fútbol",    monedas: 40,  ok: false },
-    { icono: "🔥", titulo: "7 días seguidos",    desc: "Ingresa 7 días consecutivos",       monedas: 70,  ok: false },
+    { icono: "✅", titulo: "Perfil creado",      desc: "Completaste tu registro",          goles: 10, ok: true  },
+    { icono: "⚽", titulo: "Primera predicción", desc: "Predice tu primer partido",         goles: 5,  ok: false },
+    { icono: "🤝", titulo: "Invita un amigo",    desc: "Refiere un jugador y ganan ambos",  goles: 5,  ok: false },
+    { icono: "▶️", titulo: "Ver video CLTiene",  desc: "Mira un video de la marca",         goles: 3,  ok: false },
+    { icono: "🧠", titulo: "Trivia del Mundial", desc: "Responde 5 preguntas de fútbol",    goles: 4,  ok: false },
+    { icono: "🔥", titulo: "7 días seguidos",    desc: "Ingresa 7 días consecutivos",       goles: 7,  ok: false },
   ];
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <span style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>Tus misiones</span>
         <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>1 / {lista.length} completadas</span>
+      </div>
+      <div style={{ background: "rgba(22,199,132,0.1)", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 20 }}>⚽</span>
+        <div>
+          <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Gana goles completando misiones</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Los goles se acumulan aparte de las monedas</div>
+        </div>
       </div>
       {lista.map((m, i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: m.ok ? "rgba(22,199,132,0.08)" : "rgba(255,255,255,0.04)", border: m.ok ? "1px solid rgba(22,199,132,0.3)" : "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", marginBottom: 10, opacity: m.ok ? 0.8 : 1 }}>
@@ -376,7 +397,7 @@ function Misiones() {
             <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginTop: 2 }}>{m.desc}</div>
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ color: "#ECA82D", fontWeight: 900, fontSize: 14 }}>+{m.monedas} 🪙</div>
+            <div style={{ color: C.verde, fontWeight: 900, fontSize: 14 }}>+{m.goles} ⚽</div>
             {m.ok
               ? <div style={{ color: "#16C784", fontSize: 11, marginTop: 3 }}>✓ Listo</div>
               : <button style={{ marginTop: 4, background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 12, padding: "5px 12px", cursor: "pointer" }}>Ir →</button>
@@ -384,6 +405,148 @@ function Misiones() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function Noticias() {
+  const [noticias, setNoticias] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+
+  const cargarNoticias = async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      const data = await obtenerNoticiasMundial();
+      setNoticias(data);
+    } catch {
+      setError("No se pudieron cargar las noticias");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => { cargarNoticias(); }, []);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <span style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>📰 Noticias del Mundial</span>
+        <button onClick={cargarNoticias} disabled={cargando} style={{ background: "none", border: "none", color: C.naranja, fontSize: 13, cursor: "pointer", fontWeight: 700 }}>
+          {cargando ? "Cargando..." : "Actualizar ↻"}
+        </button>
+      </div>
+
+      <div style={{ background: "rgba(64,141,255,0.1)", border: "1px solid rgba(64,141,255,0.3)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 20 }}>🤖</span>
+        <div>
+          <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Noticias</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Lo último del Mundial 2026 actualizado para ti</div>
+        </div>
+      </div>
+
+      {cargando && noticias.length === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <div style={{ fontSize: 40, marginBottom: 12, animation: "spin 1s linear infinite" }}>⚽</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>Buscando noticias...</div>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ background: "rgba(237,30,40,0.1)", border: "1px solid rgba(237,30,40,0.3)", borderRadius: 12, padding: "16px", textAlign: "center", marginBottom: 16 }}>
+          <div style={{ color: C.rojo, fontSize: 14, marginBottom: 8 }}>{error}</div>
+          <button onClick={cargarNoticias} style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 13, padding: "8px 16px", cursor: "pointer" }}>
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {noticias.map((n, i) => (
+        <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px", marginBottom: 12, position: "relative", overflow: "hidden" }}>
+          {n.categoria && (
+            <span style={{ background: "rgba(130,43,210,0.2)", color: C.morado, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, marginBottom: 8, display: "inline-block" }}>
+              {n.categoria}
+            </span>
+          )}
+          <h3 style={{ color: "#fff", fontSize: 15, fontWeight: 800, margin: "6px 0 8px", lineHeight: 1.3 }}>{n.titulo}</h3>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.5 }}>{n.resumen}</p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{n.fecha || "Hoy"}</span>
+            {n.fuente && <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Fuente: {n.fuente}</span>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Perfil({ perfil, nombre, monedas, posicion, ranking, usuario }) {
+  const goles = perfil?.goles || 0;
+  const email = usuario?.email || "";
+  const predicciones = perfil?.predicciones || 0;
+  const nivel = perfil?.nivel || 1;
+
+  return (
+    <div>
+      {/* Avatar y nombre */}
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #822BD2, #408DFF)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 36, fontWeight: 900, color: "#fff", border: "3px solid #FD7751" }}>
+          {nombre.charAt(0).toUpperCase()}
+        </div>
+        <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>{nombre}</h2>
+        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: 0 }}>{email}</p>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(130,43,210,0.2)", border: "1px solid rgba(130,43,210,0.4)", borderRadius: 20, padding: "4px 14px", marginTop: 8 }}>
+          <span style={{ fontSize: 14 }}>⭐</span>
+          <span style={{ color: C.morado, fontSize: 13, fontWeight: 700 }}>Nivel {nivel}</span>
+        </div>
+      </div>
+
+      {/* Stats: Monedas y Goles */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+        <div style={{ background: "rgba(236,168,45,0.1)", border: "1px solid rgba(236,168,45,0.3)", borderRadius: 14, padding: "18px 14px", textAlign: "center" }}>
+          <div style={{ fontSize: 28, marginBottom: 4 }}>🪙</div>
+          <div style={{ color: C.dorado, fontSize: 28, fontWeight: 900 }}>{monedas}</div>
+          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>Monedas</div>
+          <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 2 }}>Ganas en la Polla</div>
+        </div>
+        <div style={{ background: "rgba(22,199,132,0.1)", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 14, padding: "18px 14px", textAlign: "center" }}>
+          <div style={{ fontSize: 28, marginBottom: 4 }}>⚽</div>
+          <div style={{ color: C.verde, fontSize: 28, fontWeight: 900 }}>{goles}</div>
+          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>Goles</div>
+          <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 2 }}>Ganas en Misiones</div>
+        </div>
+      </div>
+
+      {/* Más estadísticas */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px", textAlign: "center" }}>
+          <div style={{ color: C.naranja, fontSize: 24, fontWeight: 900 }}>#{posicion}</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 4 }}>Ranking</div>
+        </div>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px", textAlign: "center" }}>
+          <div style={{ color: C.azul, fontSize: 24, fontWeight: 900 }}>{predicciones}</div>
+          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 4 }}>Predicciones</div>
+        </div>
+      </div>
+
+      {/* Mini ranking - top 3 */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ color: "#fff", fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 Top 3 del ranking</div>
+        {ranking.slice(0, 3).map((j, i) => {
+          const medallas = ["🥇", "🥈", "🥉"];
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: j.esYo ? "rgba(253,119,81,0.1)" : "rgba(255,255,255,0.04)", border: j.esYo ? "2px solid #FD7751" : "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "12px 14px", marginBottom: 8 }}>
+              <span style={{ fontSize: 24 }}>{medallas[i]}</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ color: j.esYo ? C.naranja : "#fff", fontWeight: 700, fontSize: 14 }}>{j.nombre} {j.esYo ? "👈" : ""}</span>
+              </div>
+              <span style={{ color: C.dorado, fontWeight: 900, fontSize: 14 }}>🪙 {j.monedas}</span>
+            </div>
+          );
+        })}
+      </div>
+
     </div>
   );
 }
