@@ -12,9 +12,12 @@ Responde SOLO con un JSON válido (sin markdown, sin backticks, sin texto adicio
     "resumen": "Resumen de 2-3 oraciones con la información real",
     "categoria": "Una de: Selecciones | Sedes | Clasificación | Jugadores | FIFA",
     "fecha": "Fecha de la noticia",
-    "fuente": "Nombre del medio real de donde viene la noticia"
+    "fuente": "Nombre del medio real de donde viene la noticia",
+    "url": "URL directa al artículo original de la noticia"
   }
-]`;
+]
+
+Es MUY importante que la URL sea real y funcional, que apunte al artículo original de la noticia.`;
 
   const res = await fetch(url, {
     method: "POST",

@@ -462,21 +462,50 @@ function Noticias() {
         </div>
       )}
 
-      {noticias.map((n, i) => (
-        <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px", marginBottom: 12, position: "relative", overflow: "hidden" }}>
-          {n.categoria && (
-            <span style={{ background: "rgba(130,43,210,0.2)", color: C.morado, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, marginBottom: 8, display: "inline-block" }}>
-              {n.categoria}
-            </span>
-          )}
-          <h3 style={{ color: "#fff", fontSize: 15, fontWeight: 800, margin: "6px 0 8px", lineHeight: 1.3 }}>{n.titulo}</h3>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 10px", lineHeight: 1.5 }}>{n.resumen}</p>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{n.fecha || "Hoy"}</span>
-            {n.fuente && <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>Fuente: {n.fuente}</span>}
-          </div>
-        </div>
-      ))}
+      {noticias.map((n, i) => {
+        const categoriaColor = {
+          Selecciones: { bg: "rgba(253,119,81,0.15)", color: C.naranja },
+          Sedes: { bg: "rgba(130,43,210,0.15)", color: C.morado },
+          Clasificación: { bg: "rgba(64,141,255,0.15)", color: C.azul },
+          Jugadores: { bg: "rgba(22,199,132,0.15)", color: C.verde },
+          FIFA: { bg: "rgba(236,168,45,0.15)", color: C.dorado },
+        }[n.categoria] || { bg: "rgba(255,255,255,0.1)", color: "#fff" };
+
+        return (
+          <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+            style={{ textDecoration: "none", display: "block", background: "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "18px", marginBottom: 14, position: "relative", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.naranja; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(253,119,81,0.15)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
+          >
+            {/* Decoración de fondo */}
+            <div style={{ position: "absolute", right: -15, top: -15, fontSize: 60, opacity: 0.04, userSelect: "none" }}>📰</div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              {n.categoria && (
+                <span style={{ background: categoriaColor.bg, color: categoriaColor.color, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>
+                  {n.categoria}
+                </span>
+              )}
+              <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>📅 {n.fecha || "Hoy"}</span>
+            </div>
+
+            <h3 style={{ color: "#fff", fontSize: 16, fontWeight: 800, margin: "0 0 8px", lineHeight: 1.3 }}>{n.titulo}</h3>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 14px", lineHeight: 1.6 }}>{n.resumen}</p>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+              {n.fuente && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: categoriaColor.color }} />
+                  <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>{n.fuente}</span>
+                </div>
+              )}
+              <span style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", padding: "5px 14px", borderRadius: 20, color: "#fff", fontSize: 12, fontWeight: 700 }}>
+                Leer artículo →
+              </span>
+            </div>
+          </a>
+        );
+      })}
     </div>
   );
 }
