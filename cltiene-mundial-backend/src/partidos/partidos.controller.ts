@@ -22,4 +22,13 @@ export class PartidosController {
   ) {
     return this.partidosService.actualizarResultado(id, body.goles_local, body.goles_visitante);
   }
+
+  // Cuando se confirme un equipo de playoff, reemplazar el placeholder
+  // Ej: PUT /partidos/playoff { placeholder: "Playoff UEFA D", nombre: "Dinamarca", bandera: "dk" }
+  @Put('playoff')
+  actualizarEquipoPlayoff(
+    @Body() body: { placeholder: string; nombre: string; bandera: string }
+  ) {
+    return this.partidosService.actualizarEquipoPlayoff(body.placeholder, body.nombre, body.bandera);
+  }
 }

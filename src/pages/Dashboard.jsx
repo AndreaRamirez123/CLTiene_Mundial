@@ -40,7 +40,13 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
     client.get(`/jugadores/${usuario.uid}`).then(r => setPerfil(r.data)).catch(() => {});
 
   const cargarPartidos = () =>
-    client.get("/partidos").then(r => setPartidos(r.data)).catch(() => {});
+    client.get("/partidos").then(r => setPartidos(r.data.map(p => ({
+      ...p,
+      local: p.local_equipo || p.local,
+      visitante: p.visitante_equipo || p.visitante,
+      bandera_l: p.bandera_local || p.bandera_l,
+      bandera_v: p.bandera_visitante || p.bandera_v,
+    })))).catch(() => {});
 
   const cargarRanking = () =>
     client.get("/ranking?limit=10").then(r => setRanking(r.data.map((j) => ({
@@ -106,7 +112,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
             {[
               { label: "Monedas",      valor: monedas,                   icono: "🪙", color: C.dorado  },
-              { label: "Predicciones", valor: perfil?.predicciones || 0, icono: "⚽", color: C.azul    },
+              { label: "Predicciones", valor: perfil?.predicciones_count || 0, icono: "⚽", color: C.azul    },
               { label: "Posición",     valor: `#${posicion}`,            icono: "🏆", color: C.naranja },
             ].map((s, i) => (
               <div key={i} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${s.color}30`, borderRadius: 14, padding: "14px 10px", textAlign: "center" }}>
@@ -865,7 +871,7 @@ function Noticias() {
 function Perfil({ perfil, nombre, monedas, posicion, ranking, usuario }) {
   const goles = perfil?.goles || 0;
   const email = usuario?.email || "";
-  const predicciones = perfil?.predicciones || 0;
+  const predicciones = perfil?.predicciones_count || 0;
   const nivel = perfil?.nivel || 1;
 
   return (
