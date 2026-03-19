@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
+import client from "../api/client";
 import logo from "../assets/logo.png";
 
 const C = {
@@ -53,19 +52,17 @@ export default function Registro({ usuario, onRegistroCompleto }) {
         if (!usuario?.uid) return;
         setGuardando(true);
         try {
-            // Generar código de referido propio (primeros 8 caracteres del UID)
-            const miCodigoReferido = usuario.uid.substring(0, 8).toUpperCase();
-
-            await setDoc(doc(db, "jugadores", usuario.uid), {
-                ...datos,
+            await client.post("/jugadores/registro", {
                 uid: usuario.uid,
                 email: usuario.email,
-                monedas: 100,
-                nivel: "activo",
-                predicciones: 0,
-                codigo_referido: miCodigoReferido,
+                nombre: datos.nombre,
+                telefono: datos.telefono,
+                correo: datos.correo,
+                tipojugador: datos.tipojugador,
+                relacion_cltiene: datos.relacionCLTiene,
+                es_referido: datos.esReferido ? 1 : 0,
+                nombre_referidor: datos.nombreReferidor || "",
                 referido_por: datos.codigoReferidor || "",
-                createdAt: new Date().toISOString(),
             });
         } catch (err) {
             console.error("Error guardando perfil:", err);

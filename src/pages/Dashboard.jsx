@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { doc, getDoc, collection, getDocs, orderBy, query, limit } from "firebase/firestore";
-import { auth, db } from "../firebase/config";
+import { auth } from "../firebase/config";
 import { signOut } from "firebase/auth";
 import logo from "../assets/logo.png";
 import client from "../api/client";
@@ -37,38 +36,25 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
 
   useNotificaciones({ uid: usuario?.uid, client });
 
-  const cargarPerfil = async () => {
-    const snap = await getDoc(doc(db, "jugadores", usuario.uid));
-    if (snap.exists()) setPerfil(snap.data());
-  };
+  const cargarPerfil = () =>
+    client.get(`/jugadores/${usuario.uid}`).then(r => setPerfil(r.data)).catch(() => {});
 
-  const cargarPartidos = async () => {
-    try {
-      const res = await client.get("/partidos");
-      setPartidos(res.data);
-    } catch { console.error("Error cargando partidos"); }
-  };
+  const cargarPartidos = () =>
+    client.get("/partidos").then(r => setPartidos(r.data)).catch(() => {});
 
-  const cargarRanking = async () => {
-    try {
-      const q = query(collection(db, "jugadores"), orderBy("monedas", "desc"), limit(10));
-      const snap = await getDocs(q);
-      setRanking(snap.docs.map((d, i) => ({
-        pos: i + 1,
-        nombre: d.data().nombre || d.data().email?.split("@")[0] || "Jugador",
-        monedas: d.data().monedas || 0,
-        predicciones: d.data().predicciones || 0,
-        esYo: d.id === usuario.uid,
-      })));
-    } catch { console.error("Error cargando ranking"); }
-  };
+  const cargarRanking = () =>
+    client.get("/ranking?limit=10").then(r => setRanking(r.data.map((j) => ({
+      pos: j.posicion,
+      nombre: j.nombre || j.email?.split("@")[0] || "Jugador",
+      monedas: j.monedas || 0,
+      predicciones: j.predicciones_count || 0,
+      esYo: j.uid === usuario.uid,
+    })))).catch(() => {});
 
   useEffect(() => {
     if (!usuario?.uid) return;
-    cargarPerfil();
-    cargarPartidos();
-    cargarRanking();
-  }, [usuario]);
+    Promise.all([cargarPerfil(), cargarPartidos(), cargarRanking()]);
+  }, [usuario?.uid]);
 
   const cerrar = async () => { await signOut(auth); onCerrarSesion?.(); };
 

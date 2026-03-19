@@ -1,59 +1,68 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 import { Injectable } from '@nestjs/common';
-import { FirebaseService } from '../firebase/firebase.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Partido } from '../entities/partido.entity';
 
 @Injectable()
 export class PartidosService {
-  constructor(private firebase: FirebaseService) {}
-
-  private get db() { return this.firebase.getFirestore(); }
+  constructor(
+    @InjectRepository(Partido)
+    private readonly partidoRepo: Repository<Partido>,
+  ) {}
 
   async getPartidos(fase?: string) {
-    let query = this.db.collection('partidos').orderBy('fecha');
-    if (fase) query = query.where('fase', '==', fase) as any;
-    const snap = await query.get();
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const where: Record<string, unknown> = {};
+    if (fase) {
+      where.fase = fase;
+    }
+
+    return this.partidoRepo.find({
+      where,
+      order: { fecha: 'ASC', hora: 'ASC' },
+    });
   }
 
   async seedPartidos() {
     const partidos = [
-  { grupo: 'A', local: 'Qatar',         bandera_l: 'qa', visitante: 'Ecuador',       bandera_v: 'ec', fecha: '2026-06-11', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'B', local: 'Inglaterra',    bandera_l: 'gb-eng', visitante: 'Irán',      bandera_v: 'ir', fecha: '2026-06-11', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'A', local: 'Senegal',       bandera_l: 'sn', visitante: 'Países Bajos', bandera_v: 'nl', fecha: '2026-06-11', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'B', local: 'Estados Unidos',bandera_l: 'us', visitante: 'Gales',         bandera_v: 'gb-wls', fecha: '2026-06-12', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'C', local: 'Argentina',     bandera_l: 'ar', visitante: 'Arabia S.',     bandera_v: 'sa', fecha: '2026-06-12', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'D', local: 'Dinamarca',     bandera_l: 'dk', visitante: 'Túnez',         bandera_v: 'tn', fecha: '2026-06-12', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'C', local: 'México',        bandera_l: 'mx', visitante: 'Polonia',       bandera_v: 'pl', fecha: '2026-06-13', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'D', local: 'Francia',       bandera_l: 'fr', visitante: 'Australia',     bandera_v: 'au', fecha: '2026-06-13', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'E', local: 'Alemania',      bandera_l: 'de', visitante: 'Japón',         bandera_v: 'jp', fecha: '2026-06-13', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'E', local: 'España',        bandera_l: 'es', visitante: 'Costa Rica',    bandera_v: 'cr', fecha: '2026-06-14', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'F', local: 'Bélgica',       bandera_l: 'be', visitante: 'Canadá',        bandera_v: 'ca', fecha: '2026-06-14', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'F', local: 'Brasil',        bandera_l: 'br', visitante: 'Serbia',        bandera_v: 'rs', fecha: '2026-06-14', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'G', local: 'Portugal',      bandera_l: 'pt', visitante: 'Ghana',         bandera_v: 'gh', fecha: '2026-06-15', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'G', local: 'Uruguay',       bandera_l: 'uy', visitante: 'Corea del Sur', bandera_v: 'kr', fecha: '2026-06-15', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'H', local: 'Colombia',      bandera_l: 'co', visitante: 'Marruecos',     bandera_v: 'ma', fecha: '2026-06-15', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
-  { grupo: 'H', local: 'Croacia',       bandera_l: 'hr', visitante: 'Ecuador',       bandera_v: 'ec', fecha: '2026-06-16', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
-];
+      { grupo: 'A', local_equipo: 'Qatar', bandera_local: 'qa', visitante_equipo: 'Ecuador', bandera_visitante: 'ec', fecha: '2026-06-11', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'B', local_equipo: 'Inglaterra', bandera_local: 'gb-eng', visitante_equipo: 'Irán', bandera_visitante: 'ir', fecha: '2026-06-11', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'A', local_equipo: 'Senegal', bandera_local: 'sn', visitante_equipo: 'Países Bajos', bandera_visitante: 'nl', fecha: '2026-06-11', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'B', local_equipo: 'Estados Unidos', bandera_local: 'us', visitante_equipo: 'Gales', bandera_visitante: 'gb-wls', fecha: '2026-06-12', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'C', local_equipo: 'Argentina', bandera_local: 'ar', visitante_equipo: 'Arabia S.', bandera_visitante: 'sa', fecha: '2026-06-12', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'D', local_equipo: 'Dinamarca', bandera_local: 'dk', visitante_equipo: 'Túnez', bandera_visitante: 'tn', fecha: '2026-06-12', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'C', local_equipo: 'México', bandera_local: 'mx', visitante_equipo: 'Polonia', bandera_visitante: 'pl', fecha: '2026-06-13', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'D', local_equipo: 'Francia', bandera_local: 'fr', visitante_equipo: 'Australia', bandera_visitante: 'au', fecha: '2026-06-13', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'E', local_equipo: 'Alemania', bandera_local: 'de', visitante_equipo: 'Japón', bandera_visitante: 'jp', fecha: '2026-06-13', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'E', local_equipo: 'España', bandera_local: 'es', visitante_equipo: 'Costa Rica', bandera_visitante: 'cr', fecha: '2026-06-14', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'F', local_equipo: 'Bélgica', bandera_local: 'be', visitante_equipo: 'Canadá', bandera_visitante: 'ca', fecha: '2026-06-14', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'F', local_equipo: 'Brasil', bandera_local: 'br', visitante_equipo: 'Serbia', bandera_visitante: 'rs', fecha: '2026-06-14', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'G', local_equipo: 'Portugal', bandera_local: 'pt', visitante_equipo: 'Ghana', bandera_visitante: 'gh', fecha: '2026-06-15', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'G', local_equipo: 'Uruguay', bandera_local: 'uy', visitante_equipo: 'Corea del Sur', bandera_visitante: 'kr', fecha: '2026-06-15', hora: '15:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'H', local_equipo: 'Colombia', bandera_local: 'co', visitante_equipo: 'Marruecos', bandera_visitante: 'ma', fecha: '2026-06-15', hora: '18:00', fase: 'Grupos', estado: 'pendiente' },
+      { grupo: 'H', local_equipo: 'Croacia', bandera_local: 'hr', visitante_equipo: 'Ecuador', bandera_visitante: 'ec', fecha: '2026-06-16', hora: '12:00', fase: 'Grupos', estado: 'pendiente' },
+    ];
 
-    const batch = this.db.batch();
-    partidos.forEach((p) => {
-      const ref = this.db.collection('partidos').doc();
-      batch.set(ref, { ...p, createdAt: new Date() });
-    });
-    await batch.commit();
+    const entities = partidos.map((p) => this.partidoRepo.create(p as Partial<Partido>));
+    await this.partidoRepo.save(entities);
     return { mensaje: `${partidos.length} partidos creados exitosamente` };
   }
 
   async actualizarResultado(id: string, goles_local: number, goles_visitante: number) {
-    const resultado = goles_local > goles_visitante ? 'local'
-      : goles_visitante > goles_local ? 'visitante' : 'empate';
+    const partidoId = parseInt(id, 10);
+    const resultado =
+      goles_local > goles_visitante
+        ? 'local'
+        : goles_visitante > goles_local
+          ? 'visitante'
+          : 'empate';
 
-    await this.db.collection('partidos').doc(id).update({
-      goles_local, goles_visitante, resultado, estado: 'finalizado',
+    await this.partidoRepo.update(partidoId, {
+      goles_local,
+      goles_visitante,
+      resultado,
+      estado: 'finalizado',
     });
+
     return { mensaje: 'Resultado actualizado' };
   }
 }

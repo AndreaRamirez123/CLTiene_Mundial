@@ -8,8 +8,8 @@ import {
     GoogleAuthProvider,
 } from "firebase/auth";
 
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "../firebase/config";
+import { auth } from "../firebase/config";
+import client from "../api/client";
 import logo from "../assets/logo.png";
 
 
@@ -46,8 +46,12 @@ export default function Login({ onLoginExitoso }) {
     const limpiar = () => setError("");
 
     const verificarPerfil = async (uid) => {
-        const snap = await getDoc(doc(db, "jugadores", uid));
-        return snap.exists() ? snap.data() : null;
+        try {
+            const res = await client.get(`/jugadores/${uid}`);
+            return res.data;
+        } catch {
+            return null;
+        }
     };
 
 

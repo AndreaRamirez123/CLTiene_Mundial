@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FirebaseModule } from './firebase/firebase.module';
 import { AuthModule } from './auth/auth.module';
@@ -9,11 +11,28 @@ import { MonedasModule } from './monedas/monedas.module';
 import { RankingModule } from './ranking/ranking.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { MisionesModule } from './misiones/misiones.module';
+import { WipModule } from './wip/wip.module';
+import { CanjesModule } from './canjes/canjes.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 3306),
+        username: config.get('DB_USER', 'root'),
+        password: config.get('DB_PASSWORD', ''),
+        database: config.get('DB_NAME', 'cltiene_mundial'),
+        autoLoadEntities: true,
+        synchronize: true, // Solo en desarrollo, desactivar en produccion
+      }),
+    }),
     ScheduleModule.forRoot(),
     FirebaseModule,
     AuthModule,
@@ -24,6 +43,8 @@ import { AppService } from './app.service';
     RankingModule,
     NotificacionesModule,
     MisionesModule,
+    WipModule,
+    CanjesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

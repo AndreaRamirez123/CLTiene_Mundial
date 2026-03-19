@@ -1,15 +1,21 @@
-/* eslint-disable @typescript-eslint/require-await */
-
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { FirebaseService } from '../firebase/firebase.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
+import { Jugador } from '../entities/jugador.entity';
+import { Prediccion } from '../entities/prediccion.entity';
+import { Partido } from '../entities/partido.entity';
 
 @Injectable()
 export class PrediccionesService {
-  constructor(private firebase: FirebaseService) {}
-
-  private get db() {
-    return this.firebase.getFirestore();
-  }
+  constructor(
+    @InjectRepository(Jugador)
+    private readonly jugadorRepo: Repository<Jugador>,
+    @InjectRepository(Prediccion)
+    private readonly prediccionRepo: Repository<Prediccion>,
+    @InjectRepository(Partido)
+    private readonly partidoRepo: Repository<Partido>,
+    private readonly dataSource: DataSource,
+  ) {}
 
   async crearPrediccion(
     uid: string,
@@ -21,64 +27,59 @@ export class PrediccionesService {
       monedas_apostadas: number;
     },
   ) {
-    // Validar minimo de monedas
-    if (datos.monedas_apostadas < 10) {
-      throw new BadRequestException('El mínimo de monedas por apuesta es 10');
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) {
+      throw new BadRequestException('Jugador no encontrado');
     }
 
-    // Verificar saldo suficiente
-    const jugadorSnap = await this.db.collection('jugadores').doc(uid).get();
-    if (!jugadorSnap.exists)
-      throw new BadRequestException('Jugador no encontrado');
+    const partidoId = parseInt(datos.partido_id, 10);
 
-    const saldo = jugadorSnap.data()!.monedas as number;
-    if (saldo < datos.monedas_apostadas) {
-      throw new BadRequestException('No tienes suficientes monedas');
+    // Verificar que el partido existe
+    const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
+    if (!partido) {
+      throw new BadRequestException('Partido no encontrado');
     }
 
     // Verificar que no exista predicción previa para este partido
-    const existente = await this.db
-      .collection('predicciones')
-      .where('uid', '==', uid)
-      .where('partido_id', '==', datos.partido_id)
-      .get();
+    const existente = await this.prediccionRepo.findOne({
+      where: { jugador_id: jugador.id, partido_id: partidoId },
+    });
 
-    if (!existente.empty) {
+    if (existente) {
       throw new BadRequestException(
         'Ya tienes una predicción para este partido',
       );
     }
 
-    // Guardar predicción sin descontar monedas
-    const predRef = this.db.collection('predicciones').doc();
-    const jugadorRef = this.db.collection('jugadores').doc(uid);
+    // Predicciones son GRATUITAS - NO se descuentan monedas
+    let prediccion: Prediccion;
 
-    await this.db.runTransaction(async (t) => {
-      t.set(predRef, {
-        uid,
-        partido_id: datos.partido_id,
+    await this.dataSource.transaction(async (manager) => {
+      prediccion = await manager.save(Prediccion, {
+        jugador_id: jugador.id,
+        partido_id: partidoId,
         resultado: datos.resultado,
         goles_local: datos.goles_local,
         goles_visitante: datos.goles_visitante,
         estado: 'pendiente',
-        createdAt: new Date(),
       });
 
-      t.update(jugadorRef, {
-        predicciones: (jugadorSnap.data()!.predicciones || 0) + 1,
-        ultimo_acceso: new Date(),
-      });
+      jugador.predicciones_count = (jugador.predicciones_count || 0) + 1;
+      jugador.ultimo_acceso = new Date();
+      await manager.save(Jugador, jugador);
     });
 
-    return { mensaje: '¡Predicción guardada! Buena suerte 🍀', id: predRef.id };
+    return { mensaje: '¡Predicción guardada! Buena suerte', id: prediccion!.id };
   }
 
   async getPrediccionesUsuario(uid: string) {
-    const snap = await this.db
-      .collection('predicciones')
-      .where('uid', '==', uid)
-      .orderBy('createdAt', 'desc')
-      .get();
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) return [];
+
+    return this.prediccionRepo.find({
+      where: { jugador_id: jugador.id },
+      relations: ['partido'],
+      order: { created_at: 'DESC' },
+    });
   }
 }
