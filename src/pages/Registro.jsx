@@ -19,9 +19,14 @@ const C = {
 export default function Registro({ usuario, onRegistroCompleto }) {
     const [step, setStep] = useState(0);
     const [aceptado, setAceptado] = useState(false);
+
+    // Leer código de referido de la URL (?ref=CODIGO)
+    const urlParams = new URLSearchParams(window.location.search);
+    const codigoRefUrl = urlParams.get("ref") || "";
+
     const [form, setForm] = useState({
-        tipojugador: "", relacionCLTiene: "", esReferido: null,
-        nombreReferidor: "", nombre: "", telefono: "", correo: "",
+        tipojugador: "", relacionCLTiene: "", esReferido: codigoRefUrl ? true : null,
+        nombreReferidor: "", codigoReferidor: codigoRefUrl, nombre: "", telefono: "", correo: "",
     });
     const [completado, setCompletado] = useState(false);
     const [errores, setErrores] = useState({});
@@ -48,6 +53,9 @@ export default function Registro({ usuario, onRegistroCompleto }) {
         if (!usuario?.uid) return;
         setGuardando(true);
         try {
+            // Generar código de referido propio (primeros 8 caracteres del UID)
+            const miCodigoReferido = usuario.uid.substring(0, 8).toUpperCase();
+
             await setDoc(doc(db, "jugadores", usuario.uid), {
                 ...datos,
                 uid: usuario.uid,
@@ -55,6 +63,8 @@ export default function Registro({ usuario, onRegistroCompleto }) {
                 monedas: 100,
                 nivel: "activo",
                 predicciones: 0,
+                codigo_referido: miCodigoReferido,
+                referido_por: datos.codigoReferidor || "",
                 createdAt: new Date().toISOString(),
             });
         } catch (err) {
@@ -153,14 +163,22 @@ export default function Registro({ usuario, onRegistroCompleto }) {
                         />
                     )}
                     {step === 4 && form.esReferido && (
-                        <PantallaInput
-                            titulo="¿Quién te refirió?"
-                            descripcion="Ingresa el nombre de quien te invitó para que reciba su bono de 50 monedas."
-                            placeholder="Nombre del referidor"
-                            valor={form.nombreReferidor}
-                            onChange={(v) => set("nombreReferidor", v)}
-                            error={errores.nombreReferidor}
-                        />
+                        <div>
+                            <PantallaInput
+                                titulo="¿Quién te refirió?"
+                                descripcion="Ingresa el nombre de quien te invitó para que reciba su bono de 50 monedas."
+                                placeholder="Nombre del referidor"
+                                valor={form.nombreReferidor}
+                                onChange={(v) => set("nombreReferidor", v)}
+                                error={errores.nombreReferidor}
+                            />
+                            {codigoRefUrl && (
+                                <div style={{ marginTop: 12, padding: "10px 14px", background: `${C.dorado}18`, border: `1px solid ${C.dorado}40`, borderRadius: 10, display: "flex", alignItems: "center", gap: 8 }}>
+                                    <span style={{ fontSize: 16 }}>🎟️</span>
+                                    <span style={{ color: C.dorado, fontSize: 13, fontWeight: 600 }}>Código de referido: {codigoRefUrl}</span>
+                                </div>
+                            )}
+                        </div>
                     )}
                     {((step === 4 && !form.esReferido) || step === 5) && (
                         <PantallaInput

@@ -8,6 +8,7 @@ import { PrediccionesModule } from './predicciones/predicciones.module';
 import { MonedasModule } from './monedas/monedas.module';
 import { RankingModule } from './ranking/ranking.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { MisionesModule } from './misiones/misiones.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -22,6 +23,7 @@ import { AppService } from './app.service';
     MonedasModule,
     RankingModule,
     NotificacionesModule,
+    MisionesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
