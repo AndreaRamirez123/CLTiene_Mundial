@@ -33,6 +33,12 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const [tab, setTab] = useState("inicio");
   const [partidos, setPartidos] = useState([]);
   const [ranking, setRanking] = useState([]);
+  const [toast, setToast] = useState(null);
+
+  const mostrarToast = (mensaje, tipo = "exito") => {
+    setToast({ mensaje, tipo });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useNotificaciones({ uid: usuario?.uid, client });
 
@@ -67,9 +73,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const reclamarBono = async () => {
     try {
       const res = await client.post(`/monedas/bono-diario/${usuario.uid}`);
-      alert(res.data.mensaje);
-      await cargarPerfil();
-    } catch { alert("Ya reclamaste tu bono hoy o hubo un error"); }
+      mostrarToast(res.data.mensaje, "exito");
+      cargarPerfil();
+    } catch { mostrarToast("Ya reclamaste tu bono hoy", "error"); }
   };
 
   const nombre = perfil?.nombre || usuario?.displayName?.split(" ")[0] || "Jugador";
@@ -83,11 +89,11 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       <div style={{ background: "rgba(15,10,30,0.95)", borderBottom: "2px solid #FD7751", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <img src={logo} style={{ height: 28 }} alt="CLTiene" />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
+          <div className="anim-glow" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
             <span style={{ fontSize: 16 }}>🪙</span>
             <span style={{ color: C.dorado, fontWeight: 900, fontSize: 16 }}>{monedas}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 12px" }}>
+          <div className="anim-glow" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 12px", animationDelay: "1s" }}>
             <span style={{ fontSize: 16 }}>⚽</span>
             <span style={{ color: C.verde, fontWeight: 900, fontSize: 16 }}>{perfil?.goles || 0}</span>
           </div>
@@ -115,7 +121,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
               { label: "Predicciones", valor: perfil?.predicciones_count || 0, icono: "⚽", color: C.azul    },
               { label: "Posición",     valor: `#${posicion}`,            icono: "🏆", color: C.naranja },
             ].map((s, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${s.color}30`, borderRadius: 14, padding: "14px 10px", textAlign: "center" }}>
+              <div key={i} className="anim-slide-up" style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${s.color}30`, borderRadius: 14, padding: "14px 10px", textAlign: "center", animationDelay: `${i * 0.1}s`, animationFillMode: "both" }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>{s.icono}</div>
                 <div style={{ color: s.color, fontSize: 20, fontWeight: 900 }}>{s.valor}</div>
                 <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginTop: 2 }}>{s.label}</div>
@@ -134,6 +140,14 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         {tab === "noticias" && <Noticias />}
         {tab === "perfil"   && <Perfil   perfil={perfil} nombre={nombre} monedas={monedas} posicion={posicion} ranking={ranking} usuario={usuario} />}
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <div className="anim-slide-up" style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 300, background: toast.tipo === "exito" ? "linear-gradient(135deg, #16C784, #0fa968)" : "linear-gradient(135deg, #ED1E28, #c0392b)", borderRadius: 14, padding: "14px 24px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", maxWidth: "90%" }}>
+          <span className="anim-coin" style={{ fontSize: 24 }}>{toast.tipo === "exito" ? "🪙" : "⚠️"}</span>
+          <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{toast.mensaje}</span>
+        </div>
+      )}
 
       {/* BOTTOM NAV */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(15,10,30,0.98)", borderTop: "1px solid rgba(253,119,81,0.2)", display: "flex", padding: "6px 0", zIndex: 100 }}>
@@ -181,8 +195,8 @@ function Inicio({ setTab, reclamarBono, partidos }) {
 
       {proximos.length === 0 ? (
         <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, textAlign: "center", padding: "20px 0" }}>Cargando partidos...</div>
-      ) : proximos.map((p) => (
-        <div key={p.id} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px 16px", marginBottom: 10 }}>
+      ) : proximos.map((p, idx) => (
+        <div key={p.id} className="anim-slide-up" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px 16px", marginBottom: 10, animationDelay: `${idx * 0.1}s`, animationFillMode: "both" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
             <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>Grupo {p.grupo}</span>
             <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>📅 {formatearFecha(p.fecha)} · {p.hora}</span>
@@ -212,7 +226,7 @@ function Inicio({ setTab, reclamarBono, partidos }) {
           <div style={{ color: "#ECA82D", fontWeight: 800, fontSize: 15 }}>🪙 Bono diario</div>
           <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 3 }}>Tienes monedas esperándote</div>
         </div>
-        <button onClick={reclamarBono} style={{ background: "linear-gradient(135deg, #ECA82D, #c9891a)", border: "none", borderRadius: 10, color: "#231F20", fontWeight: 800, fontSize: 14, padding: "10px 18px", cursor: "pointer" }}>
+        <button className="anim-pulse" onClick={reclamarBono} style={{ background: "linear-gradient(135deg, #ECA82D, #c9891a)", border: "none", borderRadius: 10, color: "#231F20", fontWeight: 800, fontSize: 14, padding: "10px 18px", cursor: "pointer", boxShadow: "0 4px 16px rgba(236,168,45,0.4)" }}>
           ¡Reclamar!
         </button>
       </div>
@@ -340,7 +354,7 @@ function Ranking({ ranking }) {
       {ranking.length === 0 ? (
         <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>Cargando ranking...</div>
       ) : ranking.map((j, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: j.esYo ? "rgba(253,119,81,0.1)" : "rgba(255,255,255,0.04)", border: j.esYo ? "2px solid #FD7751" : "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", marginBottom: 10 }}>
+        <div key={i} className="anim-slide-up" style={{ display: "flex", alignItems: "center", gap: 14, background: j.esYo ? "rgba(253,119,81,0.1)" : "rgba(255,255,255,0.04)", border: j.esYo ? "2px solid #FD7751" : "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", marginBottom: 10, animationDelay: `${i * 0.06}s`, animationFillMode: "both" }}>
           <div style={{ fontSize: i < 3 ? 28 : 16, fontWeight: 900, color: "#ECA82D", minWidth: 36, textAlign: "center" }}>
             {i < 3 ? medallas[i] : `#${j.pos}`}
           </div>
@@ -549,9 +563,9 @@ function Misiones({ usuario, cargarPerfil }) {
           <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Los goles se acumulan aparte de las monedas</div>
         </div>
       </div>
-      {misiones.map((m) => (
-        <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 14, background: m.ok ? "rgba(22,199,132,0.08)" : "rgba(255,255,255,0.04)", border: m.ok ? "1px solid rgba(22,199,132,0.3)" : "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", marginBottom: 10, opacity: m.ok ? 0.8 : 1 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: m.ok ? "rgba(22,199,132,0.15)" : "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+      {misiones.map((m, idx) => (
+        <div key={m.id} className="anim-slide-up" style={{ display: "flex", alignItems: "center", gap: 14, background: m.ok ? "rgba(22,199,132,0.08)" : "rgba(255,255,255,0.04)", border: m.ok ? "1px solid rgba(22,199,132,0.3)" : "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "14px 16px", marginBottom: 10, opacity: m.ok ? 0.8 : 1, animationDelay: `${idx * 0.08}s`, animationFillMode: "both" }}>
+          <div className={m.ok ? "anim-confetti" : ""} style={{ width: 44, height: 44, borderRadius: 12, background: m.ok ? "rgba(22,199,132,0.15)" : "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
             {m.icono}
           </div>
           <div style={{ flex: 1 }}>

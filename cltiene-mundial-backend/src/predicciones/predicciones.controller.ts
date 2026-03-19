@@ -24,4 +24,23 @@ export class PrediccionesController {
   getPredicciones(@Param('uid') uid: string) {
     return this.prediccionesService.getPrediccionesUsuario(uid);
   }
+
+  // Resolver predicciones de un partido finalizado
+  @Post('resolver/:partidoId')
+  resolverPredicciones(@Param('partidoId') partidoId: string) {
+    return this.prediccionesService.resolverPrediccionesPartido(parseInt(partidoId, 10));
+  }
+
+  // SIMULACION: poner resultado + resolver predicciones de una vez
+  @Post('simular/:partidoId')
+  simularResultado(
+    @Param('partidoId') partidoId: string,
+    @Body() body: { goles_local: number; goles_visitante: number },
+  ) {
+    return this.prediccionesService.simularResultado(
+      parseInt(partidoId, 10),
+      body.goles_local,
+      body.goles_visitante,
+    );
+  }
 }

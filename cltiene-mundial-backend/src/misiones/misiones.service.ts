@@ -119,9 +119,7 @@ export class MisionesService {
     }
 
     // Combinar completadas manuales + auto-detectadas
-    const todasCompletadas = [
-      ...new Set([...completadas, ...autoCompletadas]),
-    ];
+    const todasCompletadas = [...new Set([...completadas, ...autoCompletadas])];
 
     const lista = MISIONES.map((m) => ({
       ...m,
@@ -130,7 +128,11 @@ export class MisionesService {
 
     const totalCompletadas = lista.filter((m) => m.ok).length;
 
-    return { misiones: lista, completadas: totalCompletadas, total: lista.length };
+    return {
+      misiones: lista,
+      completadas: totalCompletadas,
+      total: lista.length,
+    };
   }
 
   async completarMision(uid: string, misionId: string) {

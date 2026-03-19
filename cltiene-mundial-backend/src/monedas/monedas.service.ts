@@ -47,7 +47,8 @@ export class MonedasService {
       });
 
       jugador.monedas = saldoNuevo;
-      jugador.monedas_totales_ganadas = (jugador.monedas_totales_ganadas || 0) + Math.max(0, monto);
+      jugador.monedas_totales_ganadas =
+        (jugador.monedas_totales_ganadas || 0) + Math.max(0, monto);
       jugador.ultimo_acceso = new Date();
       jugador.nivel = this.calcularNivel(saldoNuevo);
 
@@ -92,7 +93,8 @@ export class MonedasService {
       });
 
       jug.monedas = saldoNuevo;
-      jug.monedas_totales_ganadas = (jug.monedas_totales_ganadas || 0) + bonoPorFase;
+      jug.monedas_totales_ganadas =
+        (jug.monedas_totales_ganadas || 0) + bonoPorFase;
       jug.ultimo_bono_diario = hoy;
       jug.ultimo_acceso = new Date();
       jug.nivel = this.calcularNivel(saldoNuevo);
@@ -111,7 +113,8 @@ export class MonedasService {
     await this.dataSource.transaction(async (manager) => {
       // Bono para el referido
       const jugador = await manager.findOne(Jugador, { where: { uid } });
-      if (!jugador) throw new BadRequestException('Jugador referido no encontrado');
+      if (!jugador)
+        throw new BadRequestException('Jugador referido no encontrado');
 
       const saldoAnterior1 = jugador.monedas;
       const saldoNuevo1 = saldoAnterior1 + 50;
@@ -126,13 +129,17 @@ export class MonedasService {
       });
 
       jugador.monedas = saldoNuevo1;
-      jugador.monedas_totales_ganadas = (jugador.monedas_totales_ganadas || 0) + 50;
+      jugador.monedas_totales_ganadas =
+        (jugador.monedas_totales_ganadas || 0) + 50;
       jugador.nivel = this.calcularNivel(saldoNuevo1);
       await manager.save(Jugador, jugador);
 
       // Bono para el referidor
-      const referidor = await manager.findOne(Jugador, { where: { uid: uidReferidor } });
-      if (!referidor) throw new BadRequestException('Jugador referidor no encontrado');
+      const referidor = await manager.findOne(Jugador, {
+        where: { uid: uidReferidor },
+      });
+      if (!referidor)
+        throw new BadRequestException('Jugador referidor no encontrado');
 
       const saldoAnterior2 = referidor.monedas;
       const saldoNuevo2 = saldoAnterior2 + 50;
@@ -147,7 +154,8 @@ export class MonedasService {
       });
 
       referidor.monedas = saldoNuevo2;
-      referidor.monedas_totales_ganadas = (referidor.monedas_totales_ganadas || 0) + 50;
+      referidor.monedas_totales_ganadas =
+        (referidor.monedas_totales_ganadas || 0) + 50;
       referidor.nivel = this.calcularNivel(saldoNuevo2);
       await manager.save(Jugador, referidor);
     });

@@ -5,9 +5,10 @@ import { PrediccionesService } from './predicciones.service';
 import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Partido } from '../entities/partido.entity';
+import { Transaccion } from '../entities/transaccion.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Jugador, Prediccion, Partido])],
+  imports: [TypeOrmModule.forFeature([Jugador, Prediccion, Partido, Transaccion])],
   controllers: [PrediccionesController],
   providers: [PrediccionesService],
   exports: [PrediccionesService],
