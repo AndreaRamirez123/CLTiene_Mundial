@@ -25,7 +25,7 @@ export default function Noticias() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <span style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>📰 Noticias del Mundial</span>
+        <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>📰 Noticias del Mundial</span>
         <button onClick={cargarNoticias} disabled={cargando} style={{ background: "none", border: "none", color: C.naranja, fontSize: 13, cursor: "pointer", fontWeight: 700 }}>
           {cargando ? "Cargando..." : "Actualizar ↻"}
         </button>
@@ -34,7 +34,7 @@ export default function Noticias() {
       <div style={{ background: "rgba(64,141,255,0.1)", border: "1px solid rgba(64,141,255,0.3)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 20 }}>🤖</span>
         <div>
-          <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Noticias</div>
+          <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Noticias</div>
           <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Lo último del Mundial 2026 actualizado para ti</div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function Noticias() {
       {error && (
         <div style={{ background: "rgba(237,30,40,0.1)", border: "1px solid rgba(237,30,40,0.3)", borderRadius: 12, padding: "16px", textAlign: "center", marginBottom: 16 }}>
           <div style={{ color: C.rojo, fontSize: 14, marginBottom: 8 }}>{error}</div>
-          <button onClick={cargarNoticias} style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 13, padding: "8px 16px", cursor: "pointer" }}>
+          <button onClick={cargarNoticias} style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 8, color: "var(--texto)", fontWeight: 700, fontSize: 13, padding: "8px 16px", cursor: "pointer" }}>
             Reintentar
           </button>
         </div>
@@ -62,7 +62,7 @@ export default function Noticias() {
           Clasificación: { bg: "rgba(64,141,255,0.15)", color: C.azul },
           Jugadores: { bg: "rgba(22,199,132,0.15)", color: C.verde },
           FIFA: { bg: "rgba(236,168,45,0.15)", color: C.dorado },
-        }[n.categoria] || { bg: "rgba(255,255,255,0.1)", color: "#fff" };
+        }[n.categoria] || { bg: "rgba(255,255,255,0.1)", color: "var(--texto)" };
 
         return (
           <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
@@ -82,7 +82,7 @@ export default function Noticias() {
               <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>📅 {n.fecha || "Hoy"}</span>
             </div>
 
-            <h3 style={{ color: "#fff", fontSize: 16, fontWeight: 800, margin: "0 0 8px", lineHeight: 1.3 }}>{n.titulo}</h3>
+            <h3 style={{ color: "var(--texto)", fontSize: 16, fontWeight: 800, margin: "0 0 8px", lineHeight: 1.3 }}>{n.titulo}</h3>
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 14px", lineHeight: 1.6 }}>{n.resumen}</p>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
@@ -92,7 +92,7 @@ export default function Noticias() {
                   <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>{n.fuente}</span>
                 </div>
               )}
-              <span style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", padding: "5px 14px", borderRadius: 20, color: "#fff", fontSize: 12, fontWeight: 700 }}>
+              <span style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", padding: "5px 14px", borderRadius: 20, color: "var(--texto)", fontSize: 12, fontWeight: 700 }}>
                 Leer artículo →
               </span>
             </div>

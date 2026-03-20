@@ -13,6 +13,7 @@ import client from "../api/client";
 import logo from "../assets/logo.png";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
+import { ThemeToggle } from "../store/useTheme";
 
 
 
@@ -96,6 +97,7 @@ export default function Login({ onLoginExitoso }) {
 
     return (
         <div style={s.root}>
+            <div style={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}><ThemeToggle /></div>
             <div style={s.bgGradient} />
             <div style={s.bgNoise} />
 

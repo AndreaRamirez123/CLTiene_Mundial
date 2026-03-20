@@ -92,7 +92,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
 
   return (
     <div>
-      <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Beneficios CLTiene</h2>
+      <h2 style={{ color: "var(--texto)", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Beneficios CLTiene</h2>
       <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginBottom: 16 }}>
         Canjea tus monedas por beneficios reales
       </p>
@@ -135,12 +135,12 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
         {filtrados.map(b => {
           const alcanza = monedas >= b.costo;
           return (
-            <div key={b.id} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 14, padding: "16px 18px", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div key={b.id} style={{ background: "var(--card)", borderRadius: 14, padding: "16px 18px", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
                   <span style={{ fontSize: 32 }}>{b.icono}</span>
                   <div>
-                    <div style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{b.nombre}</div>
+                    <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 14 }}>{b.nombre}</div>
                     <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 2 }}>{b.descripcion}</div>
                   </div>
                 </div>
@@ -185,7 +185,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
           <div onClick={e => e.stopPropagation()} style={{ background: "#1a1230", borderRadius: 18, padding: 28, maxWidth: 380, width: "100%", border: "1px solid rgba(253,119,81,0.3)" }}>
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <span style={{ fontSize: 48 }}>{modalConfirm.icono}</span>
-              <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 800, marginTop: 10 }}>{modalConfirm.nombre}</h3>
+              <h3 style={{ color: "var(--texto)", fontSize: 18, fontWeight: 800, marginTop: 10 }}>{modalConfirm.nombre}</h3>
               <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 6 }}>{modalConfirm.descripcion}</p>
               <div style={{ color: C.naranja, fontSize: 24, fontWeight: 800, marginTop: 12 }}>🪙 {modalConfirm.costo} monedas</div>
             </div>
@@ -221,7 +221,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
               <button onClick={() => setModalConfirm(null)} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "none", color: "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
                 Cancelar
               </button>
-              <button onClick={handleCanjear} disabled={!!canjeando} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #FD7751, #ED1E28)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: canjeando ? "not-allowed" : "pointer", opacity: canjeando ? 0.6 : 1 }}>
+              <button onClick={handleCanjear} disabled={!!canjeando} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #FD7751, #ED1E28)", color: "var(--texto)", fontWeight: 700, fontSize: 13, cursor: canjeando ? "not-allowed" : "pointer", opacity: canjeando ? 0.6 : 1 }}>
                 {canjeando ? "Canjeando..." : "Confirmar canje"}
               </button>
             </div>

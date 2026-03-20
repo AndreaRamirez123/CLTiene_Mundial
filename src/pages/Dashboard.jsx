@@ -12,8 +12,10 @@ import Misiones from "../components/dashboard/Misiones";
 import Noticias from "../components/dashboard/Noticias";
 import Perfil from "../components/dashboard/Perfil";
 import Beneficios from "../components/dashboard/Beneficios";
+import { useTheme, ThemeToggle } from "../store/useTheme";
 
 export default function Dashboard({ usuario, onCerrarSesion }) {
+  useTheme(); // Activa el tema CSS
   const [perfil, setPerfil] = useState(null);
   const [tab, setTab] = useState("inicio");
   const [partidos, setPartidos] = useState([]);
@@ -68,10 +70,10 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const posicion = ranking.find(r => r.esYo)?.pos || "—";
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0f0a1e", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80 }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)" }}>
 
       {/* NAVBAR */}
-      <div style={{ background: "rgba(15,10,30,0.95)", borderBottom: "2px solid #FD7751", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease" }}>
         <img src={logo} style={{ height: 28 }} alt="CLTiene" />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div className="anim-glow" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
@@ -82,12 +84,13 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
             <span style={{ fontSize: 16 }}>⚽</span>
             <span style={{ color: C.verde, fontWeight: 900, fontSize: 16 }}>{perfil?.goles || 0}</span>
           </div>
+          <ThemeToggle />
           <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 13 }}>Salir</button>
         </div>
       </div>
 
       {/* HERO */}
-      <div style={{ position: "relative", overflow: "hidden", padding: "28px 16px 24px", background: "linear-gradient(135deg, #1a0033 0%, #0f0a1e 50%, #001a33 100%)" }}>
+      <div style={{ position: "relative", overflow: "hidden", padding: "28px 16px 24px", background: "var(--bg-gradient)" }}>
         <div style={{ position: "absolute", right: -20, top: -20, fontSize: 120, opacity: 0.07, transform: "rotate(15deg)", userSelect: "none" }}>⚽</div>
         <div style={{ position: "relative", maxWidth: 600, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(253,119,81,0.2)", border: "1px solid rgba(253,119,81,0.4)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
@@ -136,7 +139,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       )}
 
       {/* BOTTOM NAV */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(15,10,30,0.98)", borderTop: "1px solid rgba(253,119,81,0.2)", display: "flex", padding: "6px 0", zIndex: 100, overflowX: "auto" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, overflowX: "auto", transition: "background 0.3s ease" }}>
         {[
           { id: "inicio",     i: "🏠", l: "Inicio"     },
           { id: "polla",      i: "⚽", l: "Polla"      },
@@ -148,7 +151,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
             <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
-            <span style={{ fontSize: 10, color: tab === t.id ? C.naranja : "rgba(255,255,255,0.3)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
+            <span style={{ fontSize: 10, color: tab === t.id ? C.naranja : "var(--texto-ter)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
           </button>
         ))}
       </div>

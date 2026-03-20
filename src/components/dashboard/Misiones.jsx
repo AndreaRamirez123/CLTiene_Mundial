@@ -184,13 +184,13 @@ export default function Misiones({ usuario, cargarPerfil }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <span style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>Tus misiones</span>
+        <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>Tus misiones</span>
         <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>{completadas} / {total} completadas</span>
       </div>
       <div style={{ background: "rgba(22,199,132,0.1)", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 20 }}>⚽</span>
         <div>
-          <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Gana goles completando misiones</div>
+          <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Gana goles completando misiones</div>
           <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Los goles se acumulan aparte de las monedas</div>
         </div>
       </div>
@@ -210,7 +210,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
               : <button
                   onClick={() => reclamar(m.id)}
                   disabled={reclamando === m.id}
-                  style={{ marginTop: 4, background: reclamando === m.id ? "#666" : "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 12, padding: "5px 12px", cursor: reclamando === m.id ? "wait" : "pointer" }}
+                  style={{ marginTop: 4, background: reclamando === m.id ? "#666" : "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 8, color: "var(--texto)", fontWeight: 700, fontSize: 12, padding: "5px 12px", cursor: reclamando === m.id ? "wait" : "pointer" }}
                 >
                   {reclamando === m.id ? "..." : m.id === "invita_amigo" ? "Compartir →" : m.id === "ver_video" ? "Ver video →" : m.id === "trivia_mundial" ? "Jugar trivia →" : "Reclamar →"}
                 </button>
@@ -225,7 +225,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
           <div style={{ background: "#1a1130", borderRadius: 20, padding: "28px 24px", maxWidth: 340, width: "90%", border: "1px solid rgba(253,119,81,0.3)" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <div style={{ fontSize: 36, marginBottom: 8 }}>🤝</div>
-              <div style={{ color: "#fff", fontWeight: 800, fontSize: 18 }}>Invita a un amigo</div>
+              <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 18 }}>Invita a un amigo</div>
               <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 6 }}>Cuando alguien se registre con tu enlace, ganas +5 ⚽</div>
             </div>
             <div style={{ background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, textAlign: "center" }}>
@@ -258,7 +258,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
           <div style={{ background: "#1a1130", borderRadius: 20, padding: "24px 20px", maxWidth: 400, width: "95%", border: "1px solid rgba(253,119,81,0.3)" }}>
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 32, marginBottom: 6 }}>▶️</div>
-              <div style={{ color: "#fff", fontWeight: 800, fontSize: 17 }}>Video CLTiene</div>
+              <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 17 }}>Video CLTiene</div>
               <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>
                 Mira el video completo para ganar +3 ⚽
               </div>
@@ -296,7 +296,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                 </div>
                 <button
                   onClick={reclamarVideo}
-                  style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 4px 16px rgba(253,119,81,0.4)" }}
+                  style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 12, color: "var(--texto)", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 4px 16px rgba(253,119,81,0.4)" }}
                 >
                   Reclamar +3 ⚽
                 </button>
@@ -316,7 +316,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
               <div>
                 <div style={{ textAlign: "center", marginBottom: 16 }}>
                   <div style={{ fontSize: 32, marginBottom: 6 }}>🧠</div>
-                  <div style={{ color: "#fff", fontWeight: 800, fontSize: 17 }}>Trivia del Mundial</div>
+                  <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 17 }}>Trivia del Mundial</div>
                   <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>
                     Pregunta {triviaActual + 1} de {PREGUNTAS_TRIVIA.length} — ¡Cada acierto suma goles!
                   </div>
@@ -331,7 +331,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
                 {/* Pregunta */}
                 <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: "16px", marginBottom: 16 }}>
-                  <div style={{ color: "#fff", fontWeight: 700, fontSize: 15, lineHeight: 1.4 }}>
+                  <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 15, lineHeight: 1.4 }}>
                     {PREGUNTAS_TRIVIA[triviaActual].pregunta}
                   </div>
                 </div>
@@ -379,7 +379,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                 <div style={{ fontSize: 48, marginBottom: 12 }}>
                   {triviaResultado.correctas >= 4 ? "🏆" : triviaResultado.correctas >= 2 ? "🎉" : "⚽"}
                 </div>
-                <div style={{ color: "#fff", fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
+                <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
                   {triviaResultado.correctas === 5 ? "¡Perfecto!" : triviaResultado.correctas >= 3 ? "¡Muy bien!" : "¡Buen intento!"}
                 </div>
                 <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, marginBottom: 8 }}>
@@ -399,7 +399,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
                 <button
                   onClick={reclamarTrivia}
-                  style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 12, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 4px 16px rgba(253,119,81,0.4)" }}
+                  style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 12, color: "var(--texto)", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 4px 16px rgba(253,119,81,0.4)" }}
                 >
                   Reclamar +{triviaResultado.goles} ⚽
                 </button>

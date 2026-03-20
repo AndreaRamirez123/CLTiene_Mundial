@@ -10,10 +10,10 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
     <div>
       {/* Avatar y nombre */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #822BD2, #408DFF)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 36, fontWeight: 900, color: "#fff", border: "3px solid #FD7751" }}>
+        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #822BD2, #408DFF)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", fontSize: 36, fontWeight: 900, color: "var(--texto)", border: "3px solid #FD7751" }}>
           {nombre.charAt(0).toUpperCase()}
         </div>
-        <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>{nombre}</h2>
+        <h2 style={{ color: "var(--texto)", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>{nombre}</h2>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, margin: 0 }}>{email}</p>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(130,43,210,0.2)", border: "1px solid rgba(130,43,210,0.4)", borderRadius: 20, padding: "4px 14px", marginTop: 8 }}>
           <span style={{ fontSize: 14 }}>⭐</span>
@@ -51,7 +51,7 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
 
       {/* Mini ranking - top 3 */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ color: "#fff", fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 Top 3 del ranking</div>
+        <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 Top 3 del ranking</div>
         {ranking.slice(0, 3).map((j, i) => {
           const medallas = ["🥇", "🥈", "🥉"];
           return (
