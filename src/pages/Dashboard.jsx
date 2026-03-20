@@ -11,6 +11,7 @@ import Ranking from "../components/dashboard/Ranking";
 import Misiones from "../components/dashboard/Misiones";
 import Noticias from "../components/dashboard/Noticias";
 import Perfil from "../components/dashboard/Perfil";
+import Beneficios from "../components/dashboard/Beneficios";
 
 export default function Dashboard({ usuario, onCerrarSesion }) {
   const [perfil, setPerfil] = useState(null);
@@ -122,6 +123,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         {tab === "ranking"  && <Ranking  ranking={ranking} />}
         {tab === "misiones" && <Misiones usuario={usuario} cargarPerfil={cargarPerfil} />}
         {tab === "noticias" && <Noticias />}
+        {tab === "beneficios" && <Beneficios usuario={usuario} perfil={perfil} cargarPerfil={cargarPerfil} />}
         {tab === "perfil"   && <Perfil   perfil={perfil} nombre={nombre} monedas={monedas} posicion={posicion} ranking={ranking} usuario={usuario} />}
       </div>
 
@@ -134,14 +136,15 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       )}
 
       {/* BOTTOM NAV */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(15,10,30,0.98)", borderTop: "1px solid rgba(253,119,81,0.2)", display: "flex", padding: "6px 0", zIndex: 100 }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(15,10,30,0.98)", borderTop: "1px solid rgba(253,119,81,0.2)", display: "flex", padding: "6px 0", zIndex: 100, overflowX: "auto" }}>
         {[
-          { id: "inicio",   i: "🏠", l: "Inicio"   },
-          { id: "polla",    i: "⚽", l: "Polla"    },
-          { id: "ranking",  i: "🏆", l: "Ranking"  },
-          { id: "misiones", i: "🎯", l: "Misiones" },
-          { id: "noticias", i: "📰", l: "Noticias" },
-          { id: "perfil",   i: "👤", l: "Perfil"   },
+          { id: "inicio",     i: "🏠", l: "Inicio"     },
+          { id: "polla",      i: "⚽", l: "Polla"      },
+          { id: "ranking",    i: "🏆", l: "Ranking"    },
+          { id: "misiones",   i: "🎯", l: "Misiones"   },
+          { id: "beneficios", i: "🎁", l: "Beneficios" },
+          { id: "noticias",   i: "📰", l: "Noticias"   },
+          { id: "perfil",     i: "👤", l: "Perfil"     },
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
             <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>

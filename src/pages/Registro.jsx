@@ -1,6 +1,7 @@
 import { useState } from "react";
 import client from "../api/client";
 import logo from "../assets/logo.png";
+import Terminos from "./Terminos";
 
 const C = {
     naranja: "#FD7751",
@@ -18,6 +19,7 @@ const C = {
 export default function Registro({ usuario, onRegistroCompleto }) {
     const [step, setStep] = useState(0);
     const [aceptado, setAceptado] = useState(false);
+    const [verTerminos, setVerTerminos] = useState(false);
 
     // Leer código de referido de la URL (?ref=CODIGO)
     const urlParams = new URLSearchParams(window.location.search);
@@ -93,6 +95,7 @@ export default function Registro({ usuario, onRegistroCompleto }) {
     const progreso = step === 0 ? 0 : Math.round((pasoActual / totalPasos) * 100);
 
     if (completado) return <PantallaFinal nombre={form.nombre} />;
+    if (verTerminos) return <Terminos onVolver={() => setVerTerminos(false)} />;
 
     return (
         <div style={s.root}>
@@ -123,7 +126,7 @@ export default function Registro({ usuario, onRegistroCompleto }) {
 
                 {/* Contenido */}
                 <div style={s.body}>
-                    {step === 0 && <PantallaBienvenida aceptado={aceptado} setAceptado={setAceptado} />}
+                    {step === 0 && <PantallaBienvenida aceptado={aceptado} setAceptado={setAceptado} setVerTerminos={setVerTerminos} />}
                     {step === 1 && (
                         <PantallaOpcion
                             titulo="¿Cómo te identificas principalmente?"
@@ -231,7 +234,7 @@ export default function Registro({ usuario, onRegistroCompleto }) {
     );
 }
 
-function PantallaBienvenida({ aceptado, setAceptado }) {
+function PantallaBienvenida({ aceptado, setAceptado, setVerTerminos }) {
     return (
         <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "52px", marginBottom: "12px" }}>⚽</div>
@@ -260,7 +263,7 @@ function PantallaBienvenida({ aceptado, setAceptado }) {
                 <input type="checkbox" checked={aceptado} onChange={(e) => setAceptado(e.target.checked)}
                     style={{ accentColor: C.naranja, width: "16px", height: "16px", marginTop: "2px", flexShrink: 0 }} />
                 <span style={{ color: "#848588", fontSize: "14px" }}>
-                    Acepto los <a href="#" style={{ color: C.naranja }}>términos y condiciones</a> y el
+                    Acepto los <a href="#" onClick={(e) => { e.preventDefault(); setVerTerminos(true); }} style={{ color: C.naranja }}>términos y condiciones</a> y el
                     tratamiento de mis datos personales (Habeas Data)
                 </span>
             </label>
