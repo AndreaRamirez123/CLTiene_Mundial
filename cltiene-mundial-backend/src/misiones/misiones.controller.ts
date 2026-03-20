@@ -11,10 +11,7 @@ export class MisionesController {
   }
 
   @Post(':uid/trivia')
-  jugarTrivia(
-    @Param('uid') uid: string,
-    @Body('correctas') correctas: number,
-  ) {
+  jugarTrivia(@Param('uid') uid: string, @Body('correctas') correctas: number) {
     return this.misionesService.jugarTrivia(uid, correctas);
   }
 

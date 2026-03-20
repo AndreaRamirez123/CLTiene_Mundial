@@ -12,6 +12,7 @@ import { auth } from "../firebase/config";
 import client from "../api/client";
 import logo from "../assets/logo.png";
 import Terminos from "./Terminos";
+import Privacidad from "./Privacidad";
 
 
 
@@ -42,6 +43,7 @@ export default function Login({ onLoginExitoso }) {
     const [error, setError] = useState("");
     const [mostrarPass, setMostrarPass] = useState(false);
     const [verTerminos, setVerTerminos] = useState(false);
+    const [verPrivacidad, setVerPrivacidad] = useState(false);
 
 
 
@@ -90,6 +92,7 @@ export default function Login({ onLoginExitoso }) {
     };
 
     if (verTerminos) return <Terminos onVolver={() => setVerTerminos(false)} />;
+    if (verPrivacidad) return <Privacidad onVolver={() => setVerPrivacidad(false)} />;
 
     return (
         <div style={s.root}>
@@ -213,7 +216,7 @@ export default function Login({ onLoginExitoso }) {
                     Al ingresar aceptas los{" "}
                     <a href="#" onClick={(e) => { e.preventDefault(); setVerTerminos(true); }} style={{ color: "#FD7751" }}>Términos y Condiciones</a>
                     {" "}y la{" "}
-                    <a href="#" onClick={(e) => { e.preventDefault(); setVerTerminos(true); }} style={{ color: "#FD7751" }}>Política de Privacidad</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setVerPrivacidad(true); }} style={{ color: "#FD7751" }}>Política de Privacidad</a>
                     {" "}de CLTiene.
                 </p>
             </div>
