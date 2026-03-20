@@ -35,14 +35,14 @@ export default function Noticias() {
         <span style={{ fontSize: 20 }}>🤖</span>
         <div>
           <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Noticias</div>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Lo último del Mundial 2026 actualizado para ti</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>Lo último del Mundial 2026 actualizado para ti</div>
         </div>
       </div>
 
       {cargando && noticias.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 0" }}>
           <div style={{ fontSize: 40, marginBottom: 12, animation: "spin 1s linear infinite" }}>⚽</div>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>Buscando noticias...</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 14 }}>Buscando noticias...</div>
         </div>
       )}
 
@@ -66,7 +66,7 @@ export default function Noticias() {
 
         return (
           <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
-            style={{ textDecoration: "none", display: "block", background: "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "18px", marginBottom: 14, position: "relative", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease" }}
+            style={{ textDecoration: "none", display: "block", background: "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))", border: "1px solid var(--card-border)", borderRadius: 16, padding: "18px", marginBottom: 14, position: "relative", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease" }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.naranja; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(253,119,81,0.15)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
           >
@@ -79,17 +79,17 @@ export default function Noticias() {
                   {n.categoria}
                 </span>
               )}
-              <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>📅 {n.fecha || "Hoy"}</span>
+              <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>📅 {n.fecha || "Hoy"}</span>
             </div>
 
             <h3 style={{ color: "var(--texto)", fontSize: 16, fontWeight: 800, margin: "0 0 8px", lineHeight: 1.3 }}>{n.titulo}</h3>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 14px", lineHeight: 1.6 }}>{n.resumen}</p>
+            <p style={{ color: "var(--texto-sec)", fontSize: 13, margin: "0 0 14px", lineHeight: 1.6 }}>{n.resumen}</p>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
               {n.fuente && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: categoriaColor.color }} />
-                  <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>{n.fuente}</span>
+                  <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>{n.fuente}</span>
                 </div>
               )}
               <span style={{ background: "linear-gradient(135deg, #FD7751, #e5622a)", padding: "5px 14px", borderRadius: 20, color: "var(--texto)", fontSize: 12, fontWeight: 700 }}>

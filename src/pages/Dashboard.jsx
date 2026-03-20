@@ -97,10 +97,10 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.verde, display: "inline-block" }} />
             <span style={{ color: C.naranja, fontSize: 12, fontWeight: 700 }}>MUNDIAL 2026 · EN VIVO</span>
           </div>
-          <h1 style={{ color: C.blanco, fontSize: 28, fontWeight: 900, margin: "0 0 6px", lineHeight: 1.1 }}>
+          <h1 style={{ color: "var(--texto)", fontSize: 28, fontWeight: 900, margin: "0 0 6px", lineHeight: 1.1 }}>
             ¡Hola, <span style={{ color: C.naranja }}>{nombre}</span>! 👋
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: "0 0 20px" }}>
+          <p style={{ color: "var(--texto-sec)", fontSize: 14, margin: "0 0 20px" }}>
             Predice, acumula monedas y llega al tope del ranking 🏆
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
@@ -109,10 +109,10 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
               { label: "Predicciones", valor: perfil?.predicciones_count || 0, icono: "⚽", color: C.azul    },
               { label: "Posición",     valor: `#${posicion}`,            icono: "🏆", color: C.naranja },
             ].map((s, i) => (
-              <div key={i} className="anim-slide-up" style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${s.color}30`, borderRadius: 14, padding: "14px 10px", textAlign: "center", animationDelay: `${i * 0.1}s`, animationFillMode: "both" }}>
+              <div key={i} className="anim-slide-up" style={{ background: "var(--card)", border: `1px solid ${s.color}30`, borderRadius: 14, padding: "14px 10px", textAlign: "center", animationDelay: `${i * 0.1}s`, animationFillMode: "both" }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>{s.icono}</div>
                 <div style={{ color: s.color, fontSize: 20, fontWeight: 900 }}>{s.valor}</div>
-                <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginTop: 2 }}>{s.label}</div>
+                <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
           </div>

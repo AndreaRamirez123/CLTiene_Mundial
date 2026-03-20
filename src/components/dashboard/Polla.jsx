@@ -69,7 +69,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
       case "acertada_especial": return { texto: "¡Marcador exacto! 🎯", color: "#ECA82D", bg: "rgba(236,168,45,0.15)" };
       case "acertada_simple": return { texto: "¡Resultado acertado! ✅", color: C.verde, bg: "rgba(22,199,132,0.1)" };
       case "fallida": return { texto: "", color: C.naranja, bg: "rgba(253,119,81,0.08)" };
-      default: return { texto: "Pendiente ⏳", color: "rgba(255,255,255,0.5)", bg: "rgba(255,255,255,0.04)" };
+      default: return { texto: "Pendiente ⏳", color: "var(--texto-sec)", bg: "rgba(255,255,255,0.04)" };
     }
   };
 
@@ -94,7 +94,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
             <span style={{ fontSize: 20 }}>💡</span>
             <div>
               <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Predicciones gratuitas</div>
-              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Si aciertas resultado ganas +50 🪙 · Marcador exacto +100 🪙</div>
+              <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>Si aciertas resultado ganas +50 🪙 · Marcador exacto +100 🪙</div>
             </div>
           </div>
 
@@ -113,14 +113,14 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
           )}
 
           {partidosFiltrados.length === 0 ? (
-            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
+            <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
               {partidos.length === 0 ? "Cargando partidos..." : "¡Ya predijiste todos los partidos disponibles! 🎉"}
             </div>
           ) : partidosFiltrados.map((p, idx) => (
-            <div key={p.id} className="anim-slide-up" style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px", marginBottom: 14, animationDelay: `${idx * 0.08}s`, animationFillMode: "both" }}>
+            <div key={p.id} className="anim-slide-up" style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 16, padding: "16px", marginBottom: 14, animationDelay: `${idx * 0.08}s`, animationFillMode: "both" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
                 <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>Grupo {p.grupo}</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>📅 {formatearFecha(p.fecha)} · {p.hora}</span>
+                <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>📅 {formatearFecha(p.fecha)} · {p.hora}</span>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 10, marginBottom: 16 }}>
@@ -128,8 +128,8 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                   <Bandera codigo={p.bandera_l} nombre={p.local} size={36} />
                   <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 14, marginTop: 6 }}>{p.local}</div>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 10, padding: "10px 16px" }}>
-                  <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, fontWeight: 700 }}>VS</div>
+                <div style={{ background: "var(--card)", borderRadius: 10, padding: "10px 16px" }}>
+                  <div style={{ color: "var(--texto-ter)", fontSize: 13, fontWeight: 700 }}>VS</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
                   <Bandera codigo={p.bandera_v} nombre={p.visitante} size={36} />
@@ -138,7 +138,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
               </div>
 
               <div style={{ marginBottom: 12 }}>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 8, fontWeight: 700 }}>¿Quién gana?</div>
+                <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8, fontWeight: 700 }}>¿Quién gana?</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                   {[
                     { val: "local", label: p.local, codigo: p.bandera_l },
@@ -156,11 +156,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
               </div>
 
               <div style={{ marginBottom: 14 }}>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 6, fontWeight: 700 }}>Marcador exacto (opcional, +100 🪙)</div>
+                <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 6, fontWeight: 700 }}>Marcador exacto (opcional, +100 🪙)</div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <input type="number" min="0" max="20" placeholder="0" value={preds[p.id]?.gl || ""} onChange={(e) => set(p.id, "gl", e.target.value)} style={{ width: 56, padding: "8px", textAlign: "center", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "var(--texto)", fontSize: 16, outline: "none" }} />
-                  <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 18, fontWeight: 700 }}>-</span>
-                  <input type="number" min="0" max="20" placeholder="0" value={preds[p.id]?.gv || ""} onChange={(e) => set(p.id, "gv", e.target.value)} style={{ width: 56, padding: "8px", textAlign: "center", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "var(--texto)", fontSize: 16, outline: "none" }} />
+                  <input type="number" min="0" max="20" placeholder="0" value={preds[p.id]?.gl || ""} onChange={(e) => set(p.id, "gl", e.target.value)} style={{ width: 56, padding: "8px", textAlign: "center", background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: 8, color: "var(--texto)", fontSize: 16, outline: "none" }} />
+                  <span style={{ color: "var(--texto-ter)", fontSize: 18, fontWeight: 700 }}>-</span>
+                  <input type="number" min="0" max="20" placeholder="0" value={preds[p.id]?.gv || ""} onChange={(e) => set(p.id, "gv", e.target.value)} style={{ width: 56, padding: "8px", textAlign: "center", background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: 8, color: "var(--texto)", fontSize: 16, outline: "none" }} />
                 </div>
               </div>
 
@@ -176,7 +176,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
       {verTab === "mis" && (
         <div>
           {misPredicciones.length === 0 ? (
-            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
+            <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
               Aún no has hecho predicciones. ¡Empieza ahora! ⚽
             </div>
           ) : misPredicciones.map((pred, idx) => {
@@ -185,7 +185,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
             return (
               <div key={pred.id} className="anim-slide-up" style={{ background: info.bg, border: `1px solid ${info.color}30`, borderRadius: 14, padding: "14px 16px", marginBottom: 10, animationDelay: `${idx * 0.06}s`, animationFillMode: "both" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
+                  <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>
                     Grupo {partido.grupo} · {formatearFecha(partido.fecha)}
                   </span>
                   {pred.monedas_ganadas > 0 && (
@@ -202,11 +202,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+                  <div style={{ fontSize: 12, color: "var(--texto-sec)" }}>
                     Tu predicción: <span style={{ color: "var(--texto)", fontWeight: 700 }}>
                       {pred.resultado === "local" ? partido.local_equipo : pred.resultado === "visitante" ? partido.visitante_equipo : "Empate"}
                     </span>
-                    <span style={{ color: "rgba(255,255,255,0.3)" }}> ({pred.goles_local}-{pred.goles_visitante})</span>
+                    <span style={{ color: "var(--texto-ter)" }}> ({pred.goles_local}-{pred.goles_visitante})</span>
                   </div>
                 </div>
 
@@ -218,7 +218,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                         <div style={{ color: info.color, fontWeight: 700, fontSize: 12 }}>
                           Resultado real: {partido.goles_local} - {partido.goles_visitante}
                         </div>
-                        <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, marginTop: 4 }}>
+                        <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>
                           {getMensajePositivo(idx)}
                         </div>
                       </div>
@@ -232,7 +232,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                 )}
 
                 {pred.estado === "pendiente" && (
-                  <div style={{ marginTop: 6, color: "rgba(255,255,255,0.35)", fontSize: 11 }}>
+                  <div style={{ marginTop: 6, color: "var(--texto-ter)", fontSize: 11 }}>
                     ⏳ Esperando resultado del partido
                   </div>
                 )}

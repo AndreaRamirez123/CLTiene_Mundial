@@ -169,7 +169,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
   if (cargando) {
     return (
-      <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.5)" }}>
+      <div style={{ textAlign: "center", padding: 40, color: "var(--texto-sec)" }}>
         Cargando misiones...
       </div>
     );
@@ -191,7 +191,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
         <span style={{ fontSize: 20 }}>⚽</span>
         <div>
           <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Gana goles completando misiones</div>
-          <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Los goles se acumulan aparte de las monedas</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>Los goles se acumulan aparte de las monedas</div>
         </div>
       </div>
       {misiones.map((m, idx) => (
@@ -201,7 +201,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ color: m.ok ? "#16C784" : "#fff", fontWeight: 700, fontSize: 14 }}>{m.titulo}</div>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginTop: 2 }}>{m.desc}</div>
+            <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>{m.desc}</div>
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ color: C.verde, fontWeight: 900, fontSize: 14 }}>+{m.goles} ⚽</div>
@@ -226,10 +226,10 @@ export default function Misiones({ usuario, cargarPerfil }) {
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <div style={{ fontSize: 36, marginBottom: 8 }}>🤝</div>
               <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 18 }}>Invita a un amigo</div>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginTop: 6 }}>Cuando alguien se registre con tu enlace, ganas +5 ⚽</div>
+              <div style={{ color: "var(--texto-sec)", fontSize: 13, marginTop: 6 }}>Cuando alguien se registre con tu enlace, ganas +5 ⚽</div>
             </div>
             <div style={{ background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, textAlign: "center" }}>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, marginBottom: 4 }}>Tu codigo de referido</div>
+              <div style={{ color: "var(--texto-sec)", fontSize: 11, marginBottom: 4 }}>Tu codigo de referido</div>
               <div style={{ color: "#ECA82D", fontWeight: 900, fontSize: 20, letterSpacing: 2 }}>{codigoReferido}</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -241,11 +241,11 @@ export default function Misiones({ usuario, cargarPerfil }) {
                 >
                   <span style={{ fontSize: 24 }}>{red.icono}</span>
                   <span style={{ color: red.color, fontWeight: 700, fontSize: 15 }}>{red.nombre}</span>
-                  <span style={{ marginLeft: "auto", color: "rgba(255,255,255,0.4)", fontSize: 18 }}>→</span>
+                  <span style={{ marginLeft: "auto", color: "var(--texto-ter)", fontSize: 18 }}>→</span>
                 </button>
               ))}
             </div>
-            <button onClick={() => setMostrarCompartir(false)} style={{ marginTop: 16, width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={() => setMostrarCompartir(false)} style={{ marginTop: 16, width: "100%", background: "var(--card)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px", color: "var(--texto-sec)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Cancelar
             </button>
           </div>
@@ -259,7 +259,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <div style={{ fontSize: 32, marginBottom: 6 }}>▶️</div>
               <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 17 }}>Video CLTiene</div>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>
                 Mira el video completo para ganar +3 ⚽
               </div>
             </div>
@@ -276,8 +276,8 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
             {!videoVisto ? (
               <div style={{ textAlign: "center" }}>
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
-                  <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginBottom: 4 }}>Podras reclamar en</div>
+                <div style={{ background: "var(--card)", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
+                  <div style={{ color: "var(--texto-ter)", fontSize: 11, marginBottom: 4 }}>Podras reclamar en</div>
                   <div style={{ color: C.naranja, fontWeight: 900, fontSize: 24 }}>
                     {SEGUNDOS_MINIMO - tiempoVideo}s
                   </div>
@@ -285,7 +285,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                     <div style={{ height: "100%", width: `${(tiempoVideo / SEGUNDOS_MINIMO) * 100}%`, background: `linear-gradient(90deg, ${C.naranja}, ${C.dorado})`, borderRadius: 2, transition: "width 1s linear" }} />
                   </div>
                 </div>
-                <button onClick={() => setMostrarVideo(false)} style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                <button onClick={() => setMostrarVideo(false)} style={{ width: "100%", background: "var(--card)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px", color: "var(--texto-sec)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   Cerrar
                 </button>
               </div>
@@ -317,7 +317,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                 <div style={{ textAlign: "center", marginBottom: 16 }}>
                   <div style={{ fontSize: 32, marginBottom: 6 }}>🧠</div>
                   <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 17 }}>Trivia del Mundial</div>
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 4 }}>
+                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>
                     Pregunta {triviaActual + 1} de {PREGUNTAS_TRIVIA.length} — ¡Cada acierto suma goles!
                   </div>
                 </div>
@@ -330,7 +330,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                 </div>
 
                 {/* Pregunta */}
-                <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: "16px", marginBottom: 16 }}>
+                <div style={{ background: "var(--card)", borderRadius: 12, padding: "16px", marginBottom: 16 }}>
                   <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 15, lineHeight: 1.4 }}>
                     {PREGUNTAS_TRIVIA[triviaActual].pregunta}
                   </div>
@@ -356,7 +356,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                         disabled={yaRespondio}
                         style={{ display: "flex", alignItems: "center", gap: 12, background: bg, border, borderRadius: 12, padding: "13px 16px", cursor: yaRespondio ? "default" : "pointer", width: "100%", transition: "all 0.2s" }}
                       >
-                        <span style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>
+                        <span style={{ width: 28, height: 28, borderRadius: 8, background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "var(--texto-sec)", flexShrink: 0 }}>
                           {String.fromCharCode(65 + i)}
                         </span>
                         <span style={{ color, fontWeight: 600, fontSize: 14, textAlign: "left" }}>{op}</span>
@@ -367,7 +367,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                   })}
                 </div>
 
-                <button onClick={() => setMostrarTrivia(false)} style={{ marginTop: 14, width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                <button onClick={() => setMostrarTrivia(false)} style={{ marginTop: 14, width: "100%", background: "var(--card)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px", color: "var(--texto-sec)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   Cancelar
                 </button>
               </div>
@@ -382,7 +382,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
                 <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
                   {triviaResultado.correctas === 5 ? "¡Perfecto!" : triviaResultado.correctas >= 3 ? "¡Muy bien!" : "¡Buen intento!"}
                 </div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, marginBottom: 8 }}>
+                <div style={{ color: "var(--texto-sec)", fontSize: 14, marginBottom: 8 }}>
                   Acertaste {triviaResultado.correctas} de {triviaResultado.total} preguntas
                 </div>
                 <div style={{ color: C.verde, fontWeight: 900, fontSize: 22, marginBottom: 16 }}>

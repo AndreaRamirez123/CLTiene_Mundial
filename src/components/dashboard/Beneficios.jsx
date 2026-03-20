@@ -93,19 +93,19 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
   return (
     <div>
       <h2 style={{ color: "var(--texto)", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Beneficios CLTiene</h2>
-      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginBottom: 16 }}>
+      <p style={{ color: "var(--texto-ter)", fontSize: 13, marginBottom: 16 }}>
         Canjea tus monedas por beneficios reales
       </p>
 
       {/* Saldo */}
       <div style={{ background: "linear-gradient(135deg, rgba(253,119,81,0.15), rgba(237,30,40,0.1))", border: "1px solid rgba(253,119,81,0.3)", borderRadius: 14, padding: "16px 20px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>Tu saldo disponible</div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12 }}>Tu saldo disponible</div>
           <div style={{ color: C.naranja, fontSize: 28, fontWeight: 800 }}>🪙 {monedas}</div>
         </div>
         {!elegible && (
-          <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "8px 12px", maxWidth: 180 }}>
-            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, lineHeight: 1.4 }}>
+          <div style={{ background: "var(--card)", borderRadius: 10, padding: "8px 12px", maxWidth: 180 }}>
+            <div style={{ color: "var(--texto-ter)", fontSize: 10, lineHeight: 1.4 }}>
               Los canjes se habilitan al finalizar el Mundial. Sigue acumulando monedas.
             </div>
           </div>
@@ -135,20 +135,20 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
         {filtrados.map(b => {
           const alcanza = monedas >= b.costo;
           return (
-            <div key={b.id} style={{ background: "var(--card)", borderRadius: 14, padding: "16px 18px", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div key={b.id} style={{ background: "var(--card)", borderRadius: 14, padding: "16px 18px", border: "1px solid var(--card-border)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
                   <span style={{ fontSize: 32 }}>{b.icono}</span>
                   <div>
                     <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 14 }}>{b.nombre}</div>
-                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 2 }}>{b.descripcion}</div>
+                    <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>{b.descripcion}</div>
                   </div>
                 </div>
                 <div style={{ textAlign: "right", minWidth: 80 }}>
                   <div style={{ color: alcanza ? C.naranja : "rgba(255,255,255,0.3)", fontWeight: 800, fontSize: 16 }}>
                     🪙 {b.costo}
                   </div>
-                  <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>
+                  <div style={{ color: "var(--texto-ter)", fontSize: 10 }}>
                     {alcanza ? "Disponible" : `Faltan ${b.costo - monedas}`}
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
 
       {/* Info legal */}
       <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(64,141,255,0.08)", border: "1px solid rgba(64,141,255,0.2)", borderRadius: 12 }}>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, lineHeight: 1.6 }}>
+        <div style={{ color: "var(--texto-sec)", fontSize: 11, lineHeight: 1.6 }}>
           Para garantizar un juego justo, los beneficios estan pensados para jugadores activos.
           Un asesor CLTiene se pondra en contacto contigo para activar tu beneficio.
         </div>
@@ -186,13 +186,13 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
             <div style={{ textAlign: "center", marginBottom: 16 }}>
               <span style={{ fontSize: 48 }}>{modalConfirm.icono}</span>
               <h3 style={{ color: "var(--texto)", fontSize: 18, fontWeight: 800, marginTop: 10 }}>{modalConfirm.nombre}</h3>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 6 }}>{modalConfirm.descripcion}</p>
+              <p style={{ color: "var(--texto-ter)", fontSize: 13, marginTop: 6 }}>{modalConfirm.descripcion}</p>
               <div style={{ color: C.naranja, fontSize: 24, fontWeight: 800, marginTop: 12 }}>🪙 {modalConfirm.costo} monedas</div>
             </div>
 
             {/* Canal de contacto */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 8 }}>¿Como prefieres que te contactemos?</div>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8 }}>¿Como prefieres que te contactemos?</div>
               <div style={{ display: "flex", gap: 8 }}>
                 {[
                   { id: "whatsapp", label: "WhatsApp", icon: "📱" },
@@ -218,7 +218,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
             )}
 
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => setModalConfirm(null)} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "none", color: "rgba(255,255,255,0.5)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+              <button onClick={() => setModalConfirm(null)} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "1px solid var(--input-border)", background: "none", color: "var(--texto-sec)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
                 Cancelar
               </button>
               <button onClick={handleCanjear} disabled={!!canjeando} style={{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #FD7751, #ED1E28)", color: "var(--texto)", fontWeight: 700, fontSize: 13, cursor: canjeando ? "not-allowed" : "pointer", opacity: canjeando ? 0.6 : 1 }}>
