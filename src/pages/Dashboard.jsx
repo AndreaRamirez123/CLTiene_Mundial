@@ -70,7 +70,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
 
   useEffect(() => {
     if (!usuario?.uid) return;
-    Promise.all([cargarPerfil(), cargarPartidos(), cargarRanking()]);
+    cargarPerfil();
+    cargarPartidos();
+    cargarRanking();
   }, [usuario?.uid]);
 
   const cerrar = async () => {
