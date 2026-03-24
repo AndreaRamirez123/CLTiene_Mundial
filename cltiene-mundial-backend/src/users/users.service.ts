@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
+import { actualizarRachaDeAcceso, calcularNivelActividad } from './nivel-actividad.util';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +14,14 @@ export class UsersService {
   ) {}
 
   async getByUid(uid: string): Promise<Jugador | null> {
-    return this.jugadorRepo.findOne({ where: { uid } });
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) return null;
+
+    actualizarRachaDeAcceso(jugador);
+    jugador.nivel = calcularNivelActividad(jugador);
+    await this.jugadorRepo.save(jugador);
+
+    return jugador;
   }
 
   async registrar(datos: {
@@ -51,7 +59,9 @@ export class UsersService {
         referido_por: datos.referido_por,
         monedas: bonoRegistro,
         monedas_totales_ganadas: bonoRegistro,
-        nivel: 'activo',
+        ultimo_acceso: new Date(),
+        dias_consecutivos: 1,
+        nivel: 'inactivo',
       });
 
       const saved = await manager.save(jugador);

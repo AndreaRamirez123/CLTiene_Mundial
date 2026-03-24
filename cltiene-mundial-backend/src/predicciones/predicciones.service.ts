@@ -5,6 +5,7 @@ import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Partido } from '../entities/partido.entity';
 import { Transaccion } from '../entities/transaccion.entity';
+import { calcularNivelActividad } from '../users/nivel-actividad.util';
 
 @Injectable()
 export class PrediccionesService {
@@ -36,25 +37,19 @@ export class PrediccionesService {
     }
 
     const partidoId = parseInt(datos.partido_id, 10);
-
-    // Verificar que el partido existe
     const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
     if (!partido) {
       throw new BadRequestException('Partido no encontrado');
     }
 
-    // Verificar que no exista predicción previa para este partido
     const existente = await this.prediccionRepo.findOne({
       where: { jugador_id: jugador.id, partido_id: partidoId },
     });
 
     if (existente) {
-      throw new BadRequestException(
-        'Ya tienes una predicción para este partido',
-      );
+      throw new BadRequestException('Ya tienes una predicción para este partido');
     }
 
-    // Predicciones son GRATUITAS - NO se descuentan monedas
     let prediccion: Prediccion;
 
     await this.dataSource.transaction(async (manager) => {
@@ -69,10 +64,11 @@ export class PrediccionesService {
 
       jugador.predicciones_count = (jugador.predicciones_count || 0) + 1;
       jugador.ultimo_acceso = new Date();
+      jugador.nivel = calcularNivelActividad(jugador);
       await manager.save(Jugador, jugador);
     });
 
-    return { mensaje: '¡Predicción guardada! Buena suerte', id: prediccion!.id };
+    return { mensaje: 'Predicción guardada. Buena suerte.', id: prediccion!.id };
   }
 
   async getPrediccionesUsuario(uid: string) {
@@ -86,17 +82,12 @@ export class PrediccionesService {
     });
   }
 
-  // =============================================
-  // Resolver predicciones cuando un partido termina
-  // Se llama después de actualizar el resultado del partido
-  // =============================================
   async resolverPrediccionesPartido(partidoId: number) {
     const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
     if (!partido || partido.estado !== 'finalizado' || !partido.resultado) {
       throw new BadRequestException('El partido no está finalizado o no tiene resultado');
     }
 
-    // Buscar todas las predicciones pendientes de este partido
     const predicciones = await this.prediccionRepo.find({
       where: { partido_id: partidoId, estado: 'pendiente' },
     });
@@ -114,13 +105,11 @@ export class PrediccionesService {
         const jugador = await manager.findOne(Jugador, { where: { id: pred.jugador_id } });
         if (!jugador) return;
 
-        // Verificar acierto simple (resultado: local/visitante/empate)
         const aciertoSimple = pred.resultado === partido.resultado;
-
-        // Verificar acierto especial (marcador exacto)
-        const aciertoEspecial = aciertoSimple
-          && pred.goles_local === partido.goles_local
-          && pred.goles_visitante === partido.goles_visitante;
+        const aciertoEspecial =
+          aciertoSimple &&
+          pred.goles_local === partido.goles_local &&
+          pred.goles_visitante === partido.goles_visitante;
 
         let monedasGanadas = 0;
         let estado: string;
@@ -137,18 +126,15 @@ export class PrediccionesService {
           tipo = 'prediccion_simple';
           acertadasSimple++;
         } else {
-          monedasGanadas = 0;
           estado = 'fallida';
           tipo = '';
           fallidas++;
         }
 
-        // Actualizar prediccion
         pred.estado = estado;
         pred.monedas_ganadas = monedasGanadas;
         await manager.save(Prediccion, pred);
 
-        // Si acertó, otorgar monedas
         if (monedasGanadas > 0) {
           const saldoAnterior = jugador.monedas;
           const saldoNuevo = saldoAnterior + monedasGanadas;
@@ -156,10 +142,10 @@ export class PrediccionesService {
           jugador.monedas = saldoNuevo;
           jugador.monedas_totales_ganadas = (jugador.monedas_totales_ganadas || 0) + monedasGanadas;
           jugador.predicciones_acertadas = (jugador.predicciones_acertadas || 0) + 1;
-          jugador.nivel = this.calcularNivel(saldoNuevo);
+          jugador.ultimo_acceso = new Date();
+          jugador.nivel = calcularNivelActividad(jugador);
           await manager.save(Jugador, jugador);
 
-          // Registrar transaccion
           await manager.save(Transaccion, {
             jugador_id: jugador.id,
             tipo,
@@ -186,10 +172,6 @@ export class PrediccionesService {
     };
   }
 
-  // =============================================
-  // SIMULACION: Poner resultado y resolver todo de una vez
-  // Solo para pruebas - en produccion se hace manualmente
-  // =============================================
   async simularResultado(partidoId: number, golesLocal: number, golesVisitante: number) {
     const resultado =
       golesLocal > golesVisitante ? 'local'
@@ -203,9 +185,7 @@ export class PrediccionesService {
       estado: 'finalizado',
     });
 
-    // Resolver predicciones automáticamente
     const resolucion = await this.resolverPrediccionesPartido(partidoId);
-
     const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
 
     return {
@@ -213,11 +193,5 @@ export class PrediccionesService {
       resultado,
       ...resolucion,
     };
-  }
-
-  private calcularNivel(monedas: number): string {
-    if (monedas >= 500) return 'muy_activo';
-    if (monedas >= 100) return 'activo';
-    return 'inactivo';
   }
 }

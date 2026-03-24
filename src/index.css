@@ -103,6 +103,32 @@ html, body, #root {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes trophyFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-2deg); }
+}
+
+@keyframes successRing {
+  0% { box-shadow: 0 0 0 0 rgba(22,199,132,0.35); }
+  100% { box-shadow: 0 0 0 14px rgba(22,199,132,0); }
+}
+
+@keyframes goalFlash {
+  0%, 100% { filter: saturate(1) brightness(1); }
+  50% { filter: saturate(1.35) brightness(1.18); }
+}
+
+@keyframes stadiumGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(253,119,81,0); }
+  50% { box-shadow: 0 0 24px rgba(253,119,81,0.18); }
+}
+
+@keyframes accentSweep {
+  0% { transform: translateX(-140%); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateX(180%); opacity: 0; }
+}
+
 /* Clases reutilizables */
 .anim-coin { animation: coinBounce 0.6s ease; }
 .anim-glow { animation: glow 2s ease-in-out infinite; }
@@ -112,3 +138,26 @@ html, body, #root {
 .anim-pulse { animation: pulse 2s ease-in-out infinite; }
 .anim-confetti { animation: confettiBurst 0.6s ease-out; }
 .anim-count { animation: countUp 0.3s ease-out; }
+.anim-trophy { animation: trophyFloat 2.2s ease-in-out infinite; transform-origin: center; }
+.anim-success-ring { animation: successRing 1.1s ease-out; }
+.anim-goal-flash { animation: goalFlash 1.4s ease-in-out infinite; }
+.anim-stadium-glow { animation: stadiumGlow 2.6s ease-in-out infinite; }
+
+.micro-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.micro-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%);
+  transform: translateX(-140%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.micro-card:hover::after {
+  animation: accentSweep 0.9s ease;
+}

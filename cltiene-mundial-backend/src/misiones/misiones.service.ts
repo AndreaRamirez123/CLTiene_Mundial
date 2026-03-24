@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { TriviaHistorial } from '../entities/trivia-historial.entity';
+import { calcularNivelActividad } from '../users/nivel-actividad.util';
 
 interface Mision {
   id: string;
@@ -166,6 +167,7 @@ export class MisionesService {
     jugador.misiones_completadas = [...completadas, misionId];
     jugador.goles = golesActuales + mision.goles;
     jugador.ultimo_acceso = new Date();
+    jugador.nivel = calcularNivelActividad(jugador);
     await this.jugadorRepo.save(jugador);
 
     return {
@@ -214,6 +216,7 @@ export class MisionesService {
       jug.ultimo_trivia = hoy;
       jug.trivias_jugadas = totalTrivias;
       jug.ultimo_acceso = new Date();
+      jug.nivel = calcularNivelActividad(jug);
       await manager.save(Jugador, jug);
 
       // Guardar en trivias_historial

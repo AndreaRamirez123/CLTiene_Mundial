@@ -1,23 +1,9 @@
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const WORLD_CUP_START_CACHE_KEY = "world-cup-start-v1";
+const WORLD_CUP_START_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
-export async function obtenerNoticiasMundial() {
+async function generarContenidoConGemini(prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
-  const prompt = `Busca en internet las últimas noticias reales sobre el Mundial de Fútbol 2026 (USA, México y Canadá). Trae exactamente 5 noticias actuales de fuentes reales como ESPN, FIFA, Marca, AS, BBC, etc.
-
-Responde SOLO con un JSON válido (sin markdown, sin backticks, sin texto adicional) con este formato exacto:
-[
-  {
-    "titulo": "Título real de la noticia",
-    "resumen": "Resumen de 2-3 oraciones con la información real",
-    "categoria": "Una de: Selecciones | Sedes | Clasificación | Jugadores | FIFA",
-    "fecha": "Fecha de la noticia",
-    "fuente": "Nombre del medio real de donde viene la noticia",
-    "url": "URL directa al artículo original de la noticia"
-  }
-]
-
-Es MUY importante que la URL sea real y funcional, que apunte al artículo original de la noticia.`;
 
   const res = await fetch(url, {
     method: "POST",
@@ -35,7 +21,77 @@ Es MUY importante que la URL sea real y funcional, que apunte al artículo origi
   }
 
   const data = await res.json();
-  const text = data.candidates[0].content.parts[0].text.trim();
-  const clean = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+  return text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+}
+
+export async function obtenerNoticiasMundial() {
+  const prompt = `Busca en internet las ultimas noticias reales sobre el Mundial de Futbol 2026 (USA, Mexico y Canada). Trae exactamente 5 noticias actuales de fuentes reales como ESPN, FIFA, Marca, AS, BBC, etc.
+
+Responde SOLO con un JSON valido (sin markdown, sin backticks, sin texto adicional) con este formato exacto:
+[
+  {
+    "titulo": "Titulo real de la noticia",
+    "resumen": "Resumen de 2-3 oraciones con la informacion real",
+    "categoria": "Una de: Selecciones | Sedes | Clasificacion | Jugadores | FIFA",
+    "fecha": "Fecha de la noticia",
+    "fuente": "Nombre del medio real de donde viene la noticia",
+    "url": "URL directa al articulo original de la noticia"
+  }
+]
+
+Es MUY importante que la URL sea real y funcional, que apunte al articulo original de la noticia.`;
+
+  const clean = await generarContenidoConGemini(prompt);
   return JSON.parse(clean);
+}
+
+export async function obtenerInicioMundial() {
+  const fallback = {
+    targetDate: "2026-06-11T00:00:00-05:00",
+    titulo: "USA - Mexico - Canada 2026",
+    fuente: "FIFA",
+    url: "https://inside.fifa.com",
+  };
+
+  try {
+    const cacheCrudo = localStorage.getItem(WORLD_CUP_START_CACHE_KEY);
+    if (cacheCrudo) {
+      const cache = JSON.parse(cacheCrudo);
+      const vigente = cache.savedAt && Date.now() - cache.savedAt < WORLD_CUP_START_CACHE_TTL_MS;
+      if (vigente && cache.data?.targetDate) return cache.data;
+    }
+  } catch (error) {
+    console.warn("No se pudo leer el cache del inicio del Mundial", error);
+  }
+
+  if (!API_KEY) return fallback;
+
+  const prompt = `Busca en internet la fecha oficial del inicio de la Copa Mundial de la FIFA 2026 usando fuentes oficiales de FIFA.
+
+Responde SOLO con un JSON valido (sin markdown, sin backticks, sin texto adicional) con esta estructura exacta:
+{
+  "targetDate": "Fecha ISO 8601. Si solo encuentras la fecha y no la hora oficial, usa 2026-06-11T00:00:00-05:00",
+  "titulo": "Texto corto para mostrar en la tarjeta",
+  "fuente": "Fuente oficial",
+  "url": "URL oficial"
+}
+
+Usa solo informacion real y confirmada. Prioriza FIFA.`;
+
+  try {
+    const clean = await generarContenidoConGemini(prompt);
+    const data = { ...fallback, ...JSON.parse(clean) };
+    if (!data.targetDate) return fallback;
+
+    localStorage.setItem(
+      WORLD_CUP_START_CACHE_KEY,
+      JSON.stringify({ savedAt: Date.now(), data }),
+    );
+
+    return data;
+  } catch (error) {
+    console.error("No se pudo obtener la fecha oficial del Mundial con Gemini", error);
+    return fallback;
+  }
 }
