@@ -13,6 +13,7 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { MisionesModule } from './misiones/misiones.module';
 import { WipModule } from './wip/wip.module';
 import { CanjesModule } from './canjes/canjes.module';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -45,6 +46,7 @@ import { AppService } from './app.service';
     MisionesModule,
     WipModule,
     CanjesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

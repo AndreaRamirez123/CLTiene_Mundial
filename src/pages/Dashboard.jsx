@@ -12,6 +12,7 @@ import Misiones from "../components/dashboard/Misiones";
 import Noticias from "../components/dashboard/Noticias";
 import Perfil from "../components/dashboard/Perfil";
 import Beneficios from "../components/dashboard/Beneficios";
+import AdminPanel from "../components/dashboard/AdminPanel";
 import { useTheme, ThemeToggle } from "../store/useTheme";
 
 export default function Dashboard({ usuario, onCerrarSesion }) {
@@ -154,6 +155,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         {tab === "noticias" && <Noticias />}
         {tab === "beneficios" && <Beneficios usuario={usuario} perfil={perfil} cargarPerfil={cargarPerfil} />}
         {tab === "perfil" && <Perfil perfil={perfil} nombre={nombre} monedas={monedas} posicion={posicion} ranking={ranking} usuario={usuario} />}
+        {tab === "admin" && perfil?.rol === "admin" && <AdminPanel usuario={usuario} client={client} />}
       </div>
 
       {toast && (
@@ -172,10 +174,11 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           { id: "beneficios", i: "🎁", l: "Beneficios" },
           { id: "noticias", i: "📰", l: "Noticias" },
           { id: "perfil", i: "👤", l: "Perfil" },
+          ...(perfil?.rol === "admin" ? [{ id: "admin", i: "🛡️", l: "Admin" }] : []),
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
             <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
-            <span style={{ fontSize: 10, color: tab === t.id ? C.naranja : "var(--texto-ter)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
+            <span style={{ fontSize: 10, color: tab === t.id ? (t.id === "admin" ? "#FF6B00" : C.naranja) : "var(--texto-ter)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
           </button>
         ))}
       </div>

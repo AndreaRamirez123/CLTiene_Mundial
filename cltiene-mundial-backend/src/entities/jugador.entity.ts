@@ -62,6 +62,10 @@ export class Jugador {
   @Column({ type: 'enum', enum: ['inactivo', 'activo', 'muy_activo'], default: 'activo' })
   nivel: string;
 
+  // Rol del usuario (admin o jugador regular)
+  @Column({ type: 'enum', enum: ['jugador', 'admin'], default: 'jugador' })
+  rol: string;
+
   // Referidos
   @Index()
   @Column({ type: 'varchar', length: 10 })
