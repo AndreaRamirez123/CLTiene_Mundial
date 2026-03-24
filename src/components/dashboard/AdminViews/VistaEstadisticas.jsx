@@ -1,4 +1,4 @@
-import { C } from '../../constants';
+import { C } from '../constants';
 
 export default function VistaEstadisticas({ estadisticas }) {
   if (!estadisticas) {

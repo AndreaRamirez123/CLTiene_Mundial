@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { C } from '../../constants';
+import { C } from '../constants';
 
 export default function VistaUsuarios({ usuarios, client, usuario }) {
   const [detalleUid, setDetalleUid] = useState(null);

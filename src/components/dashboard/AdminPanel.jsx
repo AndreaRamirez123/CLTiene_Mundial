@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { C } from '../constants';
-import clientApi from '../../api/client';
+import { C } from './constants';
 import VistaUsuarios from './AdminViews/VistaUsuarios';
 import VistaPrediciones from './AdminViews/VistaPrediciones';
 import VistaEstadisticas from './AdminViews/VistaEstadisticas';
