@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import client from "../../api/client";
 import { C } from "./constants";
+import MisionCard from "./MisionCard";
+import TriviaModal from "./TriviaModal";
+import VideoModal from "./VideoModal";
+import CompartirModal from "./CompartirModal";
 
 export default function Misiones({ usuario, cargarPerfil }) {
   const bordeSuave = "1px solid var(--input-border)";
@@ -22,21 +26,24 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const [triviaRespuestas, setTriviaRespuestas] = useState([]);
   const [triviaSeleccion, setTriviaSeleccion] = useState(null);
   const [triviaResultado, setTriviaResultado] = useState(null);
+  const [PREGUNTAS_TRIVIA, setPREGUNTAS_TRIVIA] = useState([]);
 
   const VIDEO_URL = "https://youtu.be/QtKq3ugMouI?si=g45EzWN9S3b4em3G";
   const SEGUNDOS_MINIMO = 30;
 
-  const PREGUNTAS_TRIVIA = [
-    { pregunta: "En que pais se jugara la final del Mundial 2026?", opciones: ["Mexico", "Estados Unidos", "Canada", "Brasil"], correcta: 1 },
-    { pregunta: "Que seleccion ha ganado mas Mundiales?", opciones: ["Alemania", "Argentina", "Italia", "Brasil"], correcta: 3 },
-    { pregunta: "Cuantos equipos participaran en el Mundial 2026?", opciones: ["32", "36", "48", "64"], correcta: 2 },
-    { pregunta: "Quien gano el Mundial 2022 en Qatar?", opciones: ["Francia", "Argentina", "Brasil", "Croacia"], correcta: 1 },
-    { pregunta: "En que ano se celebro el primer Mundial de futbol?", opciones: ["1928", "1930", "1934", "1950"], correcta: 1 },
-  ];
-
   const codigoReferido = usuario?.uid?.substring(0, 8).toUpperCase() || "";
   const urlInvitacion = `${window.location.origin}?ref=${codigoReferido}`;
   const mensajeInvitacion = `Unete a CLTiene Mundial 2026! Predice partidos, acumula monedas y gana premios. Registrate aqui: ${urlInvitacion}`;
+
+  // Cargar preguntas de trivia dinámicas
+  const cargarPreguntasTrivia = async () => {
+    try {
+      const res = await client.get("/misiones/trivia/preguntas");
+      setPREGUNTAS_TRIVIA(res.data.preguntas);
+    } catch (e) {
+      console.error("Error cargando preguntas", e);
+    }
+  };
 
   const cargarMisiones = async (uid) => {
     try {
@@ -55,6 +62,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
   };
 
   useEffect(() => {
+    cargarPreguntasTrivia();
     if (usuario?.uid) cargarMisiones(usuario.uid);
   }, [usuario?.uid]);
 
@@ -173,269 +181,52 @@ export default function Misiones({ usuario, cargarPerfil }) {
     { id: "instagram", icono: "📷", nombre: "Instagram", color: "#E4405F" },
   ];
 
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>Tus misiones</span>
-        <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 20 }}>
-          {completadas} / {total} completadas
-        </span>
-      </div>
+  const preguntaActual = PREGUNTAS_TRIVIA[triviaActual];
 
-      <div style={{ background: "rgba(22,199,132,0.1)", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 20 }}>⚽</span>
-        <div>
-          <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Gana goles completando misiones</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>Los goles se acumulan aparte de las monedas</div>
+  return (
+    <div style={{ background: "linear-gradient(135deg, rgba(130,43,210,0.05) 0%, rgba(253,119,81,0.05) 100%)", borderRadius: 16, padding: "20px 0", minHeight: "60vh" }}>
+      <div style={{ paddingLeft: 16, paddingRight: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div>
+            <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 24, marginBottom: 4 }}>🎯 Tus Misiones</div>
+            <div style={{ color: "var(--texto-sec)", fontSize: 13 }}>Completa retos y gana ⚽ goles</div>
+          </div>
+          <div style={{ background: "linear-gradient(135deg, #FD7751, #FF9066)", color: "#FFFFFF", fontSize: 11, fontWeight: 900, padding: "8px 14px", borderRadius: 50, boxShadow: "0 4px 12px rgba(253,119,81,0.3)", textAlign: "center" }}>
+            <div>{completadas}/{total}</div>
+            <div style={{ fontSize: 9, opacity: 0.9 }}>COMPLETADAS</div>
+          </div>
+        </div>
+
+        <div style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.15) 0%, rgba(22,199,132,0.05) 100%)", border: "2px solid rgba(22,199,132,0.4)", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 16px rgba(22,199,132,0.1)" }}>
+          <div style={{ fontSize: 32 }}>⚽</div>
+          <div>
+            <div style={{ color: "#16C784", fontWeight: 800, fontSize: 14 }}>Sistema de Goles</div>
+            <div style={{ color: "rgba(22,199,132,0.8)", fontSize: 12, marginTop: 2 }}>Acumula goles completando retos sin límite diario</div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ color: "var(--texto-sec)", fontSize: 11, fontWeight: 600 }}>PROGRESO</span>
+            <span style={{ color: C.naranja, fontWeight: 700, fontSize: 12 }}>{Math.round((completadas / total) * 100)}%</span>
+          </div>
+          <div style={{ height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <div style={{ height: "100%", width: `${(completadas / total) * 100}%`, background: "linear-gradient(90deg, #FD7751, #16C784)", borderRadius: 10, transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)" }} />
+          </div>
         </div>
       </div>
 
       {misiones.map((m, idx) => (
-        <div
-          key={m.id}
-          className="anim-slide-up"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            background: m.ok ? "rgba(22,199,132,0.08)" : fondoSuave,
-            border: m.ok ? "1px solid rgba(22,199,132,0.3)" : bordeSuave,
-            borderRadius: 14,
-            padding: "14px 16px",
-            marginBottom: 10,
-            opacity: m.ok ? 0.85 : 1,
-            animationDelay: `${idx * 0.08}s`,
-            animationFillMode: "both",
-          }}
-        >
-          <div
-            className={m.ok ? "anim-confetti" : ""}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
-              background: m.ok ? "rgba(22,199,132,0.15)" : iconoFondo,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 22,
-              flexShrink: 0,
-            }}
-          >
-            {m.icono}
-          </div>
-
-          <div style={{ flex: 1 }}>
-            <div style={{ color: m.ok ? "#16C784" : tituloPendiente, fontWeight: 700, fontSize: 14 }}>{m.titulo}</div>
-            <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>{m.desc}</div>
-          </div>
-
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ color: C.verde, fontWeight: 900, fontSize: 14 }}>+{m.goles} ⚽</div>
-            {m.ok ? (
-              <div style={{ color: "#16C784", fontSize: 11, marginTop: 3 }}>✓ Listo</div>
-            ) : (
-              <button
-                onClick={() => reclamar(m.id)}
-                disabled={reclamando === m.id}
-                style={{
-                  marginTop: 4,
-                  background: reclamando === m.id ? "#666" : "linear-gradient(135deg, #FD7751, #e5622a)",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#FFFFFF",
-                  fontWeight: 700,
-                  fontSize: 12,
-                  padding: "5px 12px",
-                  cursor: reclamando === m.id ? "wait" : "pointer",
-                }}
-              >
-                {reclamando === m.id
-                  ? "..."
-                  : m.id === "invita_amigo"
-                    ? "Compartir ->"
-                    : m.id === "ver_video"
-                      ? "Ver video ->"
-                      : m.id === "trivia_mundial"
-                        ? "Jugar trivia ->"
-                        : "Reclamar ->"}
-              </button>
-            )}
-          </div>
+        <div key={m.id} className="anim-slide-up" style={{ animationDelay: `${idx * 0.08}s`, animationFillMode: "both" }}>
+          <MisionCard mision={m} reclamando={reclamando} onReclamar={reclamar} fondoSuave={fondoSuave} bordeSuave={bordeSuave} iconoFondo={iconoFondo} tituloPendiente={tituloPendiente} />
         </div>
       ))}
 
-      {mostrarCompartir && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }} onClick={() => setMostrarCompartir(false)}>
-          <div style={{ background: "#1a1130", borderRadius: 20, padding: "28px 24px", maxWidth: 340, width: "90%", border: "1px solid rgba(253,119,81,0.3)" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 36, marginBottom: 8 }}>🤝</div>
-              <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 18 }}>Invita a un amigo</div>
-              <div style={{ color: "var(--texto-sec)", fontSize: 13, marginTop: 6 }}>Cuando alguien se registre con tu enlace, ganas +5 ⚽</div>
-            </div>
+      {mostrarCompartir && <CompartirModal onCompartir={compartir} onCerrar={() => setMostrarCompartir(false)} redesSociales={redesSociales} />}
 
-            <div style={{ background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 12, padding: "12px 14px", marginBottom: 16, textAlign: "center" }}>
-              <div style={{ color: "var(--texto-sec)", fontSize: 11, marginBottom: 4 }}>Tu codigo de referido</div>
-              <div style={{ color: "#ECA82D", fontWeight: 900, fontSize: 20, letterSpacing: 2 }}>{codigoReferido}</div>
-            </div>
+      {mostrarVideo && <VideoModal tiempoVideo={tiempoVideo} videoVisto={videoVisto} SEGUNDOS_MINIMO={SEGUNDOS_MINIMO} onReclamarVideo={reclamarVideo} onCerrar={() => setMostrarVideo(false)} VIDEO_URL={VIDEO_URL} />}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {redesSociales.map((red) => (
-                <button
-                  key={red.id}
-                  onClick={() => compartir(red.id)}
-                  style={{ display: "flex", alignItems: "center", gap: 12, background: `${red.color}20`, border: `1px solid ${red.color}50`, borderRadius: 12, padding: "14px 16px", cursor: "pointer", width: "100%" }}
-                >
-                  <span style={{ fontSize: 24 }}>{red.icono}</span>
-                  <span style={{ color: red.color, fontWeight: 700, fontSize: 15 }}>{red.nombre}</span>
-                  <span style={{ marginLeft: "auto", color: "var(--texto-ter)", fontSize: 18 }}>→</span>
-                </button>
-              ))}
-            </div>
-
-            <button onClick={() => setMostrarCompartir(false)} style={{ marginTop: 16, width: "100%", background: "var(--card)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px", color: "var(--texto-sec)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {mostrarVideo && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
-          <div style={{ background: "#1a1130", borderRadius: 20, padding: "24px 20px", maxWidth: 400, width: "95%", border: "1px solid rgba(253,119,81,0.3)" }}>
-            <div style={{ textAlign: "center", marginBottom: 16 }}>
-              <div style={{ fontSize: 32, marginBottom: 6 }}>▶️</div>
-              <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 17 }}>Video CLTiene</div>
-              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>Mira el video completo para ganar +3 ⚽</div>
-            </div>
-
-            <div style={{ borderRadius: 12, overflow: "hidden", marginBottom: 16, aspectRatio: "16/9", background: "#000" }}>
-              <iframe src={`${VIDEO_URL}?autoplay=1&rel=0`} style={{ width: "100%", height: "100%", border: "none" }} allow="autoplay; encrypted-media" allowFullScreen title="Video CLTiene" />
-            </div>
-
-            {!videoVisto ? (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ background: "var(--card)", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
-                  <div style={{ color: "var(--texto-ter)", fontSize: 11, marginBottom: 4 }}>Podras reclamar en</div>
-                  <div style={{ color: C.naranja, fontWeight: 900, fontSize: 24 }}>{SEGUNDOS_MINIMO - tiempoVideo}s</div>
-                  <div style={{ marginTop: 8, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${(tiempoVideo / SEGUNDOS_MINIMO) * 100}%`, background: `linear-gradient(90deg, ${C.naranja}, ${C.dorado})`, borderRadius: 2, transition: "width 1s linear" }} />
-                  </div>
-                </div>
-                <button onClick={() => setMostrarVideo(false)} style={{ width: "100%", background: "var(--card)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px", color: "var(--texto-sec)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Cerrar
-                </button>
-              </div>
-            ) : (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ background: "rgba(22,199,132,0.1)", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 12, color: "#16C784", fontSize: 13, fontWeight: 700 }}>
-                  ✓ Video completado
-                </div>
-                <button onClick={reclamarVideo} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 12, color: "#FFFFFF", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 4px 16px rgba(253,119,81,0.4)" }}>
-                  Reclamar +3 ⚽
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {mostrarTrivia && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
-          <div style={{ background: "#1a1130", borderRadius: 20, padding: "24px 20px", maxWidth: 400, width: "95%", border: "1px solid rgba(130,43,210,0.4)" }}>
-            {!triviaResultado && (
-              <div>
-                <div style={{ textAlign: "center", marginBottom: 16 }}>
-                  <div style={{ fontSize: 32, marginBottom: 6 }}>🧠</div>
-                  <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 17 }}>Trivia del Mundial</div>
-                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>
-                    Pregunta {triviaActual + 1} de {PREGUNTAS_TRIVIA.length} - Cada acierto suma goles
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
-                  {PREGUNTAS_TRIVIA.map((_, i) => (
-                    <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < triviaRespuestas.length ? (triviaRespuestas[i] ? "#16C784" : "#ED1E28") : i === triviaActual ? "rgba(253,119,81,0.5)" : "rgba(255,255,255,0.1)" }} />
-                  ))}
-                </div>
-
-                <div style={{ background: "var(--card)", borderRadius: 12, padding: "16px", marginBottom: 16 }}>
-                  <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 15, lineHeight: 1.4 }}>{PREGUNTAS_TRIVIA[triviaActual].pregunta}</div>
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {PREGUNTAS_TRIVIA[triviaActual].opciones.map((op, i) => {
-                    const yaRespondio = triviaSeleccion !== null;
-                    const esSeleccionada = triviaSeleccion === i;
-                    const esCorrecta = i === PREGUNTAS_TRIVIA[triviaActual].correcta;
-                    let bg = "rgba(255,255,255,0.05)";
-                    let border = "1px solid rgba(255,255,255,0.1)";
-                    let color = "#FFFFFF";
-
-                    if (yaRespondio && esSeleccionada && esCorrecta) {
-                      bg = "rgba(22,199,132,0.15)";
-                      border = "1px solid #16C784";
-                      color = "#16C784";
-                    }
-                    if (yaRespondio && esSeleccionada && !esCorrecta) {
-                      bg = "rgba(237,30,40,0.15)";
-                      border = "1px solid #ED1E28";
-                      color = "#ED1E28";
-                    }
-                    if (yaRespondio && !esSeleccionada && esCorrecta) {
-                      bg = "rgba(22,199,132,0.1)";
-                      border = "1px solid rgba(22,199,132,0.3)";
-                      color = "#16C784";
-                    }
-
-                    return (
-                      <button key={i} onClick={() => !yaRespondio && responderTrivia(i)} disabled={yaRespondio} style={{ display: "flex", alignItems: "center", gap: 12, background: bg, border, borderRadius: 12, padding: "13px 16px", cursor: yaRespondio ? "default" : "pointer", width: "100%", transition: "all 0.2s" }}>
-                        <span style={{ width: 28, height: 28, borderRadius: 8, background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "var(--texto-sec)", flexShrink: 0 }}>
-                          {String.fromCharCode(65 + i)}
-                        </span>
-                        <span style={{ color, fontWeight: 600, fontSize: 14, textAlign: "left" }}>{op}</span>
-                        {yaRespondio && esSeleccionada && esCorrecta && <span style={{ marginLeft: "auto", fontSize: 16 }}>✓</span>}
-                        {yaRespondio && esSeleccionada && !esCorrecta && <span style={{ marginLeft: "auto", fontSize: 16 }}>✕</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button onClick={() => setMostrarTrivia(false)} style={{ marginTop: 14, width: "100%", background: "var(--card)", border: "1px solid var(--input-border)", borderRadius: 10, padding: "10px", color: "var(--texto-sec)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Cancelar
-                </button>
-              </div>
-            )}
-
-            {triviaResultado && (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>
-                  {triviaResultado.correctas >= 4 ? "🏆" : triviaResultado.correctas >= 2 ? "🎉" : "⚽"}
-                </div>
-                <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 20, marginBottom: 6 }}>
-                  {triviaResultado.correctas === 5 ? "Perfecto!" : triviaResultado.correctas >= 3 ? "Muy bien!" : "Buen intento!"}
-                </div>
-                <div style={{ color: "var(--texto-sec)", fontSize: 14, marginBottom: 8 }}>
-                  Acertaste {triviaResultado.correctas} de {triviaResultado.total} preguntas
-                </div>
-                <div style={{ color: C.verde, fontWeight: 900, fontSize: 22, marginBottom: 16 }}>+{triviaResultado.goles} ⚽ ganados</div>
-
-                <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
-                  {triviaRespuestas.map((ok, i) => (
-                    <div key={i} style={{ width: 36, height: 36, borderRadius: 10, background: ok ? "rgba(22,199,132,0.15)" : "rgba(237,30,40,0.15)", border: ok ? "1px solid #16C784" : "1px solid #ED1E28", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
-                      {ok ? "✓" : "✕"}
-                    </div>
-                  ))}
-                </div>
-
-                <button onClick={reclamarTrivia} style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg, #FD7751, #e5622a)", border: "none", borderRadius: 12, color: "#FFFFFF", fontWeight: 800, fontSize: 15, cursor: "pointer", boxShadow: "0 4px 16px rgba(253,119,81,0.4)" }}>
-                  Reclamar +{triviaResultado.goles} ⚽
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {mostrarTrivia && <TriviaModal preguntaSiguiente={preguntaActual} triviaActual={triviaActual} PREGUNTAS_TRIVIA={PREGUNTAS_TRIVIA} triviaSeleccion={triviaSeleccion} triviaResultado={triviaResultado} onResponder={responderTrivia} onReclamarTrivia={reclamarTrivia} onCerrar={() => setMostrarTrivia(false)} />}
     </div>
   );
 }

@@ -38,107 +38,116 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
   const nivelInfo = niveles[nivel] || niveles.inactivo;
 
   return (
-    <div>
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #822BD2, #408DFF)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 12px",
-            fontSize: 36,
-            fontWeight: 900,
-            color: "var(--texto)",
-            border: "3px solid #FD7751",
-          }}
-        >
-          {nombre.charAt(0).toUpperCase()}
+    <div style={{ background: "linear-gradient(135deg, rgba(130,43,210,0.05) 0%, rgba(253,119,81,0.05) 100%)", borderRadius: 20, padding: "20px 0", minHeight: "100vh" }}>
+      <div style={{ paddingLeft: 16, paddingRight: 16 }}>
+        <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
+          <div
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #822BD2, #408DFF)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 16px",
+              fontSize: 44,
+              fontWeight: 900,
+              color: "#FFFFFF",
+              border: "4px solid #FD7751",
+              boxShadow: "0 8px 32px rgba(253,119,81,0.3), inset 0 1px 1px rgba(255,255,255,0.2)",
+            }}
+          >
+            {nombre.charAt(0).toUpperCase()}
+          </div>
+          <h2 style={{ color: "var(--texto)", fontSize: 26, fontWeight: 900, margin: "0 0 4px", letterSpacing: "-0.5px" }}>{nombre}</h2>
+          <p style={{ color: "var(--texto-ter)", fontSize: 13, margin: 0, opacity: 0.8 }}>{email}</p>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: `linear-gradient(135deg, ${nivelInfo.bg} 0%, rgba(255,255,255,0.02) 100%)`,
+              border: `2px solid ${nivelInfo.border}`,
+              borderRadius: 999,
+              padding: "8px 16px",
+              marginTop: 12,
+              boxShadow: `0 4px 12px ${nivelInfo.color}20`,
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{nivelInfo.icono}</span>
+            <span style={{ color: nivelInfo.color, fontSize: 13, fontWeight: 800 }}>{nivelInfo.label}</span>
+          </div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 10, lineHeight: 1.4 }}>{nivelInfo.detalle}</div>
         </div>
-        <h2 style={{ color: "var(--texto)", fontSize: 22, fontWeight: 900, margin: "0 0 4px" }}>{nombre}</h2>
-        <p style={{ color: "var(--texto-ter)", fontSize: 13, margin: 0 }}>{email}</p>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: nivelInfo.bg,
-            border: `1px solid ${nivelInfo.border}`,
-            borderRadius: 999,
-            padding: "6px 14px",
-            marginTop: 10,
-          }}
-        >
-          <span style={{ fontSize: 14 }}>{nivelInfo.icono}</span>
-          <span style={{ color: nivelInfo.color, fontSize: 13, fontWeight: 800 }}>{nivelInfo.label}</span>
-        </div>
-        <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 8 }}>{nivelInfo.detalle}</div>
-      </div>
 
       <div
         style={{
-          background: `linear-gradient(135deg, ${nivelInfo.bg}, rgba(255,255,255,0.04))`,
-          border: `1px solid ${nivelInfo.border}`,
+          background: `linear-gradient(135deg, ${nivelInfo.bg} 0%, rgba(255,255,255,0.02) 100%)`,
+          border: `2px solid ${nivelInfo.border}`,
           borderRadius: 16,
-          padding: "14px 16px",
-          marginBottom: 16,
+          padding: "18px 16px",
+          marginBottom: 18,
+          boxShadow: `0 8px 24px ${nivelInfo.color}15`,
         }}
       >
-        <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>
-          Tu actividad reciente
+        <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 15, marginBottom: 14 }}>
+          📊 Tu actividad reciente
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-          <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "12px 10px", textAlign: "center" }}>
-            <div style={{ fontSize: 18, marginBottom: 4 }}>🔥</div>
-            <div style={{ color: nivelInfo.color, fontSize: 18, fontWeight: 900 }}>{racha}</div>
-            <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>Dias seguidos</div>
+          <div style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)", borderRadius: 14, padding: "14px 12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 16px rgba(0,0,0,0.2)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none" }}>
+            <div style={{ fontSize: 22, marginBottom: 6 }}>🔥</div>
+            <div style={{ color: nivelInfo.color, fontSize: 20, fontWeight: 900 }}>{racha}</div>
+            <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 2 }}>Dias seguidos</div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "12px 10px", textAlign: "center" }}>
-            <div style={{ fontSize: 18, marginBottom: 4 }}>⚽</div>
-            <div style={{ color: nivelInfo.color, fontSize: 18, fontWeight: 900 }}>{predicciones}</div>
-            <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>Predicciones</div>
+          <div style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)", borderRadius: 14, padding: "14px 12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 16px rgba(0,0,0,0.2)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none" }}>
+            <div style={{ fontSize: 22, marginBottom: 6 }}>⚽</div>
+            <div style={{ color: nivelInfo.color, fontSize: 20, fontWeight: 900 }}>{predicciones}</div>
+            <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 2 }}>Predicciones</div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 12, padding: "12px 10px", textAlign: "center" }}>
-            <div style={{ fontSize: 18, marginBottom: 4 }}>🧠</div>
-            <div style={{ color: nivelInfo.color, fontSize: 18, fontWeight: 900 }}>{trivias}</div>
-            <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>Trivias</div>
+          <div style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)", borderRadius: 14, padding: "14px 12px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 16px rgba(0,0,0,0.2)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none" }}>
+            <div style={{ fontSize: 22, marginBottom: 6 }}>🧠</div>
+            <div style={{ color: nivelInfo.color, fontSize: 20, fontWeight: 900 }}>{trivias}</div>
+            <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 2 }}>Trivias</div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-        <div style={{ background: "rgba(236,168,45,0.1)", border: "1px solid rgba(236,168,45,0.3)", borderRadius: 14, padding: "18px 14px", textAlign: "center" }}>
-          <div style={{ fontSize: 28, marginBottom: 4 }}>🪙</div>
-          <div style={{ color: C.dorado, fontSize: 28, fontWeight: 900 }}>{monedas}</div>
-          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>Monedas</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 2 }}>Ganas en la Polla</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18, transition: "all 0.3s" }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.15) 0%, rgba(236,168,45,0.05) 100%)", border: "2px solid rgba(236,168,45,0.4)", borderRadius: 16, padding: "20px 16px", textAlign: "center", boxShadow: "0 8px 24px rgba(236,168,45,0.15)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(236,168,45,0.25)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(236,168,45,0.15)" }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🪙</div>
+          <div style={{ color: C.dorado, fontSize: 32, fontWeight: 900 }}>{monedas}</div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 6, fontWeight: 600 }}>Monedas</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 3, opacity: 0.8 }}>Ganas en la Polla</div>
         </div>
-        <div style={{ background: "rgba(22,199,132,0.1)", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 14, padding: "18px 14px", textAlign: "center" }}>
-          <div style={{ fontSize: 28, marginBottom: 4 }}>⚽</div>
-          <div style={{ color: C.verde, fontSize: 28, fontWeight: 900 }}>{goles}</div>
-          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>Goles</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 2 }}>Ganas en Misiones</div>
+        <div style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.15) 0%, rgba(22,199,132,0.05) 100%)", border: "2px solid rgba(22,199,132,0.4)", borderRadius: 16, padding: "20px 16px", textAlign: "center", boxShadow: "0 8px 24px rgba(22,199,132,0.15)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(22,199,132,0.25)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(22,199,132,0.15)" }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>⚽</div>
+          <div style={{ color: C.verde, fontSize: 32, fontWeight: 900 }}>{goles}</div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 6, fontWeight: 600 }}>Goles</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 3, opacity: 0.8 }}>Ganas en Misiones</div>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
-        <div style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "14px", textAlign: "center" }}>
-          <div style={{ color: C.naranja, fontSize: 24, fontWeight: 900 }}>#{posicion}</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 4 }}>Ranking</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 22 }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(253,119,81,0.12) 0%, rgba(253,119,81,0.04) 100%)", border: "1.5px solid rgba(253,119,81,0.3)", borderRadius: 16, padding: "18px 14px", textAlign: "center", boxShadow: "0 4px 16px rgba(253,119,81,0.1)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(253,119,81,0.2)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(253,119,81,0.1)" }}>
+          <div style={{ color: C.naranja, fontSize: 28, fontWeight: 900 }}>#{posicion}</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 6, fontWeight: 600 }}>Ranking</div>
         </div>
-        <div style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "14px", textAlign: "center" }}>
-          <div style={{ color: C.azul, fontSize: 24, fontWeight: 900 }}>{predicciones}</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 4 }}>Predicciones</div>
+        <div style={{ background: "linear-gradient(135deg, rgba(64,141,255,0.12) 0%, rgba(64,141,255,0.04) 100%)", border: "1.5px solid rgba(64,141,255,0.3)", borderRadius: 16, padding: "18px 14px", textAlign: "center", boxShadow: "0 4px 16px rgba(64,141,255,0.1)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(64,141,255,0.2)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(64,141,255,0.1)" }}>
+          <div style={{ color: C.azul, fontSize: 28, fontWeight: 900 }}>{predicciones}</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 6, fontWeight: 600 }}>Predicciones</div>
         </div>
       </div>
 
       <div style={{ marginBottom: 20 }}>
-        <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 Top 3 del ranking</div>
+        <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 17, marginBottom: 14 }}>🏆 Top 3 del ranking</div>
         {ranking.slice(0, 3).map((j, i) => {
           const medallas = ["🥇", "🥈", "🥉"];
+          const coloresGradiente = [
+            { bg: "linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0.05) 100%)", border: "rgba(255,215,0,0.3)" },
+            { bg: "linear-gradient(135deg, rgba(192,192,192,0.15) 0%, rgba(192,192,192,0.05) 100%)", border: "rgba(192,192,192,0.3)" },
+            { bg: "linear-gradient(135deg, rgba(205,127,50,0.15) 0%, rgba(205,127,50,0.05) 100%)", border: "rgba(205,127,50,0.3)" }
+          ];
           return (
             <div
               key={i}
@@ -146,24 +155,35 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                background: j.esYo ? "rgba(253,119,81,0.1)" : "var(--card)",
-                border: j.esYo ? "2px solid #FD7751" : "1px solid var(--card-border)",
-                borderRadius: 12,
-                padding: "12px 14px",
-                marginBottom: 8,
+                background: j.esYo ? "linear-gradient(135deg, rgba(253,119,81,0.15) 0%, rgba(253,119,81,0.05) 100%)" : coloresGradiente[i].bg,
+                border: j.esYo ? "2px solid #FD7751" : `1.5px solid ${coloresGradiente[i].border}`,
+                borderRadius: 14,
+                padding: "14px 16px",
+                marginBottom: 10,
+                boxShadow: j.esYo ? "0 4px 16px rgba(253,119,81,0.2)" : "0 2px 8px rgba(0,0,0,0.1)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-3px)";
+                e.currentTarget.style.boxShadow = j.esYo ? "0 8px 24px rgba(253,119,81,0.3)" : "0 6px 16px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = j.esYo ? "0 4px 16px rgba(253,119,81,0.2)" : "0 2px 8px rgba(0,0,0,0.1)";
               }}
             >
-              <span style={{ fontSize: 24 }}>{medallas[i]}</span>
+              <span style={{ fontSize: 28 }}>{medallas[i]}</span>
               <div style={{ flex: 1 }}>
-                <span style={{ color: j.esYo ? C.naranja : "var(--texto)", fontWeight: 700, fontSize: 14 }}>
+                <span style={{ color: j.esYo ? C.naranja : "var(--texto)", fontWeight: 800, fontSize: 14, letterSpacing: "-0.3px" }}>
                   {j.nombre} {j.esYo ? "👈" : ""}
                 </span>
               </div>
-              <span style={{ color: C.dorado, fontWeight: 900, fontSize: 14 }}>🪙 {j.monedas}</span>
+              <span style={{ color: C.dorado, fontWeight: 900, fontSize: 15 }}>🪙 {j.monedas}</span>
             </div>
           );
         })}
       </div>
+    </div>
     </div>
   );
 }

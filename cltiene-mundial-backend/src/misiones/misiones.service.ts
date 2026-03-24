@@ -66,6 +66,73 @@ const MISIONES: Mision[] = [
   },
 ];
 
+// Banco de preguntas - Cada conjunto de 6 es para un día diferente
+const BANCO_PREGUNTAS = [
+  // Lunes
+  [
+    { pregunta: '¿En qué país se jugará la final del Mundial 2026?', opciones: ['México', 'Estados Unidos', 'Canadá', 'Brasil'], correcta: 1 },
+    { pregunta: '¿Cuántos equipos participarán en el Mundial 2026?', opciones: ['32', '36', '48', '64'], correcta: 2 },
+    { pregunta: '¿Quién gana tu prima cada vez que ves fútbol? (Broma CLTiene)', opciones: ['Tú con tu Plan Premium', 'Tu rival', 'Nadie', 'Todos'], correcta: 0 },
+    { pregunta: '¿Qué debe tener CLTiene para sus clientes?', opciones: ['Buenas ofertas', 'Respaldo 24/7', 'Solo versión basic', 'Nada especial'], correcta: 1 },
+    { pregunta: '¿En qué año se celebró el primer Mundial?', opciones: ['1928', '1930', '1934', '1950'], correcta: 1 },
+    { pregunta: '¿Cuál es el objetivo de CLTiene en salud?', opciones: ['Ganar dinero', 'Orientación médica sin filas', 'Crear monopolios', 'Nada'], correcta: 1 },
+  ],
+  // Martes
+  [
+    { pregunta: '¿Quién ha ganado más Mundiales?', opciones: ['Alemania', 'Argentina', 'Italia', 'Brasil'], correcta: 3 },
+    { pregunta: '¿Cuántas fases tiene la Copa Mundial 2026?', opciones: ['1', '2', '3', '4'], correcta: 2 },
+    { pregunta: '¿Qué servicio ofrece CLTiene para mascotas?', opciones: ['Solo gatos', 'Veterinario en casa', 'Nada', 'Safari'], correcta: 1 },
+    { pregunta: 'En CLTiene, ¿qué es lo MÁS importante?', opciones: ['El lujo', 'Tu bienestar', 'El precio', 'Las ganancias'], correcta: 1 },
+    { pregunta: '¿Quién ganó el Mundial 2022?', opciones: ['Francia', 'Argentina', 'Brasil', 'Croacia'], correcta: 1 },
+    { pregunta: '¿Cuántas selecciones sudamericanas históricamente ganan Mundiales?', opciones: ['1', '2', '3', '4'], correcta: 2 },
+  ],
+  // Miércoles
+  [
+    { pregunta: '¿En qué continente se juega el Mundial 2026?', opciones: ['África', 'Europa', 'América', 'Asia'], correcta: 2 },
+    { pregunta: '¿Cuál es el Plan de movilidad de CLTiene?', opciones: ['Para viajes internacionales', 'Asistencia vehicular 24/7', 'Solo autobuses', 'Grúas de juguete'], correcta: 1 },
+    { pregunta: '¿Cada cuántos años se juega el Mundial?', opciones: ['3 años', '4 años', '3 años', '5 años'], correcta: 1 },
+    { pregunta: '¿CLTiene tiene Plan PREMIUM?', opciones: ['No existe', 'Sí, cubre todo', 'Solo parcialmente', 'Es mito'], correcta: 1 },
+    { pregunta: '¿Cuántos goles anotó Pelé en su carrera?', opciones: ['500', '757', '650', '899'], correcta: 1 },
+    { pregunta: '¿Qué significa CLTiene?', opciones: ['Tiene Clientes', 'Tiene Cobertura', 'Clientes Tienen', 'Cuidado Lógico'], correcta: 0 },
+  ],
+  // Jueves
+  [
+    { pregunta: '¿Cuál es el equipo con más Mundiales?', opciones: ['Alemania', 'Italia', 'Brasil', 'Francia'], correcta: 2 },
+    { pregunta: '¿CLTiene cubre qué áreas principales?', opciones: ['Solo salud', 'Salud, mascotas, movilidad, hogar', 'Solo seguros', 'Nada importante'], correcta: 1 },
+    { pregunta: '¿Cuándo fue el último Mundial?', opciones: ['2020', '2022', '2024', '2023'], correcta: 1 },
+    { pregunta: '¿A través de qué accedes a CLTiene?', opciones: ['Por correo', 'Por app y web', 'Por teléfono fijo', 'Por telegram'], correcta: 1 },
+    { pregunta: '¿Cuántas copas tiene Argentina en su historia?', opciones: ['1', '2', '3', '4'], correcta: 2 },
+    { pregunta: '¿Cuál es la mentalidad de CLTiene?', opciones: ['Ganar siempre', 'Acompañarte en cada momento', 'Cobrar más', 'Complicarte'], correcta: 1 },
+  ],
+  // Viernes
+  [
+    { pregunta: '¿En qué país juegan la mayoría de partidos del 2026?', opciones: ['México', 'Canadá', 'Estados Unidos', 'Igual'], correcta: 2 },
+    { pregunta: '¿CLTiene te deja sin estrés?', opciones: ['A veces', 'Nunca', 'Siempre con respaldo 24/7', 'No promete eso'], correcta: 2 },
+    { pregunta: '¿Cuál es tu rol en la polla de CLTiene?', opciones: ['Apostar dinero', 'Predecir gratis y ganar goles', 'Perder tiempo', 'Ver otros jugar'], correcta: 1 },
+    { pregunta: '¿Cómo se llama el asistente médico de CLTiene?', opciones: ['Dr. Bot', 'No tiene nombre', 'Orientación médica experta', 'ChatGPT'], correcta: 2 },
+    { pregunta: '¿Qué jugador ganó el Balón de Oro 2023?', opciones: ['Mbappé', 'Haaland', 'Messi', 'Rodri'], correcta: 3 },
+    { pregunta: '¿Para qué sirve CLTiene premium?', opciones: ['Nada', 'Cobertura integral de salud, hogar, mascotas', 'Solo marketing', 'Es lo mismo'], correcta: 1 },
+  ],
+  // Sábado
+  [
+    { pregunta: '¿Cuál es la capital futbolística del 2026?', opciones: ['Toronto', 'Ciudad de México', 'Nueva York', 'Los Ángeles'], correcta: 2 },
+    { pregunta: '¿CLTiene tiene atención 24/7?', opciones: ['Solo en horario laboral', 'Sí, siempre respaldándote', 'Fines de semana no', 'Solo telefonía'], correcta: 1 },
+    { pregunta: '¿Qué recibes en CLTiene para tu mascota?', opciones: ['Solo alimento', 'Veterinario en casa y cuidado integral', 'Nada', 'Solo consultas'], correcta: 1 },
+    { pregunta: '¿Cuántos goles acumulas en la polla?', opciones: ['Depende', 'Los que ganes prediciendo', 'Ninguno', 'Todos iguales'], correcta: 1 },
+    { pregunta: '¿Qué equipo ganó la Euro 2024?', opciones: ['Italia', 'España', 'Francia', 'Alemania'], correcta: 2 },
+    { pregunta: '¿Cuál es el valor de CLTiene?', opciones: ['Maximizar ganancias', 'Estar contigo en cada momento', 'Cobrar más caro', 'Competir'], correcta: 1 },
+  ],
+  // Domingo
+  [
+    { pregunta: '¿Cuántas ciudades sedes hay en el 2026?', opciones: ['8', '12', '16', '20'], correcta: 2 },
+    { pregunta: '¿Cómo es el trato de CLTiene?', opciones: ['Corporativo y frío', 'Cercano y solidario', 'Solo online', 'Complicado'], correcta: 1 },
+    { pregunta: '¿Qué es lo que CLTiene NO hace?', opciones: ['Acompañar', 'Te deja sin protección', 'Respaldarte', 'Cuidarte'], correcta: 1 },
+    { pregunta: '¿A quién contactas en CLTiene ante emergencia?', opciones: ['Esperanzas', 'Atención 24/7 inmediata', 'Nadie', 'Tu familia'], correcta: 1 },
+    { pregunta: '¿Cuál fue la sorpresa del Mundial 2022?', opciones: ['Brasil ganó', 'Argentina campeón', 'Marruecos en semifinal', 'Francia perfecta'], correcta: 2 },
+    { pregunta: '¿Qué promete CLTiene?', opciones: ['Las mejores ganancias', 'Calidad de vida con cobertura integral', 'Solo dinero', 'Lujos'], correcta: 1 },
+  ],
+];
+
 @Injectable()
 export class MisionesService {
   constructor(
@@ -223,7 +290,7 @@ export class MisionesService {
       await manager.save(TriviaHistorial, {
         jugador_id: jug.id,
         correctas,
-        total_preguntas: 5,
+        total_preguntas: 6,
         goles_ganados: golesFinales,
         primera_vez: esPrimeraVez ? 1 : 0,
         fecha: hoy,
@@ -234,7 +301,7 @@ export class MisionesService {
       const mision = MISIONES.find((m) => m.id === 'trivia_mundial')!;
       const golesConMision = golesGanados + mision.goles;
       return {
-        mensaje: `¡Trivia completada! +${golesConMision} goles (${correctas}/5 correctas + bono primera vez)`,
+        mensaje: `¡Trivia completada! +${golesConMision} goles (${correctas}/6 correctas + bono primera vez)`,
         goles_ganados: golesConMision,
         correctas,
         primera_vez: true,
@@ -242,10 +309,21 @@ export class MisionesService {
     }
 
     return {
-      mensaje: `¡Trivia completada! +${golesGanados} goles (${correctas}/5 correctas)`,
+      mensaje: `¡Trivia completada! +${golesGanados} goles (${correctas}/6 correctas)`,
       goles_ganados: golesGanados,
       correctas,
       primera_vez: false,
+    };
+  }
+
+  // Obtener preguntas dinámicas para el día actual
+  getPreguntasDelDia() {
+    const hoy = new Date().getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+    const preguntas = BANCO_PREGUNTAS[hoy];
+    return {
+      preguntas,
+      fecha: new Date().toISOString().split('T')[0],
+      dia: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][hoy],
     };
   }
 

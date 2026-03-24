@@ -10,6 +10,11 @@ export class MisionesController {
     return this.misionesService.getMisiones(uid);
   }
 
+  @Get('trivia/preguntas')
+  getPreguntasTrivia() {
+    return this.misionesService.getPreguntasDelDia();
+  }
+
   @Post(':uid/trivia')
   jugarTrivia(@Param('uid') uid: string, @Body('correctas') correctas: number) {
     return this.misionesService.jugarTrivia(uid, correctas);

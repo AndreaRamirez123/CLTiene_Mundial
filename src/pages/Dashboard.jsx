@@ -22,6 +22,15 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const [ranking, setRanking] = useState([]);
   const [toast, setToast] = useState(null);
 
+  // Fechas del Mundial 2026: 15 de junio - 13 de julio
+  const MUNDIAL_INICIO = new Date(2026, 5, 15); // Junio 15
+  const MUNDIAL_FIN = new Date(2026, 6, 13); // Julio 13
+  const ahora = new Date();
+  const estaAntesDeMundial = ahora < MUNDIAL_INICIO;
+  const estaEnMundial = ahora >= MUNDIAL_INICIO && ahora <= MUNDIAL_FIN;
+  const estaDespuesDeMundial = ahora > MUNDIAL_FIN;
+  const diasAlMundial = Math.ceil((MUNDIAL_INICIO - ahora) / (1000 * 60 * 60 * 24));
+
   const mostrarToast = (mensaje, tipo = "exito") => {
     setToast({ mensaje, tipo });
     setTimeout(() => setToast(null), 3000);
@@ -103,10 +112,18 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       <div style={{ position: "relative", overflow: "hidden", padding: "28px 16px 24px", background: "var(--bg-gradient)" }}>
         <div className="anim-goal-flash" style={{ position: "absolute", right: -20, top: -20, fontSize: 120, opacity: 0.07, transform: "rotate(15deg)", userSelect: "none" }}>⚽</div>
         <div style={{ position: "relative", maxWidth: 600, margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(253,119,81,0.2)", border: "1px solid rgba(253,119,81,0.4)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
-            <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: "50%", background: C.verde, display: "inline-block" }} />
-            <span style={{ color: C.naranja, fontSize: 12, fontWeight: 700 }}>MUNDIAL 2026 · EN VIVO</span>
-          </div>
+          {estaAntesDeMundial && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(253,119,81,0.15)", border: "1.5px solid rgba(253,119,81,0.4)", borderRadius: 20, padding: "6px 14px", marginBottom: 10 }}>
+              <span style={{ fontSize: 14 }}>🏆</span>
+              <span style={{ color: C.naranja, fontSize: 12, fontWeight: 700 }}>MUNDIAL 2026 · {diasAlMundial} DÍAS</span>
+            </div>
+          )}
+          {estaEnMundial && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(253,119,81,0.2)", border: "1px solid rgba(253,119,81,0.4)", borderRadius: 20, padding: "4px 12px", marginBottom: 10 }}>
+              <span className="anim-pulse" style={{ width: 6, height: 6, borderRadius: "50%", background: C.verde, display: "inline-block" }} />
+              <span style={{ color: C.naranja, fontSize: 12, fontWeight: 700 }}>MUNDIAL 2026 · EN VIVO</span>
+            </div>
+          )}
           <h1 style={{ color: "var(--texto)", fontSize: 28, fontWeight: 900, margin: "0 0 6px", lineHeight: 1.1 }}>
             ¡Hola, <span style={{ color: C.naranja }}>{nombre}</span>! 👋
           </h1>
