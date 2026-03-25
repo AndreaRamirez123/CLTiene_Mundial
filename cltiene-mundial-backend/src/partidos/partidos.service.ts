@@ -1,26 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Partido } from '../entities/partido.entity';
+import { Empresa } from '../entities/empresa.entity';
 
 @Injectable()
-export class PartidosService {
+export class PartidosService implements OnModuleInit {
+  private readonly logger = new Logger(PartidosService.name);
+
   constructor(
     @InjectRepository(Partido)
     private readonly partidoRepo: Repository<Partido>,
+    @InjectRepository(Empresa)
+    private readonly empresaRepo: Repository<Empresa>,
   ) {}
 
-  async getPartidos(fase?: string) {
-    const where: Record<string, unknown> = {};
+  // Auto-seed: si una empresa no tiene partidos, crear los 72 de fase de grupos
+  async onModuleInit() {
+    const empresas = await this.empresaRepo.find({ where: { estado: 'activa' } });
+    for (const empresa of empresas) {
+      const count = await this.partidoRepo.count({ where: { empresa_id: empresa.id } });
+      if (count === 0) {
+        this.logger.log(`Seed automatico de partidos para empresa "${empresa.nombre}" (id: ${empresa.id})`);
+        await this.seedPartidos(empresa.id);
+      }
+    }
+  }
+
+  async getPartidos(empresaId: number, fase?: string) {
+    const where: Record<string, unknown> = { empresa_id: empresaId };
     if (fase) where.fase = fase;
     return this.partidoRepo.find({ where, order: { fecha: 'ASC', hora: 'ASC' } });
   }
 
-  async seedPartidos() {
-    // Limpiar partidos existentes (desactivar FK temporalmente)
-    await this.partidoRepo.query('SET FOREIGN_KEY_CHECKS = 0');
-    await this.partidoRepo.clear();
-    await this.partidoRepo.query('SET FOREIGN_KEY_CHECKS = 1');
+  async seedPartidos(empresaId: number) {
+    // Limpiar partidos de esta empresa
+    await this.partidoRepo.delete({ empresa_id: empresaId });
 
     const e = 'pendiente';
     const f = 'Grupos';
@@ -126,9 +141,11 @@ export class PartidosService {
       { grupo: 'L', local_equipo: 'Croacia', bandera_local: 'hr', visitante_equipo: 'Ghana', bandera_visitante: 'gh', fecha: '2026-06-27', hora: '18:00', fase: f, estado: e },
     ];
 
-    const entities = partidos.map((p) => this.partidoRepo.create(p as Partial<Partido>));
+    const entities = partidos.map((p) =>
+      this.partidoRepo.create({ ...p, empresa_id: empresaId } as Partial<Partido>),
+    );
     await this.partidoRepo.save(entities);
-    return { mensaje: `${partidos.length} partidos de fase de grupos creados` };
+    return { mensaje: `${partidos.length} partidos de fase de grupos creados para empresa ${empresaId}` };
   }
 
   async actualizarResultado(id: string, goles_local: number, goles_visitante: number) {

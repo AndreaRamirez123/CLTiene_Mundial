@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Jugador } from '../entities/jugador.entity';
 
 @Injectable()
-export class AdminGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
   constructor(
     @InjectRepository(Jugador)
     private jugadorRepo: Repository<Jugador>,
@@ -15,7 +15,6 @@ export class AdminGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    // Intentar extraer uid del JWT (Authorization: Bearer token)
     let uid = request.headers['x-user-uid'];
 
     if (!uid) {
@@ -26,7 +25,7 @@ export class AdminGuard implements CanActivate {
           const payload = this.jwtService.verify(token);
           uid = payload.uid;
         } catch {
-          throw new ForbiddenException('Token inválido');
+          throw new ForbiddenException('Token invalido');
         }
       }
     }
@@ -39,10 +38,6 @@ export class AdminGuard implements CanActivate {
 
     if (!jugador) {
       throw new ForbiddenException('Usuario no encontrado');
-    }
-
-    if (jugador.rol !== 'admin' && jugador.rol !== 'superadmin') {
-      throw new ForbiddenException('Acceso denegado: Solo administradores pueden acceder');
     }
 
     request.jugador = jugador;

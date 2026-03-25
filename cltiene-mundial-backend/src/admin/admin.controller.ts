@@ -7,13 +7,20 @@ import { AdminGuard } from './admin.guard';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  // Helper: superadmin ve todo, admin solo su empresa
+  private getEmpresaId(req: any): number | undefined {
+    if (req.jugador.rol === 'superadmin') return undefined;
+    return req.jugador.empresa_id;
+  }
+
   // Obtener todos los jugadores con paginación
   @Get('jugadores')
   async obtenerJugadores(
+    @Request() req: any,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 20,
   ) {
-    return this.adminService.obtenerTodosLosJugadores(page, limit);
+    return this.adminService.obtenerTodosLosJugadores(page, limit, this.getEmpresaId(req));
   }
 
   // Obtener detalles completos de un jugador
@@ -28,16 +35,16 @@ export class AdminController {
     return this.adminService.obtenerPrediccionesSinValidar();
   }
 
-  // Obtener estadísticas globales
+  // Obtener estadísticas
   @Get('estadisticas')
-  async obtenerEstadisticas() {
-    return this.adminService.obtenerEstadisticas();
+  async obtenerEstadisticas(@Request() req: any) {
+    return this.adminService.obtenerEstadisticas(this.getEmpresaId(req));
   }
 
   // Georreferenciación
   @Get('georreferenciacion')
-  async obtenerGeorreferenciacion() {
-    return this.adminService.obtenerGeorreferenciacion();
+  async obtenerGeorreferenciacion(@Request() req: any) {
+    return this.adminService.obtenerGeorreferenciacion(this.getEmpresaId(req));
   }
 
   // Convertir usuario a admin

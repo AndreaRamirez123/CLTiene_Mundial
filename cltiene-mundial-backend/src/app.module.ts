@@ -14,6 +14,8 @@ import { MisionesModule } from './misiones/misiones.module';
 import { WipModule } from './wip/wip.module';
 import { CanjesModule } from './canjes/canjes.module';
 import { AdminModule } from './admin/admin.module';
+import { ConfigMarcaModule } from './config-marca/config-marca.module';
+import { EmpresasModule } from './empresas/empresas.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -47,6 +49,8 @@ import { AppService } from './app.service';
     WipModule,
     CanjesModule,
     AdminModule,
+    ConfigMarcaModule,
+    EmpresasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

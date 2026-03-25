@@ -1,6 +1,5 @@
 -- ============================================
--- CLTiene Mundial 2026 - Esquema MySQL
--- Firebase Auth solo para login
+-- CLTiene Mundial 2026 - Esquema MySQL (SaaS Multi-Tenant)
 -- Monedas NUNCA se restan (Coljuegos)
 -- ============================================
 
@@ -11,12 +10,48 @@ CREATE DATABASE IF NOT EXISTS cltiene_mundial
 USE cltiene_mundial;
 
 -- ============================================
--- 1. JUGADORES 
+-- 0. EMPRESAS (Tenants)
+-- ============================================
+CREATE TABLE empresas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL,
+  slug VARCHAR(100) NOT NULL UNIQUE COMMENT 'Identificador URL-friendly',
+  estado ENUM('activa','inactiva') NOT NULL DEFAULT 'activa',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_slug (slug),
+  INDEX idx_estado (estado)
+) ENGINE=InnoDB;
+
+-- ============================================
+-- 0.1 CONFIG MARCA (Personalización por empresa)
+-- ============================================
+CREATE TABLE config_marca (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  empresa_id INT NOT NULL UNIQUE,
+  nombre_app VARCHAR(150) NOT NULL DEFAULT 'CLTiene Mundial',
+  subtitulo VARCHAR(150) NOT NULL DEFAULT 'Mundial 2026',
+  logo_url TEXT DEFAULT NULL,
+  color_primario VARCHAR(10) NOT NULL DEFAULT '#FD7751',
+  color_secundario VARCHAR(10) NOT NULL DEFAULT '#ED1E28',
+  color_acento VARCHAR(10) NOT NULL DEFAULT '#ECA82D',
+  color_fondo VARCHAR(10) NOT NULL DEFAULT '#0f0a1e',
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================
+-- 1. JUGADORES
 -- ============================================
 CREATE TABLE jugadores (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  uid VARCHAR(128) NOT NULL UNIQUE COMMENT 'UID de Firebase Auth',
+  empresa_id INT NOT NULL,
+  uid VARCHAR(128) NOT NULL UNIQUE COMMENT 'UID interno',
   email VARCHAR(255) NOT NULL,
+
+  UNIQUE KEY uk_email_empresa (email, empresa_id),
   nombre VARCHAR(150) NOT NULL DEFAULT '',
   telefono VARCHAR(30) DEFAULT '',
   correo VARCHAR(255) DEFAULT '',
@@ -67,10 +102,13 @@ CREATE TABLE jugadores (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+  INDEX idx_empresa (empresa_id),
   INDEX idx_monedas (monedas DESC),
   INDEX idx_nivel (nivel),
   INDEX idx_codigo_referido (codigo_referido),
-  INDEX idx_referido_por (referido_por)
+  INDEX idx_referido_por (referido_por),
+
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id)
 ) ENGINE=InnoDB;
 
 -- ============================================
@@ -78,6 +116,7 @@ CREATE TABLE jugadores (
 -- ============================================
 CREATE TABLE partidos (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  empresa_id INT NOT NULL,
   grupo VARCHAR(5) DEFAULT NULL COMMENT 'Grupo A-L',
   local_equipo VARCHAR(100) NOT NULL,
   visitante_equipo VARCHAR(100) NOT NULL,
@@ -92,9 +131,12 @@ CREATE TABLE partidos (
   resultado ENUM('local','visitante','empate') DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
+  INDEX idx_empresa (empresa_id),
   INDEX idx_fase_fecha (fase, fecha),
   INDEX idx_estado (estado),
-  INDEX idx_fecha (fecha)
+  INDEX idx_fecha (fecha),
+
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id)
 ) ENGINE=InnoDB;
 
 -- ============================================
@@ -205,7 +247,7 @@ CREATE TABLE notificaciones_log (
 ) ENGINE=InnoDB;
 
 -- ============================================
--- VISTA: Ranking 
+-- VISTA: Ranking (filtrable por empresa_id)
 -- ============================================
 CREATE OR REPLACE VIEW ranking_general AS
 SELECT
@@ -217,12 +259,13 @@ SELECT
   j.predicciones_acertadas,
   j.nivel,
   j.goles,
-  RANK() OVER (ORDER BY j.monedas DESC) AS posicion
+  j.empresa_id,
+  RANK() OVER (PARTITION BY j.empresa_id ORDER BY j.monedas DESC) AS posicion
 FROM jugadores j
-ORDER BY j.monedas DESC;
+ORDER BY j.empresa_id, j.monedas DESC;
 
 -- ============================================
--- VISTA: Elegibilidad de canje
+-- VISTA: Elegibilidad de canje (filtrable por empresa_id)
 -- ============================================
 CREATE OR REPLACE VIEW elegibilidad_canje AS
 SELECT
@@ -231,6 +274,7 @@ SELECT
   j.nombre,
   j.monedas,
   j.predicciones_count,
+  j.empresa_id,
   COUNT(DISTINCT p.fase) AS fases_participadas,
   CASE
     WHEN j.predicciones_count >= 11 THEN 1

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { obtenerInicioMundial } from "../../api/gemini";
 import { useCountdown } from "../../hooks/useCountdown";
 import client from "../../api/client";
-import logo from "../../assets/logo.png";
+import { getLogoMarca, getNombreMarca } from "../../utils/marca";
 import { formatearFecha, Bandera } from "./constants";
 
 export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
@@ -274,7 +274,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
           <div style={{ width: 46, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <img src={logo} alt="CLTiene" style={{ width: 28, height: 28, objectFit: "contain" }} />
+            <img src={getLogoMarca()} alt={getNombreMarca()} style={{ width: 28, height: 28, objectFit: "contain" }} />
           </div>
           <div>
             <div style={{ color: promoActual.accent, fontSize: 11, fontWeight: 800, letterSpacing: 0.6 }}>{promoActual.eyebrow}</div>

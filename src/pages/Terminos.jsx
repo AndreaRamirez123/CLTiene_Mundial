@@ -1,6 +1,6 @@
-import logo from "../assets/logo.png";
+import { getLogoMarca, getNombreMarca } from "../utils/marca";
 
-const C = { naranja: "#FD7751", morado: "#822BD2", dorado: "#ECA82D" };
+const C = { naranja: "var(--brand-primary)", morado: "#822BD2", dorado: "var(--brand-accent)" };
 
 export default function Terminos({ onVolver }) {
   return (
@@ -10,7 +10,7 @@ export default function Terminos({ onVolver }) {
         <button onClick={onVolver} style={{ background: "rgba(253,119,81,0.1)", border: "1px solid rgba(253,119,81,0.3)", borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", color: C.naranja, fontSize: 18, cursor: "pointer" }}>
           ←
         </button>
-        <img src={logo} alt="CLTiene" style={{ height: 28 }} />
+        <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 28 }} />
         <span style={{ fontWeight: 800, fontSize: 15 }}>Terminos y Condiciones</span>
       </div>
 
@@ -128,7 +128,7 @@ export default function Terminos({ onVolver }) {
         <div style={{ textAlign: "center", marginTop: 32 }}>
           <button onClick={onVolver} style={{
             padding: "14px 48px", borderRadius: 14, border: "none",
-            background: "linear-gradient(135deg, #FD7751, #ED1E28)",
+            background: "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))",
             color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer",
             boxShadow: "0 4px 20px rgba(253,119,81,0.3)",
             transition: "transform 0.2s",
@@ -142,7 +142,7 @@ export default function Terminos({ onVolver }) {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 32, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <img src={logo} alt="CLTiene" style={{ height: 32, opacity: 0.4 }} />
+          <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 32, opacity: 0.4 }} />
           <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, marginTop: 8 }}>
             MULTISERVICIOS CL TIENE - Todos los derechos reservados 2026
           </p>
@@ -172,7 +172,7 @@ function Section({ icono, titulo, subtitulo, color, children }) {
 function Item({ children }) {
   return (
     <div style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "flex-start" }}>
-      <span style={{ color: "#FD7751", fontSize: 10, marginTop: 9, flexShrink: 0 }}>●</span>
+      <span style={{ color: "var(--brand-primary)", fontSize: 10, marginTop: 9, flexShrink: 0 }}>●</span>
       <span>{children}</span>
     </div>
   );

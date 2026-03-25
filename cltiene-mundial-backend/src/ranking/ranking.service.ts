@@ -10,8 +10,9 @@ export class RankingService {
     private readonly jugadorRepo: Repository<Jugador>,
   ) {}
 
-  async getRanking(limit = 10) {
+  async getRanking(empresaId: number, limit = 10) {
     const jugadores = await this.jugadorRepo.find({
+      where: { empresa_id: empresaId },
       order: { monedas: 'DESC' },
       take: limit,
       select: [

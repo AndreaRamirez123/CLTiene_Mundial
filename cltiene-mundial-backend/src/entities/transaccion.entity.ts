@@ -1,6 +1,11 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
-  ManyToOne, JoinColumn, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
 import { Jugador } from './jugador.entity';
 
@@ -16,9 +21,13 @@ export class Transaccion {
   @Column({
     type: 'enum',
     enum: [
-      'registro', 'bono_diario', 'bono_apuesta',
-      'prediccion_simple', 'prediccion_especial',
-      'bono_referido', 'trivia',
+      'registro',
+      'bono_diario',
+      'bono_apuesta',
+      'prediccion_simple',
+      'prediccion_especial',
+      'bono_referido',
+      'trivia',
     ],
   })
   tipo: string;

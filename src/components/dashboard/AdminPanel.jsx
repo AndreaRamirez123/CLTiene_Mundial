@@ -4,6 +4,8 @@ import VistaUsuarios from './AdminViews/VistaUsuarios';
 import VistaPrediciones from './AdminViews/VistaPrediciones';
 import VistaEstadisticas from './AdminViews/VistaEstadisticas';
 import VistaGeo from './AdminViews/VistaGeo';
+import VistaMarca from './AdminViews/VistaMarca';
+import VistaEmpresas from './AdminViews/VistaEmpresas';
 
 export default function AdminPanel({ usuario, client }) {
   const [tab, setTab] = useState('usuarios');
@@ -11,6 +13,7 @@ export default function AdminPanel({ usuario, client }) {
   const [predicciones, setPrediciones] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const esSuperadmin = usuario?.rol === 'superadmin';
 
   useEffect(() => {
     if (!usuario?.uid) return;
@@ -90,6 +93,20 @@ export default function AdminPanel({ usuario, client }) {
           >
             📍 Georreferenciación
           </button>
+          {esSuperadmin && (
+            <button
+              onClick={() => setTab('empresas')}
+              style={btnTabStyle(tab === 'empresas')}
+            >
+              🏢 Empresas
+            </button>
+          )}
+          <button
+            onClick={() => setTab('marca')}
+            style={btnTabStyle(tab === 'marca')}
+          >
+            🎨 Marca
+          </button>
         </div>
 
         {/* Contenido */}
@@ -103,6 +120,8 @@ export default function AdminPanel({ usuario, client }) {
             {tab === 'predicciones' && <VistaPrediciones predicciones={predicciones} />}
             {tab === 'estadisticas' && <VistaEstadisticas estadisticas={estadisticas} />}
             {tab === 'geo' && <VistaGeo client={client} />}
+            {tab === 'empresas' && esSuperadmin && <VistaEmpresas client={client} />}
+            {tab === 'marca' && <VistaMarca client={client} usuario={usuario} />}
           </>
         )}
       </div>

@@ -1,16 +1,34 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
-  UpdateDateColumn, OneToMany, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
+import { Empresa } from './empresa.entity';
 import { Prediccion } from './prediccion.entity';
 import { Transaccion } from './transaccion.entity';
 import { TriviaHistorial } from './trivia-historial.entity';
 import { Canje } from './canje.entity';
 
 @Entity('jugadores')
+@Index('uk_email_empresa', ['email', 'empresa_id'], { unique: true })
 export class Jugador {
   @PrimaryGeneratedColumn()
   id: number;
+
+  // Empresa (tenant)
+  @ManyToOne(() => Empresa, (e) => e.jugadores)
+  @JoinColumn({ name: 'empresa_id' })
+  empresa: Empresa;
+
+  @Index()
+  @Column({ type: 'int' })
+  empresa_id: number;
 
   @Column({ type: 'varchar', length: 128, unique: true })
   uid: string;
@@ -37,10 +55,18 @@ export class Jugador {
   ciudad: string;
 
   // Encuesta de registro
-  @Column({ type: 'enum', enum: ['natural', 'empresa', 'organizacion', 'explorar'], nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['natural', 'empresa', 'organizacion', 'explorar'],
+    nullable: true,
+  })
   tipojugador: string | null;
 
-  @Column({ type: 'enum', enum: ['cliente', 'escuchado', 'explorando', 'nuevo'], nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['cliente', 'escuchado', 'explorando', 'nuevo'],
+    nullable: true,
+  })
   relacion_cltiene: string | null;
 
   @Column({ type: 'tinyint', default: 0 })
@@ -68,11 +94,19 @@ export class Jugador {
   @Column({ type: 'int', unsigned: true, default: 0 })
   predicciones_acertadas: number;
 
-  @Column({ type: 'enum', enum: ['inactivo', 'activo', 'muy_activo'], default: 'activo' })
+  @Column({
+    type: 'enum',
+    enum: ['inactivo', 'activo', 'muy_activo'],
+    default: 'activo',
+  })
   nivel: string;
 
   // Rol del usuario (admin o jugador regular)
-  @Column({ type: 'enum', enum: ['jugador', 'admin'], default: 'jugador' })
+  @Column({
+    type: 'enum',
+    enum: ['jugador', 'admin', 'superadmin'],
+    default: 'jugador',
+  })
   rol: string;
 
   // Referidos
@@ -113,7 +147,11 @@ export class Jugador {
   fcm_token: string | null;
 
   // Canje
-  @Column({ type: 'enum', enum: ['whatsapp', 'email', 'telefono'], nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['whatsapp', 'email', 'telefono'],
+    nullable: true,
+  })
   canal_contacto: string | null;
 
   @Column({ type: 'tinyint', default: 0 })

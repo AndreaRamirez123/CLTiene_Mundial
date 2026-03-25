@@ -1,15 +1,15 @@
 import { useState } from "react";
 import client from "../api/client";
-import logo from "../assets/logo.png";
+import { getLogoMarca, getNombreMarca, getSubtituloMarca } from "../utils/marca";
 import Terminos from "./Terminos";
 
 const C = {
-    naranja: "#FD7751",
-    dorado: "#ECA82D",
+    naranja: "var(--brand-primary)",
+    dorado: "var(--brand-accent)",
     morado: "#822BD2",
     rosa: "#FC3276",
     azul: "#408DFF",
-    rojo: "#ED1E28",
+    rojo: "var(--brand-secondary)",
     grisClaro: "#999999",
     grisOsc: "#7D7765",
     blanco: "#ffffff",
@@ -124,9 +124,9 @@ export default function Registro({ usuario, onRegistroCompleto, onVolver }) {
                 {/* Header con logo */}
                 <div style={s.header}>
                     <div style={{ textAlign: "center", marginBottom: "4px" }}>
-                        <img src={logo} alt="CLTiene" style={{ width: "140px", height: "auto", display: "block", margin: "0 auto" }} />
+                        <img src={getLogoMarca()} alt={getNombreMarca()} style={{ width: "140px", height: "auto", display: "block", margin: "0 auto" }} />
                         <div style={{ color: C.naranja, fontWeight: 700, fontSize: "13px", marginTop: "2px" }}>
-                            Mundial 2026 ⚽
+                            {getSubtituloMarca()} ⚽
                         </div>
                     </div>
 
@@ -473,8 +473,8 @@ function PantallaFinal({ nombre }) {
             <div style={s.bgNoise} />
             <div style={s.card}>
                 <div style={{ textAlign: "center", padding: "28px 16px" }}>
-                    <img src={logo} alt="CLTiene" style={{ width: "140px", height: "auto", display: "block", margin: "0 auto 8px" }} />
-                    <div style={{ color: C.naranja, fontWeight: 700, fontSize: "13px", marginBottom: "20px" }}>Mundial 2026</div>
+                    <img src={getLogoMarca()} alt={getNombreMarca()} style={{ width: "140px", height: "auto", display: "block", margin: "0 auto 8px" }} />
+                    <div style={{ color: C.naranja, fontWeight: 700, fontSize: "13px", marginBottom: "20px" }}>{getSubtituloMarca()}</div>
                     <div style={{ fontSize: "56px", marginBottom: "12px" }}>🏆</div>
                     <h1 style={{ color: C.blanco, fontSize: "22px", fontWeight: 800, marginBottom: "8px" }}>
                         ¡Listo{nombre ? `, ${nombre}` : ""}!

@@ -1,6 +1,6 @@
-import logo from "../assets/logo.png";
+import { getLogoMarca, getNombreMarca } from "../utils/marca";
 
-const C = { naranja: "#FD7751", morado: "#822BD2", azul: "#408DFF" };
+const C = { naranja: "var(--brand-primary)", morado: "#822BD2", azul: "#408DFF" };
 
 export default function Privacidad({ onVolver }) {
   return (
@@ -10,7 +10,7 @@ export default function Privacidad({ onVolver }) {
         <button onClick={onVolver} style={{ background: "rgba(64,141,255,0.1)", border: "1px solid rgba(64,141,255,0.3)", borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", color: C.azul, fontSize: 18, cursor: "pointer" }}>
           ←
         </button>
-        <img src={logo} alt="CLTiene" style={{ height: 28 }} />
+        <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 28 }} />
         <span style={{ fontWeight: 800, fontSize: 15 }}>Política de Privacidad</span>
       </div>
 
@@ -162,7 +162,7 @@ export default function Privacidad({ onVolver }) {
 
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 32, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <img src={logo} alt="CLTiene" style={{ height: 32, opacity: 0.4 }} />
+          <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 32, opacity: 0.4 }} />
           <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, marginTop: 8 }}>
             MULTISERVICIOS CL TIENE - Todos los derechos reservados 2026
           </p>

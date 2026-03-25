@@ -1,11 +1,27 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
+import { Empresa } from './empresa.entity';
 
 @Entity('partidos')
 export class Partido {
   @PrimaryGeneratedColumn()
   id: number;
+
+  // Empresa (tenant)
+  @ManyToOne(() => Empresa, (e) => e.partidos)
+  @JoinColumn({ name: 'empresa_id' })
+  empresa: Empresa;
+
+  @Index()
+  @Column({ type: 'int' })
+  empresa_id: number;
 
   @Column({ type: 'varchar', length: 5, nullable: true })
   grupo: string | null;
@@ -31,7 +47,15 @@ export class Partido {
 
   @Column({
     type: 'enum',
-    enum: ['Grupos', 'Dieciseisavos', 'Octavos', 'Cuartos', 'Semifinales', 'Tercer puesto', 'Final'],
+    enum: [
+      'Grupos',
+      'Dieciseisavos',
+      'Octavos',
+      'Cuartos',
+      'Semifinales',
+      'Tercer puesto',
+      'Final',
+    ],
   })
   fase: string;
 
@@ -49,7 +73,11 @@ export class Partido {
   @Column({ type: 'tinyint', unsigned: true, nullable: true })
   goles_visitante: number | null;
 
-  @Column({ type: 'enum', enum: ['local', 'visitante', 'empate'], nullable: true })
+  @Column({
+    type: 'enum',
+    enum: ['local', 'visitante', 'empate'],
+    nullable: true,
+  })
   resultado: string | null;
 
   @CreateDateColumn()

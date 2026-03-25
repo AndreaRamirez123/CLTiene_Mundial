@@ -5,7 +5,8 @@ import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 
-const ADMIN_EMAILS = ['andrea_ramirezt@cun.edu.co'];
+const SUPERADMIN_EMAILS = ['andrea_ramirezt@cun.edu.co'];
+const ADMIN_EMAILS: string[] = ['andrearamirezt1992@gmail.com'];
 
 @Injectable()
 export class AdminService implements OnModuleInit {
@@ -21,6 +22,21 @@ export class AdminService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    for (const email of SUPERADMIN_EMAILS) {
+      const jugadores = await this.jugadorRepo.find({
+        where: [{ email }, { correo: email }],
+      });
+      for (const jugador of jugadores) {
+        if (jugador.rol !== 'superadmin') {
+          jugador.rol = 'superadmin';
+          await this.jugadorRepo.save(jugador);
+          this.logger.log(
+            `Superadmin seed: ${email} (uid: ${jugador.uid}) promovido a superadmin`,
+          );
+        }
+      }
+    }
+
     for (const email of ADMIN_EMAILS) {
       const jugadores = await this.jugadorRepo.find({
         where: [{ email }, { correo: email }],
@@ -29,16 +45,20 @@ export class AdminService implements OnModuleInit {
         if (jugador.rol !== 'admin') {
           jugador.rol = 'admin';
           await this.jugadorRepo.save(jugador);
-          this.logger.log(`Admin seed: ${email} (uid: ${jugador.uid}) promovido a admin`);
+          this.logger.log(
+            `Admin seed: ${email} (uid: ${jugador.uid}) promovido a admin`,
+          );
         }
       }
     }
   }
 
-  // Obtener todos los jugadores
-  async obtenerTodosLosJugadores(page = 1, limit = 20) {
+  // Obtener todos los jugadores (filtrado por empresa si es admin, global si superadmin)
+  async obtenerTodosLosJugadores(page = 1, limit = 20, empresaId?: number) {
     const skip = (page - 1) * limit;
+    const where = empresaId ? { empresa_id: empresaId } : {};
     const [data, total] = await this.jugadorRepo.findAndCount({
+      where,
       order: { monedas: 'DESC' },
       skip,
       take: limit,
@@ -91,17 +111,31 @@ export class AdminService implements OnModuleInit {
       .getMany();
   }
 
-  // Obtener estadísticas globales
-  async obtenerEstadisticas() {
-    const totalJugadores = await this.jugadorRepo.count();
-    const totalPredicciones = await this.prediccionRepo.count();
-    const totalMonedas = await this.jugadorRepo
+  // Obtener estadísticas (filtrado por empresa si es admin)
+  async obtenerEstadisticas(empresaId?: number) {
+    const whereJugador = empresaId ? { empresa_id: empresaId } : {};
+    const totalJugadores = await this.jugadorRepo.count({ where: whereJugador });
+
+    const qbPredicciones = this.prediccionRepo.createQueryBuilder('p');
+    if (empresaId) {
+      qbPredicciones
+        .innerJoin('p.jugador', 'j')
+        .where('j.empresa_id = :empresaId', { empresaId });
+    }
+    const totalPredicciones = await qbPredicciones.getCount();
+
+    const qbMonedas = this.jugadorRepo
       .createQueryBuilder('j')
-      .select('SUM(j.monedas)', 'total')
-      .getRawOne();
+      .select('SUM(j.monedas)', 'total');
+    if (empresaId) {
+      qbMonedas.where('j.empresa_id = :empresaId', { empresaId });
+    }
+    const totalMonedas = await qbMonedas.getRawOne();
 
     const adminCount = await this.jugadorRepo.count({
-      where: { rol: 'admin' },
+      where: empresaId
+        ? { rol: 'admin', empresa_id: empresaId }
+        : { rol: 'admin' },
     });
 
     return {
@@ -114,17 +148,23 @@ export class AdminService implements OnModuleInit {
   }
 
   // Georreferenciación: jugadores por departamento y ciudad
-  async obtenerGeorreferenciacion() {
-    const porDepartamento = await this.jugadorRepo
+  async obtenerGeorreferenciacion(empresaId?: number) {
+    const addEmpresaFilter = (qb: any) => {
+      if (empresaId) qb.andWhere('j.empresa_id = :empresaId', { empresaId });
+      return qb;
+    };
+
+    const qbDep = this.jugadorRepo
       .createQueryBuilder('j')
       .select('j.departamento', 'departamento')
       .addSelect('COUNT(*)', 'cantidad')
       .where("j.departamento != ''")
       .groupBy('j.departamento')
-      .orderBy('cantidad', 'DESC')
-      .getRawMany();
+      .orderBy('cantidad', 'DESC');
+    addEmpresaFilter(qbDep);
+    const porDepartamento = await qbDep.getRawMany();
 
-    const porCiudad = await this.jugadorRepo
+    const qbCiudad = this.jugadorRepo
       .createQueryBuilder('j')
       .select('j.departamento', 'departamento')
       .addSelect('j.ciudad', 'ciudad')
@@ -132,18 +172,21 @@ export class AdminService implements OnModuleInit {
       .where("j.ciudad != ''")
       .groupBy('j.departamento')
       .addGroupBy('j.ciudad')
-      .orderBy('cantidad', 'DESC')
-      .getRawMany();
+      .orderBy('cantidad', 'DESC');
+    addEmpresaFilter(qbCiudad);
+    const porCiudad = await qbCiudad.getRawMany();
 
-    const totalConUbicacion = await this.jugadorRepo
+    const qbCon = this.jugadorRepo
       .createQueryBuilder('j')
-      .where("j.departamento != ''")
-      .getCount();
+      .where("j.departamento != ''");
+    addEmpresaFilter(qbCon);
+    const totalConUbicacion = await qbCon.getCount();
 
-    const totalSinUbicacion = await this.jugadorRepo
+    const qbSin = this.jugadorRepo
       .createQueryBuilder('j')
-      .where("j.departamento = '' OR j.departamento IS NULL")
-      .getCount();
+      .where("j.departamento = '' OR j.departamento IS NULL");
+    addEmpresaFilter(qbSin);
+    const totalSinUbicacion = await qbSin.getCount();
 
     return {
       por_departamento: porDepartamento,

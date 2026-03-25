@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import client from "../api/client";
-import logo from "../assets/logo.png";
+import { getLogoMarca, getNombreMarca, getSubtituloMarca } from "../utils/marca";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import { ThemeToggle } from "../store/useTheme";
 
 const GOOGLE_CLIENT_ID = "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
 
-export default function Login({ onLoginExitoso }) {
+export default function Login({ onLoginExitoso, empresaSlug }) {
     const [modo, setModo] = useState("login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -53,7 +53,7 @@ export default function Login({ onLoginExitoso }) {
         setCargando(true);
         setError("");
         try {
-            const res = await client.post("/auth/google", { credential: response.credential });
+            const res = await client.post("/auth/google", { credential: response.credential, empresa_slug: empresaSlug });
             const usuario = { ...res.data.usuario, googleNombre: res.data.googleNombre };
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("usuario", JSON.stringify(usuario));
@@ -74,7 +74,7 @@ export default function Login({ onLoginExitoso }) {
         setCargando(true); setError("");
         try {
             const endpoint = modo === "login" ? "/auth/login" : "/auth/registro";
-            const res = await client.post(endpoint, { email, password });
+            const res = await client.post(endpoint, { email, password, empresa_slug: empresaSlug });
 
             // Guardar token y datos del usuario
             localStorage.setItem("token", res.data.token);
@@ -102,12 +102,12 @@ export default function Login({ onLoginExitoso }) {
                 {/* Logo */}
                 <div style={{ textAlign: "center", marginBottom: "16px" }}>
                     <img
-                        src={logo}
-                        alt="CLTiene"
+                        src={getLogoMarca()}
+                        alt={getNombreMarca()}
                         style={{ width: "200px", height: "auto", display: "block", margin: "0 auto" }}
                     />
-                    <div style={{ color: "#FC3276", fontWeight: 700, fontSize: "14px", marginTop: "6px" }}>
-                        Mundial 2026 ⚽
+                    <div style={{ color: "var(--brand-accent)", fontWeight: 700, fontSize: "14px", marginTop: "6px" }}>
+                        {getSubtituloMarca()} ⚽
                     </div>
                 </div>
 
@@ -194,9 +194,9 @@ export default function Login({ onLoginExitoso }) {
 
                 <p style={s.legal}>
                     Al ingresar aceptas los{" "}
-                    <a href="#" onClick={(e) => { e.preventDefault(); setVerTerminos(true); }} style={{ color: "#FD7751" }}>Términos y Condiciones</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setVerTerminos(true); }} style={{ color: "var(--brand-primary)" }}>Términos y Condiciones</a>
                     {" "}y la{" "}
-                    <a href="#" onClick={(e) => { e.preventDefault(); setVerPrivacidad(true); }} style={{ color: "#FD7751" }}>Política de Privacidad</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); setVerPrivacidad(true); }} style={{ color: "var(--brand-primary)" }}>Política de Privacidad</a>
                     {" "}de CLTiene.
                 </p>
             </div>

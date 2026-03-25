@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logo from "../assets/logo.png";
+import { getLogoMarca, getNombreMarca } from "../utils/marca";
 import client from "../api/client";
 import { useNotificaciones } from "../hooks/useNotificaciones";
 import { C } from "../components/dashboard/constants";
@@ -39,7 +39,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   useNotificaciones({ uid: usuario?.uid, client });
 
   const cargarPerfil = () =>
-    client.get(`/jugadores/${usuario.uid}`).then((r) => setPerfil(r.data)).catch(() => {});
+    client.get(`/jugadores/${usuario.uid}`).then((r) => setPerfil(r.data)).catch(() => { });
 
   const cargarPartidos = () =>
     client.get("/partidos").then((r) =>
@@ -52,7 +52,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           bandera_v: p.bandera_visitante || p.bandera_v,
         })),
       ),
-    ).catch(() => {});
+    ).catch(() => { });
 
   const cargarRanking = () =>
     client.get("/ranking?limit=10").then((r) =>
@@ -65,7 +65,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           esYo: j.uid === usuario.uid,
         })),
       ),
-    ).catch(() => {});
+    ).catch(() => { });
 
   useEffect(() => {
     if (!usuario?.uid) return;
@@ -95,7 +95,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)" }}>
       <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease" }}>
-        <img src={logo} style={{ height: 28 }} alt="CLTiene" />
+        <img src={getLogoMarca()} style={{ height: 28 }} alt={getNombreMarca()} />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
             <span className="anim-coin" style={{ fontSize: 16 }}>🪙</span>
@@ -155,7 +155,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         {tab === "noticias" && <Noticias />}
         {tab === "beneficios" && <Beneficios usuario={usuario} perfil={perfil} cargarPerfil={cargarPerfil} />}
         {tab === "perfil" && <Perfil perfil={perfil} nombre={nombre} monedas={monedas} posicion={posicion} ranking={ranking} usuario={usuario} />}
-        {tab === "admin" && perfil?.rol === "admin" && <AdminPanel usuario={usuario} client={client} />}
+        {tab === "admin" && (perfil?.rol === "admin" || perfil?.rol === "superadmin") && (
+          <AdminPanel usuario={usuario} client={client} />
+        )}
       </div>
 
       {toast && (
@@ -175,7 +177,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           { id: "beneficios", i: "🎁", l: "Beneficios" },
           { id: "noticias", i: "📰", l: "Noticias" },
           { id: "perfil", i: "👤", l: "Perfil" },
-          ...(perfil?.rol === "admin" ? [{ id: "admin", i: "🛡️", l: "Admin" }] : []),
+          ...((perfil?.rol === "admin" || perfil?.rol === "superadmin")
+            ? [{ id: "admin", i: "🛡️", l: "Admin" }]
+            : []),
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
             <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
@@ -198,7 +202,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           </button>
         ))}
         <button onClick={() => setMenuAbierto(!menuAbierto)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
-          <span style={{ fontSize: 20, opacity: menuAbierto ? 1 : 0.4 }}>{menuAbierto ? "✕" : "☰"}</span>
+          <span style={{ fontSize: 18, opacity: menuAbierto ? 1 : 0.5, color: menuAbierto ? C.naranja : "var(--texto)", lineHeight: 1.2 }}>{menuAbierto ? "✕" : "•••"}</span>
           <span style={{ fontSize: 10, color: menuAbierto ? C.naranja : "var(--texto-ter)", fontWeight: menuAbierto ? 700 : 400 }}>Más</span>
         </button>
       </div>
@@ -212,7 +216,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
               { id: "beneficios", i: "🎁", l: "Beneficios" },
               { id: "noticias", i: "📰", l: "Noticias" },
               { id: "perfil", i: "👤", l: "Perfil" },
-              ...(perfil?.rol === "admin" ? [{ id: "admin", i: "🛡️", l: "Admin" }] : []),
+              ...((perfil?.rol === "admin" || perfil?.rol === "superadmin")
+                ? [{ id: "admin", i: "🛡️", l: "Admin" }]
+                : []),
             ].map((t) => (
               <button key={t.id} onClick={() => { setTab(t.id); setMenuAbierto(false); }} style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 14,

@@ -1,23 +1,29 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Endpoint publico: config de marca por slug (para pantalla de login)
+  @Get('config-publica/:slug')
+  configPublica(@Param('slug') slug: string) {
+    return this.authService.obtenerConfigPublica(slug);
+  }
+
   @Post('registro')
-  registro(@Body() body: { email: string; password: string }) {
-    return this.authService.registro(body.email, body.password);
+  registro(@Body() body: { email: string; password: string; empresa_slug?: string }) {
+    return this.authService.registro(body.email, body.password, body.empresa_slug);
   }
 
   @Post('login')
-  login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body.email, body.password);
+  login(@Body() body: { email: string; password: string; empresa_slug?: string }) {
+    return this.authService.login(body.email, body.password, body.empresa_slug);
   }
 
   @Post('google')
-  loginConGoogle(@Body() body: { credential: string }) {
-    return this.authService.loginConGoogle(body.credential);
+  loginConGoogle(@Body() body: { credential: string; empresa_slug?: string }) {
+    return this.authService.loginConGoogle(body.credential, body.empresa_slug);
   }
 
   @Post('completar-perfil')

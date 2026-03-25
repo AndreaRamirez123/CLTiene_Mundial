@@ -1,6 +1,11 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
-  ManyToOne, JoinColumn, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
 import { Jugador } from './jugador.entity';
 
@@ -13,7 +18,10 @@ export class NotificacionLog {
   @Column()
   jugador_id: number;
 
-  @Column({ type: 'enum', enum: ['previa_fecha', 'recordatorio_pendiente', 'inactividad'] })
+  @Column({
+    type: 'enum',
+    enum: ['previa_fecha', 'recordatorio_pendiente', 'inactividad'],
+  })
   tipo: string;
 
   @Column({ type: 'varchar', length: 255 })

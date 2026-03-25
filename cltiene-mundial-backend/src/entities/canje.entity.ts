@@ -1,6 +1,12 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
-  UpdateDateColumn, ManyToOne, JoinColumn, Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
 import { Jugador } from './jugador.entity';
 
@@ -19,7 +25,10 @@ export class Canje {
   @Column({ type: 'varchar', length: 255 })
   beneficio: string;
 
-  @Column({ type: 'enum', enum: ['descuento', 'plan_especial', 'consultoria', 'premio'] })
+  @Column({
+    type: 'enum',
+    enum: ['descuento', 'plan_especial', 'consultoria', 'premio'],
+  })
   categoria: string;
 
   @Column({
