@@ -21,7 +21,121 @@ export default function VistaUsuarios({ usuarios, client, usuario }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: detalleUid ? '1fr 1fr' : '1fr', gap: 20 }}>
+    <>
+      {/* Modal de detalle */}
+      {detalleUid && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: 20,
+        }} onClick={() => setDetalleUid(null)}>
+          <div style={{
+            background: 'var(--card)',
+            borderRadius: 14,
+            padding: 28,
+            border: `1px solid ${C.verde}30`,
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            maxWidth: 550,
+            width: '100%',
+            boxShadow: '0 20px 80px rgba(0,0,0,0.9)',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--texto)', margin: 0 }}>
+                🎯 {detalle?.jugador?.nombre || detalle?.jugador?.email || 'Jugador'}
+              </h3>
+              <button
+                onClick={() => setDetalleUid(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  color: 'var(--texto)',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {detalle && (
+              <>
+                {/* Stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+                  <div style={{ background: 'rgba(253,119,81,0.1)', padding: 14, borderRadius: 10, border: `1px solid ${C.naranja}40` }}>
+                    <div style={{ color: 'var(--texto-sec)', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>MONEDAS TOTALES</div>
+                    <div style={{ color: C.naranja, fontSize: 28, fontWeight: 900 }}>{detalle.monedas_totales_ganadas || 0}</div>
+                  </div>
+                  <div style={{ background: 'rgba(22,199,132,0.1)', padding: 14, borderRadius: 10, border: `1px solid ${C.verde}40` }}>
+                    <div style={{ color: 'var(--texto-sec)', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>PREDICCIONES ACERTADAS</div>
+                    <div style={{ color: C.verde, fontSize: 28, fontWeight: 900 }}>{detalle.predicciones_acertadas || 0}</div>
+                  </div>
+                </div>
+
+                {/* Transacciones */}
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ fontSize: 12, fontWeight: 700, color: C.naranja, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    📊 Movimientos Recientes
+                  </h4>
+                  <div style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    borderRadius: 10,
+                    maxHeight: 220,
+                    overflowY: 'auto',
+                    border: `1px solid rgba(255,255,255,0.08)`,
+                  }}>
+                    {detalle.transacciones && detalle.transacciones.length > 0 ? (
+                      detalle.transacciones.slice(0, 6).map((t, i) => (
+                        <div key={i} style={{
+                          padding: '12px 14px',
+                          borderBottom: i < detalle.transacciones.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                          fontSize: 12,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}>
+                          <div>
+                            <div style={{ color: 'var(--texto)', fontWeight: 600, marginBottom: 3 }}>{t.tipo}</div>
+                            <div style={{ color: 'var(--texto-ter)', fontSize: 10 }}>{new Date(t.created_at).toLocaleDateString()}</div>
+                          </div>
+                          <div style={{ 
+                            color: t.monto > 0 ? C.verde : C.naranja,
+                            fontWeight: 700,
+                            fontSize: 13,
+                          }}>
+                            {t.monto > 0 ? '+' : ''}{t.monto} 🪙
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ padding: 14, textAlign: 'center', color: 'var(--texto-ter)' }}>
+                        No hay movimientos
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Info adicional */}
+                <div style={{ fontSize: 11, color: 'var(--texto-ter)', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, wordBreak: 'break-all', border: `1px solid rgba(255,255,255,0.06)` }}>
+                  <strong>UID:</strong> {detalle.jugador.uid}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tabla de usuarios */}
       <div style={{
         background: 'var(--card)',
@@ -93,89 +207,6 @@ export default function VistaUsuarios({ usuarios, client, usuario }) {
           </table>
         </div>
       </div>
-
-      {/* Detalle de usuario */}
-      {detalleUid && detalle && (
-        <div style={{
-          background: 'var(--card)',
-          borderRadius: 14,
-          padding: 20,
-          border: `1px solid ${C.verde}30`,
-          maxHeight: '70vh',
-          overflowY: 'auto',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--texto)' }}>
-              Detalle: {detalle.jugador.nombre || detalle.jugador.email}
-            </h3>
-            <button
-              onClick={() => setDetalleUid(null)}
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                color: 'var(--texto)',
-                border: 'none',
-                borderRadius: 6,
-                padding: '6px 10px',
-                cursor: 'pointer',
-                fontSize: 12,
-              }}
-            >
-              ✕ Cerrar
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-            <div style={{ background: 'rgba(253,119,81,0.1)', padding: 12, borderRadius: 8, border: `1px solid ${C.naranja}30` }}>
-              <div style={{ color: 'var(--texto-sec)', fontSize: 11, fontWeight: 600 }}>MONEDAS TOTALES</div>
-              <div style={{ color: C.naranja, fontSize: 24, fontWeight: 900 }}>{detalle.monedas_totales_ganadas}</div>
-            </div>
-            <div style={{ background: 'rgba(22,199,132,0.1)', padding: 12, borderRadius: 8, border: `1px solid ${C.verde}30` }}>
-              <div style={{ color: 'var(--texto-sec)', fontSize: 11, fontWeight: 600 }}>PREDICCIONES ACERTADAS</div>
-              <div style={{ color: C.verde, fontSize: 24, fontWeight: 900 }}>{detalle.predicciones_acertadas}</div>
-            </div>
-          </div>
-
-          {/* Transacciones */}
-          <div style={{ marginBottom: 20 }}>
-            <h4 style={{ fontSize: 12, fontWeight: 700, color: C.naranja, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 }}>
-              Último Movimiento de Monedas
-            </h4>
-            <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              borderRadius: 8,
-              maxHeight: 200,
-              overflowY: 'auto',
-            }}>
-              {detalle.transacciones.slice(0, 5).map((t, i) => (
-                <div key={i} style={{
-                  padding: 10,
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  fontSize: 11,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                }}>
-                  <div>
-                    <div style={{ color: 'var(--texto)', fontWeight: 600 }}>{t.tipo}</div>
-                    <div style={{ color: 'var(--texto-ter)', fontSize: 10 }}>{new Date(t.created_at).toLocaleDateString()}</div>
-                  </div>
-                  <div style={{ 
-                    color: t.monto > 0 ? C.verde : C.naranja,
-                    fontWeight: 700,
-                  }}>
-                    {t.monto > 0 ? '+' : ''}{t.monto}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* UID */}
-          <div style={{ fontSize: 10, color: 'var(--texto-ter)', padding: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 6, wordBreak: 'break-all' }}>
-            <strong>UID:</strong> {detalle.jugador.uid}
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
