@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 
+const ADMIN_EMAILS = ['andrea_ramirezt@cun.edu.co'];
+
 @Injectable()
-export class AdminService {
+export class AdminService implements OnModuleInit {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(
     @InjectRepository(Jugador)
     private jugadorRepo: Repository<Jugador>,
@@ -15,6 +19,21 @@ export class AdminService {
     @InjectRepository(Transaccion)
     private transaccionRepo: Repository<Transaccion>,
   ) {}
+
+  async onModuleInit() {
+    for (const email of ADMIN_EMAILS) {
+      const jugadores = await this.jugadorRepo.find({
+        where: [{ email }, { correo: email }],
+      });
+      for (const jugador of jugadores) {
+        if (jugador.rol !== 'admin') {
+          jugador.rol = 'admin';
+          await this.jugadorRepo.save(jugador);
+          this.logger.log(`Admin seed: ${email} (uid: ${jugador.uid}) promovido a admin`);
+        }
+      }
+    }
+  }
 
   // Obtener todos los jugadores
   async obtenerTodosLosJugadores(page = 1, limit = 20) {
@@ -91,6 +110,46 @@ export class AdminService {
       total_monedas_en_circulacion: parseInt(totalMonedas.total) || 0,
       admins: adminCount,
       fecha: new Date(),
+    };
+  }
+
+  // Georreferenciación: jugadores por departamento y ciudad
+  async obtenerGeorreferenciacion() {
+    const porDepartamento = await this.jugadorRepo
+      .createQueryBuilder('j')
+      .select('j.departamento', 'departamento')
+      .addSelect('COUNT(*)', 'cantidad')
+      .where("j.departamento != ''")
+      .groupBy('j.departamento')
+      .orderBy('cantidad', 'DESC')
+      .getRawMany();
+
+    const porCiudad = await this.jugadorRepo
+      .createQueryBuilder('j')
+      .select('j.departamento', 'departamento')
+      .addSelect('j.ciudad', 'ciudad')
+      .addSelect('COUNT(*)', 'cantidad')
+      .where("j.ciudad != ''")
+      .groupBy('j.departamento')
+      .addGroupBy('j.ciudad')
+      .orderBy('cantidad', 'DESC')
+      .getRawMany();
+
+    const totalConUbicacion = await this.jugadorRepo
+      .createQueryBuilder('j')
+      .where("j.departamento != ''")
+      .getCount();
+
+    const totalSinUbicacion = await this.jugadorRepo
+      .createQueryBuilder('j')
+      .where("j.departamento = '' OR j.departamento IS NULL")
+      .getCount();
+
+    return {
+      por_departamento: porDepartamento,
+      por_ciudad: porCiudad,
+      total_con_ubicacion: totalConUbicacion,
+      total_sin_ubicacion: totalSinUbicacion,
     };
   }
 

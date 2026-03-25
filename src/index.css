@@ -161,3 +161,14 @@ html, body, #root {
 .micro-card:hover::after {
   animation: accentSweep 0.9s ease;
 }
+
+/* ========== RESPONSIVE NAV ========== */
+/* Desktop: barra completa visible, hamburguesa oculta */
+.nav-desktop { display: flex !important; }
+.nav-mobile { display: none !important; }
+
+/* Móvil (< 768px): hamburguesa visible, barra completa oculta */
+@media (max-width: 768px) {
+  .nav-desktop { display: none !important; }
+  .nav-mobile { display: flex !important; }
+}

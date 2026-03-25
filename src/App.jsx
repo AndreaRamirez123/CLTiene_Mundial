@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from './firebase/config'
 import client from './api/client'
 import Login from './pages/login'
 import Registro from './pages/Registro'
@@ -12,30 +10,34 @@ export default function App() {
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUsuario(user)
-        try {
-          const res = await client.get(`/jugadores/${user.uid}`)
-          setPerfilCompleto(!!res.data)
-        } catch {
-          setPerfilCompleto(false)
-        }
-      } else {
-        setUsuario(null)
-        setPerfilCompleto(false)
-      }
-      setCargando(false)
-    })
-    return () => unsubscribe()
+    // Verificar si hay sesión guardada
+    const token = localStorage.getItem('token')
+    const usuarioGuardado = localStorage.getItem('usuario')
+
+    if (token && usuarioGuardado) {
+      const user = JSON.parse(usuarioGuardado)
+      setUsuario(user)
+      // Verificar que el perfil esté completo (tiene nombre)
+      setPerfilCompleto(!!user.nombre)
+    }
+    setCargando(false)
   }, [])
 
-  const handleLogin = (user, perfil) => {
+  const handleLogin = (user) => {
     setUsuario(user)
-    setPerfilCompleto(!!perfil)
+    setPerfilCompleto(!!user.nombre)
+  }
+
+  const handleRegistroCompleto = (userActualizado) => {
+    const user = { ...usuario, ...userActualizado }
+    localStorage.setItem('usuario', JSON.stringify(user))
+    setUsuario(user)
+    setPerfilCompleto(true)
   }
 
   const handleCerrarSesion = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('usuario')
     setUsuario(null)
     setPerfilCompleto(false)
   }
@@ -47,6 +49,6 @@ export default function App() {
   )
 
   if (!usuario) return <Login onLoginExitoso={handleLogin} />
-  if (!perfilCompleto) return <Registro usuario={usuario} onRegistroCompleto={() => setPerfilCompleto(true)} />
+  if (!perfilCompleto) return <Registro usuario={usuario} onRegistroCompleto={handleRegistroCompleto} onVolver={handleCerrarSesion} />
   return <Dashboard usuario={usuario} onCerrarSesion={handleCerrarSesion} />
 }

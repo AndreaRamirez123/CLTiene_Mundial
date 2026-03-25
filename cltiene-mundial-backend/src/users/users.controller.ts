@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('jugadores')
@@ -6,8 +6,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get(':uid')
-  getByUid(@Param('uid') uid: string) {
-    return this.usersService.getByUid(uid);
+  getByUid(@Param('uid') uid: string, @Query('email') email?: string) {
+    return this.usersService.getByUid(uid, email);
   }
 
   @Post('registro')

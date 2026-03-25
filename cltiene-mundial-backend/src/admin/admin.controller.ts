@@ -34,6 +34,12 @@ export class AdminController {
     return this.adminService.obtenerEstadisticas();
   }
 
+  // Georreferenciación
+  @Get('georreferenciacion')
+  async obtenerGeorreferenciacion() {
+    return this.adminService.obtenerGeorreferenciacion();
+  }
+
   // Convertir usuario a admin
   @Post('usuarios/:uid/hacer-admin')
   async convertirAAdmin(@Param('uid') uid: string) {

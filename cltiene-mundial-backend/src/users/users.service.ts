@@ -13,8 +13,17 @@ export class UsersService {
     private dataSource: DataSource,
   ) {}
 
-  async getByUid(uid: string): Promise<Jugador | null> {
-    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+  async getByUid(uid: string, email?: string): Promise<Jugador | null> {
+    let jugador = await this.jugadorRepo.findOne({ where: { uid } });
+
+    // Si no existe por uid pero sí por email, vincular el nuevo uid al registro existente
+    if (!jugador && email) {
+      jugador = await this.jugadorRepo.findOne({ where: { email } });
+      if (jugador) {
+        jugador.uid = uid;
+      }
+    }
+
     if (!jugador) return null;
 
     actualizarRachaDeAcceso(jugador);
@@ -40,6 +49,27 @@ export class UsersService {
     if (existe) {
       throw new BadRequestException('El jugador ya está registrado');
     }
+
+    // Verificar que el email de Firebase no esté registrado por otro jugador
+    const emailExiste = await this.jugadorRepo.findOne({ where: { email: datos.email } });
+    if (emailExiste) {
+      throw new BadRequestException('Este correo ya tiene una cuenta registrada. Inicia sesión con tu cuenta existente.');
+    }
+
+    // Validar formato de teléfono (colombiano: 10 dígitos, empieza con 3)
+    const telLimpio = datos.telefono.replace(/\D/g, '');
+    if (!/^3\d{9}$/.test(telLimpio)) {
+      throw new BadRequestException('El número de teléfono no es válido. Debe ser un celular colombiano de 10 dígitos.');
+    }
+
+    // Verificar que el teléfono no esté registrado por otro jugador
+    const telExiste = await this.jugadorRepo.findOne({ where: { telefono: telLimpio } });
+    if (telExiste) {
+      throw new BadRequestException('Este número de teléfono ya está registrado por otro jugador.');
+    }
+
+    // Guardar teléfono limpio (solo dígitos)
+    datos.telefono = telLimpio;
 
     const codigoReferido = datos.uid.substring(0, 8).toUpperCase();
     const bonoRegistro = 100;

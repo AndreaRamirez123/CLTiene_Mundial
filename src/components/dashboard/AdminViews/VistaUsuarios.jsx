@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { C } from '../constants';
 
-export default function VistaUsuarios({ usuarios, client, usuario }) {
+export default function VistaUsuarios({ usuarios, client }) {
   const [detalleUid, setDetalleUid] = useState(null);
   const [detalle, setDetalle] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -9,8 +9,7 @@ export default function VistaUsuarios({ usuarios, client, usuario }) {
   const verDetalles = async (uid) => {
     setCargando(true);
     try {
-      const headers = { 'x-user-uid': usuario.uid };
-      const res = await client.get(`/admin/jugadores/${uid}`, { headers });
+      const res = await client.get(`/admin/jugadores/${uid}`);
       setDetalle(res.data);
       setDetalleUid(uid);
     } catch (err) {
@@ -38,10 +37,10 @@ export default function VistaUsuarios({ usuarios, client, usuario }) {
           padding: 20,
         }} onClick={() => setDetalleUid(null)}>
           <div style={{
-            background: 'var(--card)',
+            background: '#1a1230',
             borderRadius: 14,
             padding: 28,
-            border: `1px solid ${C.verde}30`,
+            border: `1px solid ${C.naranja}30`,
             maxHeight: '85vh',
             overflowY: 'auto',
             maxWidth: 550,

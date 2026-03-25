@@ -16,18 +16,19 @@ const C = {
     negro: "#1f2321",
 };
 
-export default function Registro({ usuario, onRegistroCompleto }) {
+export default function Registro({ usuario, onRegistroCompleto, onVolver }) {
     const [step, setStep] = useState(0);
     const [aceptado, setAceptado] = useState(false);
     const [verTerminos, setVerTerminos] = useState(false);
 
-    // Leer código de referido de la URL (?ref=CODIGO)
+    
     const urlParams = new URLSearchParams(window.location.search);
     const codigoRefUrl = urlParams.get("ref") || "";
 
     const [form, setForm] = useState({
         tipojugador: "", relacionCLTiene: "", esReferido: codigoRefUrl ? true : null,
-        nombreReferidor: "", codigoReferidor: codigoRefUrl, nombre: "", telefono: "", correo: "",
+        nombreReferidor: "", codigoReferidor: codigoRefUrl, nombre: usuario?.googleNombre || "", telefono: "",
+        departamento: "", ciudad: "",
     });
     const [completado, setCompletado] = useState(false);
     const [errores, setErrores] = useState({});
@@ -43,31 +44,45 @@ export default function Registro({ usuario, onRegistroCompleto }) {
         if (step === 4 && form.esReferido && !form.nombreReferidor.trim()) e.nombreReferidor = "Ingresa el nombre";
         if ((step === 4 && !form.esReferido) || step === 5)
             if (!form.nombre.trim()) e.nombre = "Ingresa tu nombre";
-        if (step === 6 && !form.telefono.trim()) e.telefono = "Ingresa tu número";
-        if (step === 7 && !form.correo.trim()) e.correo = "Ingresa tu correo";
-        if (step === 7 && form.correo && !/\S+@\S+\.\S+/.test(form.correo)) e.correo = "Correo inválido";
+        if (step === 6) {
+            if (!form.telefono.trim()) {
+                e.telefono = "Ingresa tu número";
+            } else {
+                const telLimpio = form.telefono.replace(/\D/g, "");
+                if (!/^3\d{9}$/.test(telLimpio)) {
+                    e.telefono = "Ingresa un celular colombiano válido (10 dígitos, ej: 300 123 4567)";
+                }
+            }
+        }
+        if (step === 7) {
+            if (!form.departamento) e.departamento = "Selecciona tu departamento";
+            if (!form.ciudad.trim() || form.ciudad === "__otra__") e.ciudad = "Selecciona o ingresa tu ciudad";
+        }
         setErrores(e);
         return Object.keys(e).length === 0;
     };
 
-    const guardarEnFirestore = async (datos) => {
+    const guardarPerfil = async (datos) => {
         if (!usuario?.uid) return;
         setGuardando(true);
         try {
-            await client.post("/jugadores/registro", {
+            const res = await client.post("/auth/completar-perfil", {
                 uid: usuario.uid,
-                email: usuario.email,
                 nombre: datos.nombre,
                 telefono: datos.telefono,
-                correo: datos.correo,
                 tipojugador: datos.tipojugador,
                 relacion_cltiene: datos.relacionCLTiene,
                 es_referido: datos.esReferido ? 1 : 0,
                 nombre_referidor: datos.nombreReferidor || "",
                 referido_por: datos.codigoReferidor || "",
+                departamento: datos.departamento || "",
+                ciudad: datos.ciudad || "",
             });
+            return res.data.usuario || true;
         } catch (err) {
-            console.error("Error guardando perfil:", err);
+            const msg = err.response?.data?.message || "Error al registrar";
+            setErrores({ telefono: msg });
+            return false;
         } finally {
             setGuardando(false);
         }
@@ -77,9 +92,10 @@ export default function Registro({ usuario, onRegistroCompleto }) {
         if (!validar()) return;
         if (step === 3 && form.esReferido === false) { setStep(5); return; }
         if (step === 7) {
-            await guardarEnFirestore(form);
+            const resultado = await guardarPerfil(form);
+            if (!resultado) return;
             setCompletado(true);
-            if (onRegistroCompleto) onRegistroCompleto({ ...form, monedas: 100 });
+            if (onRegistroCompleto) onRegistroCompleto(typeof resultado === 'object' ? resultado : { ...form, monedas: 100 });
             return;
         }
         setStep((s) => s + 1);
@@ -200,19 +216,22 @@ export default function Registro({ usuario, onRegistroCompleto }) {
                         />
                     )}
                     {step === 7 && (
-                        <PantallaInput
-                            titulo="¿Cuál es tu correo electrónico?"
-                            placeholder="tucorreo@ejemplo.com"
-                            tipo="email"
-                            valor={form.correo}
-                            onChange={(v) => set("correo", v)}
-                            error={errores.correo}
+                        <PantallaUbicacion
+                            departamento={form.departamento}
+                            ciudad={form.ciudad}
+                            onChangeDep={(v) => set("departamento", v)}
+                            onChangeCiudad={(v) => set("ciudad", v)}
+                            errorDep={errores.departamento}
+                            errorCiudad={errores.ciudad}
                         />
                     )}
                 </div>
 
                 {/* Footer */}
                 <div style={s.footer}>
+                    {step === 0 && onVolver && (
+                        <button onClick={onVolver} style={s.btnSecundario}>← Atrás</button>
+                    )}
                     {step > 0 && (
                         <button onClick={anterior} style={s.btnSecundario}>← Atrás</button>
                     )}
@@ -223,7 +242,6 @@ export default function Registro({ usuario, onRegistroCompleto }) {
                             ...s.btnPrimario,
                             opacity: (step === 0 && !aceptado) || guardando ? 0.4 : 1,
                             cursor: (step === 0 && !aceptado) ? "not-allowed" : "pointer",
-                            marginLeft: step === 0 ? "auto" : undefined,
                         }}
                     >
                         {guardando ? "Guardando..." : step === 7 ? "🎉 Crear mi perfil" : "Continuar →"}
@@ -343,6 +361,107 @@ function PantallaInput({ titulo, descripcion, placeholder, tipo = "text", valor,
                 }}
                 autoFocus />
             {error && <p style={{ color: C.rojo, fontSize: "13px", marginTop: "8px" }}>{error}</p>}
+        </div>
+    );
+}
+
+const CIUDADES_POR_DEPTO = {
+    "Amazonas": ["Leticia", "Puerto Nariño"],
+    "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Sabaneta", "La Ceja", "Rionegro", "Apartadó", "Turbo", "Caucasia"],
+    "Arauca": ["Arauca", "Saravena", "Tame", "Fortul", "Arauquita"],
+    "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Galapa", "Sabanalarga", "Puerto Colombia"],
+    "Bogotá D.C.": ["Bogotá"],
+    "Bolívar": ["Cartagena", "Turbaco", "Magangué", "El Carmen de Bolívar", "Arjona", "San Juan Nepomuceno"],
+    "Boyacá": ["Tunja", "Duitama", "Sogamoso", "Chiquinquirá", "Paipa", "Moniquirá"],
+    "Caldas": ["Manizales", "Villamaría", "Chinchiná", "La Dorada", "Anserma", "Riosucio"],
+    "Caquetá": ["Florencia", "San Vicente del Caguán", "El Doncello", "Puerto Rico", "Belén de los Andaquíes"],
+    "Casanare": ["Yopal", "Aguazul", "Villanueva", "Monterrey", "Tauramena"],
+    "Cauca": ["Popayán", "Santander de Quilichao", "Puerto Tejada", "Piendamó", "Corinto", "Timbío"],
+    "Cesar": ["Valledupar", "Aguachica", "Bosconia", "La Paz", "Codazzi", "Chimichagua"],
+    "Chocó": ["Quibdó", "Istmina", "Condoto", "Tadó", "Riosucio"],
+    "Córdoba": ["Montería", "Cereté", "Lorica", "Sahagún", "Planeta Rica", "Montelíbano"],
+    "Cundinamarca": ["Soacha", "Fusagasugá", "Zipaquirá", "Facatativá", "Girardot", "Chía", "Mosquera", "Madrid"],
+    "Guainía": ["Inírida"],
+    "Guaviare": ["San José del Guaviare", "El Retorno", "Calamar"],
+    "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata", "Campoalegre", "San Agustín"],
+    "La Guajira": ["Riohacha", "Maicao", "Uribia", "Fonseca", "Barrancas", "San Juan del Cesar"],
+    "Magdalena": ["Santa Marta", "Ciénaga", "Fundación", "Aracataca", "Plato", "El Banco"],
+    "Meta": ["Villavicencio", "Acacías", "Granada", "Puerto López", "San Martín", "Restrepo"],
+    "Nariño": ["Pasto", "Tumaco", "Ipiales", "Túquerres", "La Unión", "Samaniego"],
+    "Norte de Santander": ["Cúcuta", "Los Patios", "Villa del Rosario", "Pamplona", "Ocaña", "Chinácota"],
+    "Putumayo": ["Mocoa", "Puerto Asís", "Orito", "Sibundoy", "Valle del Guamuez"],
+    "Quindío": ["Armenia", "Calarcá", "Montenegro", "La Tebaida", "Circasia", "Salento"],
+    "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "La Virginia", "Marsella"],
+    "San Andrés y Providencia": ["San Andrés", "Providencia"],
+    "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Barrancabermeja", "San Gil"],
+    "Sucre": ["Sincelejo", "Corozal", "San Marcos", "Sampués", "Tolú", "Ovejas"],
+    "Tolima": ["Ibagué", "Espinal", "Melgar", "Honda", "Chaparral", "Líbano"],
+    "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago", "Buga", "Jamundí", "Yumbo"],
+    "Vaupés": ["Mitú", "Carurú"],
+    "Vichada": ["Puerto Carreño", "La Primavera", "Santa Rosalía"],
+};
+
+const DEPARTAMENTOS = Object.keys(CIUDADES_POR_DEPTO);
+
+function PantallaUbicacion({ departamento, ciudad, onChangeDep, onChangeCiudad, errorDep, errorCiudad }) {
+    const ciudades = departamento ? CIUDADES_POR_DEPTO[departamento] || [] : [];
+    const selectStyle = (valor, error) => ({
+        width: "100%", padding: "13px 16px",
+        background: "rgba(255, 255, 255, 0.05)",
+        border: `1.5px solid ${error ? C.rojo : "rgba(255, 255, 255, 0.1)"}`,
+        borderRadius: "12px", color: valor ? C.negro : C.grisClaro, fontSize: "15px",
+        outline: "none", boxSizing: "border-box", marginBottom: "12px",
+        cursor: "pointer",
+    });
+
+    return (
+        <div>
+            <h2 style={{ color: C.negro, fontSize: "17px", fontWeight: 700, marginBottom: "8px" }}>
+                ¿De dónde eres?
+            </h2>
+            <p style={{ color: C.grisClaro, fontSize: "14px", marginBottom: "18px" }}>
+                Queremos saber de qué parte de Colombia nos acompañan.
+            </p>
+            <select
+                value={departamento}
+                onChange={(e) => { onChangeDep(e.target.value); onChangeCiudad(""); }}
+                style={selectStyle(departamento, errorDep)}
+            >
+                <option value="" disabled>Selecciona tu departamento</option>
+                {DEPARTAMENTOS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                ))}
+            </select>
+            {errorDep && <p style={{ color: C.rojo, fontSize: "13px", marginTop: "-8px", marginBottom: "8px" }}>{errorDep}</p>}
+
+            <select
+                value={ciudad}
+                onChange={(e) => onChangeCiudad(e.target.value)}
+                disabled={!departamento}
+                style={{ ...selectStyle(ciudad, errorCiudad), opacity: departamento ? 1 : 0.5, marginBottom: 0 }}
+            >
+                <option value="" disabled>{departamento ? "Selecciona tu ciudad" : "Primero selecciona departamento"}</option>
+                {ciudades.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                ))}
+                <option value="__otra__">Otra ciudad / municipio</option>
+            </select>
+            {ciudad === "__otra__" && (
+                <input
+                    type="text"
+                    placeholder="Escribe tu ciudad o municipio"
+                    onChange={(e) => onChangeCiudad(e.target.value)}
+                    style={{
+                        width: "100%", padding: "13px 16px", marginTop: "12px",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        border: `1.5px solid ${errorCiudad ? C.rojo : "rgba(255, 255, 255, 0.1)"}`,
+                        borderRadius: "12px", color: C.negro, fontSize: "15px",
+                        outline: "none", boxSizing: "border-box",
+                    }}
+                    autoFocus
+                />
+            )}
+            {errorCiudad && <p style={{ color: C.rojo, fontSize: "13px", marginTop: "8px" }}>{errorCiudad}</p>}
         </div>
     );
 }

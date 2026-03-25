@@ -3,6 +3,7 @@ import { C } from './constants';
 import VistaUsuarios from './AdminViews/VistaUsuarios';
 import VistaPrediciones from './AdminViews/VistaPrediciones';
 import VistaEstadisticas from './AdminViews/VistaEstadisticas';
+import VistaGeo from './AdminViews/VistaGeo';
 
 export default function AdminPanel({ usuario, client }) {
   const [tab, setTab] = useState('usuarios');
@@ -19,18 +20,16 @@ export default function AdminPanel({ usuario, client }) {
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      const headers = { 'x-user-uid': usuario.uid };
-      
       if (tab === 'usuarios') {
-        const res = await client.get('/admin/jugadores', { headers });
+        const res = await client.get('/admin/jugadores');
         setUsuarios(res.data.jugadores || []);
       }
       if (tab === 'predicciones') {
-        const res = await client.get('/admin/predicciones/sin-validar', { headers });
+        const res = await client.get('/admin/predicciones/sin-validar');
         setPrediciones(res.data || []);
       }
       if (tab === 'estadisticas') {
-        const res = await client.get('/admin/estadisticas', { headers });
+        const res = await client.get('/admin/estadisticas');
         setEstadisticas(res.data);
       }
     } catch (err) {
@@ -85,6 +84,12 @@ export default function AdminPanel({ usuario, client }) {
           >
             📊 Estadísticas
           </button>
+          <button
+            onClick={() => setTab('geo')}
+            style={btnTabStyle(tab === 'geo')}
+          >
+            📍 Georreferenciación
+          </button>
         </div>
 
         {/* Contenido */}
@@ -94,9 +99,10 @@ export default function AdminPanel({ usuario, client }) {
           </div>
         ) : (
           <>
-            {tab === 'usuarios' && <VistaUsuarios usuarios={usuarios} client={client} usuario={usuario} />}
+            {tab === 'usuarios' && <VistaUsuarios usuarios={usuarios} client={client} />}
             {tab === 'predicciones' && <VistaPrediciones predicciones={predicciones} />}
             {tab === 'estadisticas' && <VistaEstadisticas estadisticas={estadisticas} />}
+            {tab === 'geo' && <VistaGeo client={client} />}
           </>
         )}
       </div>

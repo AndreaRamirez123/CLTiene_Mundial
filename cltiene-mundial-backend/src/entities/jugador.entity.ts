@@ -18,6 +18,9 @@ export class Jugador {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
+  @Column({ type: 'varchar', length: 255, select: false, nullable: true })
+  password: string;
+
   @Column({ type: 'varchar', length: 150, default: '' })
   nombre: string;
 
@@ -26,6 +29,12 @@ export class Jugador {
 
   @Column({ type: 'varchar', length: 255, default: '' })
   correo: string;
+
+  @Column({ type: 'varchar', length: 100, default: '' })
+  departamento: string;
+
+  @Column({ type: 'varchar', length: 100, default: '' })
+  ciudad: string;
 
   // Encuesta de registro
   @Column({ type: 'enum', enum: ['natural', 'empresa', 'organizacion', 'explorar'], nullable: true })

@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { auth } from "../firebase/config";
-import { signOut } from "firebase/auth";
 import logo from "../assets/logo.png";
 import client from "../api/client";
 import { useNotificaciones } from "../hooks/useNotificaciones";
@@ -22,6 +20,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const [partidos, setPartidos] = useState([]);
   const [ranking, setRanking] = useState([]);
   const [toast, setToast] = useState(null);
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   // Fechas del Mundial 2026: 15 de junio - 13 de julio
   const MUNDIAL_INICIO = new Date(2026, 5, 15); // Junio 15
@@ -75,8 +74,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
     cargarRanking();
   }, [usuario?.uid]);
 
-  const cerrar = async () => {
-    await signOut(auth);
+  const cerrar = () => {
     onCerrarSesion?.();
   };
 
@@ -167,7 +165,8 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         </div>
       )}
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, overflowX: "auto", transition: "background 0.3s ease" }}>
+      {/* Barra inferior DESKTOP: todos los tabs (oculta en móvil) */}
+      <div className="nav-desktop" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
         {[
           { id: "inicio", i: "🏠", l: "Inicio" },
           { id: "polla", i: "⚽", l: "Polla" },
@@ -184,6 +183,50 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           </button>
         ))}
       </div>
+
+      {/* Barra inferior MÓVIL: 4 tabs + hamburguesa (oculta en desktop) */}
+      <div className="nav-mobile" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "none", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
+        {[
+          { id: "inicio", i: "🏠", l: "Inicio" },
+          { id: "polla", i: "⚽", l: "Polla" },
+          { id: "ranking", i: "🏆", l: "Ranking" },
+          { id: "misiones", i: "🎯", l: "Misiones" },
+        ].map((t) => (
+          <button key={t.id} onClick={() => { setTab(t.id); setMenuAbierto(false); }} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
+            <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
+            <span style={{ fontSize: 10, color: tab === t.id ? C.naranja : "var(--texto-ter)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
+          </button>
+        ))}
+        <button onClick={() => setMenuAbierto(!menuAbierto)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
+          <span style={{ fontSize: 20, opacity: menuAbierto ? 1 : 0.4 }}>{menuAbierto ? "✕" : "☰"}</span>
+          <span style={{ fontSize: 10, color: menuAbierto ? C.naranja : "var(--texto-ter)", fontWeight: menuAbierto ? 700 : 400 }}>Más</span>
+        </button>
+      </div>
+
+      {/* Menú desplegable hamburguesa (solo móvil) */}
+      {menuAbierto && (
+        <div style={{ position: "fixed", bottom: 56, left: 0, right: 0, zIndex: 99 }} onClick={() => setMenuAbierto(false)}>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)" }} />
+          <div style={{ position: "relative", background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", borderRadius: "16px 16px 0 0", padding: "16px 20px 8px", maxWidth: 600, margin: "0 auto" }} onClick={(e) => e.stopPropagation()}>
+            {[
+              { id: "beneficios", i: "🎁", l: "Beneficios" },
+              { id: "noticias", i: "📰", l: "Noticias" },
+              { id: "perfil", i: "👤", l: "Perfil" },
+              ...(perfil?.rol === "admin" ? [{ id: "admin", i: "🛡️", l: "Admin" }] : []),
+            ].map((t) => (
+              <button key={t.id} onClick={() => { setTab(t.id); setMenuAbierto(false); }} style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 14,
+                padding: "12px 14px", marginBottom: 4, borderRadius: 12, border: "none", cursor: "pointer",
+                background: tab === t.id ? `${C.naranja}20` : "transparent",
+                transition: "background 0.2s",
+              }}>
+                <span style={{ fontSize: 22 }}>{t.i}</span>
+                <span style={{ fontSize: 15, fontWeight: tab === t.id ? 700 : 500, color: tab === t.id ? C.naranja : "var(--texto)" }}>{t.l}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

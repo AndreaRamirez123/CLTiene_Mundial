@@ -1,40 +1,11 @@
-import { useState, useEffect } from "react";
-import {
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    signInWithRedirect,
-    getRedirectResult,
-    signInWithPopup,
-    GoogleAuthProvider,
-} from "firebase/auth";
-
-import { auth } from "../firebase/config";
+import { useState, useEffect, useRef } from "react";
 import client from "../api/client";
 import logo from "../assets/logo.png";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import { ThemeToggle } from "../store/useTheme";
 
-
-
-
-const googleProvider = new GoogleAuthProvider();
-
-const traducirError = (code) => {
-    const e = {
-        "auth/user-not-found": "No existe una cuenta con este correo",
-        "auth/wrong-password": "Contraseña incorrecta",
-        "auth/email-already-in-use": "Este correo ya está registrado",
-        "auth/invalid-email": "Correo electrónico inválido",
-        "auth/too-many-requests": "Demasiados intentos. Intenta más tarde",
-        "auth/popup-closed-by-user": "Cerraste el popup de Google",
-        "auth/invalid-credential": "Correo o contraseña incorrectos",
-    };
-    return e[code] || "Ocurrió un error. Intenta de nuevo";
-};
-
-
-<img src="/src/assets/logo.png" alt="CLTiene" style={{ width: "72px", height: "72px", objectFit: "contain" }} />
+const GOOGLE_CLIENT_ID = "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
 
 export default function Login({ onLoginExitoso }) {
     const [modo, setModo] = useState("login");
@@ -45,48 +16,74 @@ export default function Login({ onLoginExitoso }) {
     const [mostrarPass, setMostrarPass] = useState(false);
     const [verTerminos, setVerTerminos] = useState(false);
     const [verPrivacidad, setVerPrivacidad] = useState(false);
+    const googleBtnRef = useRef(null);
 
-
-
-    const limpiar = () => setError("");
-
-    const verificarPerfil = async (uid) => {
-        try {
-            const res = await client.get(`/jugadores/${uid}`);
-            return res.data;
-        } catch {
-            return null;
+    useEffect(() => {
+        const initGoogle = () => {
+            if (window.google?.accounts) {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: manejarGoogle,
+                });
+                window.google.accounts.id.renderButton(googleBtnRef.current, {
+                    theme: "outline",
+                    size: "large",
+                    width: 396,
+                    text: "continue_with",
+                    shape: "pill",
+                    locale: "es",
+                });
+            }
+        };
+        // Esperar a que cargue el script de Google
+        if (window.google?.accounts) {
+            initGoogle();
+        } else {
+            const interval = setInterval(() => {
+                if (window.google?.accounts) {
+                    clearInterval(interval);
+                    initGoogle();
+                }
+            }, 100);
+            return () => clearInterval(interval);
         }
-    };
+    }, []);
 
-
-
-    const manejarEmailPassword = async () => {
-        if (!email || !password) { setError("Completa todos los campos"); return; }
-        if (password.length < 5) { setError("La contraseña debe tener al menos 5 caracteres"); return; }
-        setCargando(true); setError("");
-        try {
-            const cred = modo === "login"
-                ? await signInWithEmailAndPassword(auth, email, password)
-                : await createUserWithEmailAndPassword(auth, email, password);
-            const perfil = await verificarPerfil(cred.user.uid);
-            onLoginExitoso(cred.user, perfil);
-        } catch (e) {
-            console.log("Error code:", e.code, "Message:", e.message);
-            setError(traducirError(e.code));
-        }
-        finally { setCargando(false); }
-    };
-
-    const manejarGoogle = async () => {
+    const manejarGoogle = async (response) => {
         setCargando(true);
         setError("");
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const perfil = await verificarPerfil(result.user.uid);
-            onLoginExitoso(result.user, perfil);
+            const res = await client.post("/auth/google", { credential: response.credential });
+            const usuario = { ...res.data.usuario, googleNombre: res.data.googleNombre };
+            localStorage.setItem("token", res.data.token);
+            localStorage.setItem("usuario", JSON.stringify(usuario));
+            onLoginExitoso(usuario);
         } catch (e) {
-            setError(traducirError(e.code));
+            const msg = e.response?.data?.message;
+            setError(Array.isArray(msg) ? msg[0] : msg || "Error al iniciar con Google");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const limpiar = () => setError("");
+
+    const manejarEmailPassword = async () => {
+        if (!email || !password) { setError("Completa todos los campos"); return; }
+        if (modo === "registro" && password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
+        setCargando(true); setError("");
+        try {
+            const endpoint = modo === "login" ? "/auth/login" : "/auth/registro";
+            const res = await client.post(endpoint, { email, password });
+
+            // Guardar token y datos del usuario
+            localStorage.setItem("token", res.data.token);
+            localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
+
+            onLoginExitoso(res.data.usuario);
+        } catch (e) {
+            const msg = e.response?.data?.message;
+            setError(Array.isArray(msg) ? msg[0] : msg || "Ocurrió un error. Intenta de nuevo");
         } finally {
             setCargando(false);
         }
@@ -131,7 +128,7 @@ export default function Login({ onLoginExitoso }) {
                     <span style={s.inputIcono}>✉️</span>
                     <input
                         type="email"
-                        placeholder="Correo electrónico (ej: demo@cltiene.com)"
+                        placeholder="Correo electrónico"
                         value={email}
                         onChange={(e) => { setEmail(e.target.value); limpiar(); }}
                         style={s.input}
@@ -144,7 +141,7 @@ export default function Login({ onLoginExitoso }) {
                     <span style={s.inputIcono}>🔒</span>
                     <input
                         type={mostrarPass ? "text" : "password"}
-                        placeholder="Contraseña (mínimo 5 caracteres)"
+                        placeholder={modo === "registro" ? "Contraseña (mínimo 6 caracteres)" : "Contraseña"}
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); limpiar(); }}
                         style={{ ...s.input, paddingRight: "44px" }}
@@ -154,12 +151,6 @@ export default function Login({ onLoginExitoso }) {
                         {mostrarPass ? "🙈" : "👁️"}
                     </button>
                 </div>
-
-                {modo === "login" && (
-                    <div style={{ textAlign: "right", marginBottom: "20px" }}>
-                        <button style={s.linkBtn}>¿Olvidaste tu contraseña?</button>
-                    </div>
-                )}
 
                 {/* Botón principal */}
                 <button
@@ -178,20 +169,7 @@ export default function Login({ onLoginExitoso }) {
                 </div>
 
                 {/* Google */}
-                <button onClick={manejarGoogle} disabled={cargando} style={s.btnGoogle}>
-                    <svg width="18" height="18" viewBox="0 0 48 48" style={{ flexShrink: 0 }}>
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                    </svg>
-                    Continuar con Google
-                </button>
-
-                {/* SSO */}
-                <button onClick={() => setError("SSO corporativo próximamente disponible")} style={s.btnSSO}>
-                    🏢 SSO Corporativo CLTiene
-                </button>
+                <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }} />
 
                 {/* Switch login/registro */}
                 <div style={s.switchWrap}>
@@ -251,22 +229,6 @@ const s = {
         padding: "36px 32px",
         boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)",
     },
-    logoWrap: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        marginBottom: "12px"
-    },
-    logoIconoWrap: {
-        display: "flex",
-        justifyContent: "center",
-        width: "100%",
-        marginBottom: "4px"
-    },
-    logoNombre: { color: "#231F20", fontWeight: 800, fontSize: "26px", lineHeight: 1 },
-    logoMundial: { color: "#FD7751", fontWeight: 700, fontSize: "15px", marginTop: "2px" },
     desc: { color: "#7D7765", fontSize: "14px", textAlign: "center", marginBottom: "24px", marginTop: "4px" },
     errorBox: {
         background: "#FFF0EE", border: "1px solid #FD775150",
@@ -286,10 +248,6 @@ const s = {
         position: "absolute", right: "12px",
         background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: "4px",
     },
-    linkBtn: {
-        background: "none", border: "none", color: "#408DFF",
-        fontSize: "13px", cursor: "pointer", padding: 0, fontWeight: 500,
-    },
     btnPrimario: {
         width: "100%", padding: "14px",
         background: "linear-gradient(135deg, #FC3276, #822BD2)",
@@ -301,18 +259,6 @@ const s = {
     divisor: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" },
     linea: { flex: 1, height: "1px", background: "#E5E3DF" },
     oText: { color: "#999999", fontSize: "13px" },
-    btnGoogle: {
-        width: "100%", padding: "12px",
-        background: "#F8F7F5", border: "1.5px solid #E5E3DF",
-        borderRadius: "12px", color: "#231F20", fontSize: "14px", fontWeight: 500,
-        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-        gap: "10px", marginBottom: "10px",
-    },
-    btnSSO: {
-        width: "100%", padding: "12px", background: "transparent",
-        border: "1.5px solid #E5E3DF", borderRadius: "12px",
-        color: "#7D7765", fontSize: "14px", cursor: "pointer", marginBottom: "20px",
-    },
     switchWrap: { borderTop: "1px solid #E5E3DF", paddingTop: "20px", textAlign: "center" },
     switchText: { color: "#231F20", fontWeight: 700, fontSize: "15px" },
     switchSub: { color: "#999999", fontSize: "13px", margin: "4px 0 12px" },
