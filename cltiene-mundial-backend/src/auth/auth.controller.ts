@@ -5,7 +5,12 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // Endpoint publico: config de marca por slug (para pantalla de login)
+  // Endpoints publicos (sin auth)
+  @Get('empresas-activas')
+  empresasActivas() {
+    return this.authService.listarEmpresasActivas();
+  }
+
   @Get('config-publica/:slug')
   configPublica(@Param('slug') slug: string) {
     return this.authService.obtenerConfigPublica(slug);

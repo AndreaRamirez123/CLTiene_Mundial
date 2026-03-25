@@ -21,6 +21,15 @@ export class AuthService {
     private dataSource: DataSource,
   ) {}
 
+  // Listar empresas activas (publico, para selector de login)
+  async listarEmpresasActivas() {
+    return this.empresaRepo.find({
+      where: { estado: 'activa' },
+      select: ['id', 'nombre', 'slug'],
+      order: { nombre: 'ASC' },
+    });
+  }
+
   // Config publica de marca por slug (sin auth, para pantalla de login)
   async obtenerConfigPublica(slug: string) {
     const empresaId = await this.resolverEmpresa(slug);

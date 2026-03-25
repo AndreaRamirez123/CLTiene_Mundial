@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import client from "../api/client";
-import { getLogoMarca, getNombreMarca, getSubtituloMarca } from "../utils/marca";
+import { guardarConfigMarca } from "../utils/marca";
+import logoDefault from "../assets/logo.png";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import { ThemeToggle } from "../store/useTheme";
 
 const GOOGLE_CLIENT_ID = "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
 
-export default function Login({ onLoginExitoso, empresaSlug }) {
+export default function Login({ onLoginExitoso }) {
     const [modo, setModo] = useState("login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -16,7 +17,33 @@ export default function Login({ onLoginExitoso, empresaSlug }) {
     const [mostrarPass, setMostrarPass] = useState(false);
     const [verTerminos, setVerTerminos] = useState(false);
     const [verPrivacidad, setVerPrivacidad] = useState(false);
+    const [empresas, setEmpresas] = useState([]);
+    const [empresaSlug, setEmpresaSlug] = useState("default");
+    const [marcaActual, setMarcaActual] = useState(null);
     const googleBtnRef = useRef(null);
+    const empresaSlugRef = useRef(empresaSlug);
+
+    // Mantener ref actualizado para el callback de Google
+    useEffect(() => { empresaSlugRef.current = empresaSlug; }, [empresaSlug]);
+
+    // Cargar empresas activas
+    useEffect(() => {
+        client.get("/auth/empresas-activas")
+            .then((res) => setEmpresas(res.data || []))
+            .catch(() => {});
+    }, []);
+
+    // Cuando cambia la empresa, cargar su config de marca
+    useEffect(() => {
+        client.get(`/auth/config-publica/${empresaSlug}`)
+            .then((res) => {
+                if (res?.data) {
+                    guardarConfigMarca(res.data);
+                    setMarcaActual(res.data);
+                }
+            })
+            .catch(() => {});
+    }, [empresaSlug]);
 
     useEffect(() => {
         const initGoogle = () => {
@@ -53,7 +80,7 @@ export default function Login({ onLoginExitoso, empresaSlug }) {
         setCargando(true);
         setError("");
         try {
-            const res = await client.post("/auth/google", { credential: response.credential, empresa_slug: empresaSlug });
+            const res = await client.post("/auth/google", { credential: response.credential, empresa_slug: empresaSlugRef.current });
             const usuario = { ...res.data.usuario, googleNombre: res.data.googleNombre };
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("usuario", JSON.stringify(usuario));
@@ -102,12 +129,12 @@ export default function Login({ onLoginExitoso, empresaSlug }) {
                 {/* Logo */}
                 <div style={{ textAlign: "center", marginBottom: "16px" }}>
                     <img
-                        src={getLogoMarca()}
-                        alt={getNombreMarca()}
+                        src={marcaActual?.logo_url ? (marcaActual.logo_url.startsWith("http") ? marcaActual.logo_url : `http://localhost:3000${marcaActual.logo_url}`) : logoDefault}
+                        alt={marcaActual?.nombre_app || "CLTiene Mundial"}
                         style={{ width: "200px", height: "auto", display: "block", margin: "0 auto" }}
                     />
                     <div style={{ color: "var(--brand-accent)", fontWeight: 700, fontSize: "14px", marginTop: "6px" }}>
-                        {getSubtituloMarca()} ⚽
+                        {marcaActual?.subtitulo || "Mundial 2026"} ⚽
                     </div>
                 </div>
 
@@ -116,6 +143,29 @@ export default function Login({ onLoginExitoso, empresaSlug }) {
                         ? "Ingresa para gestionar tus apuestas y premios"
                         : "Regístrate y obtén un bono de bienvenida"}
                 </p>
+
+                {/* Selector de empresa */}
+                {empresas.length > 1 && (
+                    <div style={{ marginBottom: "16px" }}>
+                        <label style={{ display: "block", color: "#7D7765", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
+                            Selecciona tu organizacion
+                        </label>
+                        <select
+                            value={empresaSlug}
+                            onChange={(e) => setEmpresaSlug(e.target.value)}
+                            style={{
+                                width: "100%", padding: "12px 14px",
+                                background: "#F8F7F5", border: "1.5px solid #E5E3DF",
+                                borderRadius: "12px", color: "#231F20", fontSize: "14px",
+                                outline: "none", cursor: "pointer", boxSizing: "border-box",
+                            }}
+                        >
+                            {empresas.map((emp) => (
+                                <option key={emp.slug} value={emp.slug}>{emp.nombre}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 {error && (
                     <div style={s.errorBox}>
