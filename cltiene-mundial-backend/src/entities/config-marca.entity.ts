@@ -43,6 +43,13 @@ export class ConfigMarca {
   @Column({ type: 'varchar', length: 10, default: '#0f0a1e' })
   color_fondo: string;
 
+  // Textos legales editables por empresa
+  @Column({ type: 'longtext', nullable: true })
+  terminos_condiciones: string;
+
+  @Column({ type: 'longtext', nullable: true })
+  politica_privacidad: string;
+
   @UpdateDateColumn()
   updated_at: Date;
 }

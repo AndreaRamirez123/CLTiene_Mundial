@@ -12,7 +12,6 @@ import Perfil from "../components/dashboard/Perfil";
 import Beneficios from "../components/dashboard/Beneficios";
 import AdminPanel from "../components/dashboard/AdminPanel";
 import { useTheme, ThemeToggle } from "../store/useTheme";
-
 export default function Dashboard({ usuario, onCerrarSesion }) {
   useTheme();
   const [perfil, setPerfil] = useState(null);
@@ -95,13 +94,13 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)" }}>
       <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease" }}>
-        <img src={getLogoMarca()} style={{ height: 28 }} alt={getNombreMarca()} />
+        <img src={getLogoMarca()} className="logo-header" style={{ height: 28 }} alt={getNombreMarca()} />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
+          <div id="tutorial-monedas" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
             <span className="anim-coin" style={{ fontSize: 16 }}>🪙</span>
             <span className="anim-count" style={{ color: C.dorado, fontWeight: 900, fontSize: 16 }}>{monedas}</span>
           </div>
-          <div className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 12px", animationDelay: "1s" }}>
+          <div id="tutorial-goles" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 12px", animationDelay: "1s" }}>
             <span className="anim-goal-flash" style={{ fontSize: 16 }}>⚽</span>
             <span className="anim-count" style={{ color: C.verde, fontWeight: 900, fontSize: 16 }}>{perfil?.goles || 0}</span>
           </div>
@@ -131,7 +130,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           <p style={{ color: "var(--texto-sec)", fontSize: 14, margin: "0 0 20px" }}>
             Predice, acumula monedas y llega al tope del ranking 🏆
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          <div id="tutorial-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
             {[
               { label: "Monedas", valor: monedas, icono: "🪙", color: C.dorado, anim: "anim-coin" },
               { label: "Predicciones", valor: perfil?.predicciones_count || 0, icono: "⚽", color: C.azul, anim: "anim-goal-flash" },
@@ -160,6 +159,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         )}
       </div>
 
+
       {toast && (
         <div className={`anim-slide-up ${toast.tipo === "exito" ? "anim-success-ring" : "anim-shake"}`} style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 300, background: toast.tipo === "exito" ? "linear-gradient(135deg, #16C784, #0fa968)" : "linear-gradient(135deg, #ED1E28, #c0392b)", borderRadius: 14, padding: "14px 24px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", maxWidth: "90%" }}>
           <span className={toast.tipo === "exito" ? "anim-coin" : "anim-shake"} style={{ fontSize: 24 }}>{toast.tipo === "exito" ? "🪙" : "⚠️"}</span>
@@ -168,7 +168,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       )}
 
       {/* Barra inferior DESKTOP: todos los tabs (oculta en móvil) */}
-      <div className="nav-desktop" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
+      <div id="tutorial-navbar" className="nav-desktop" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
         {[
           { id: "inicio", i: "🏠", l: "Inicio" },
           { id: "polla", i: "⚽", l: "Polla" },

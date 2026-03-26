@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { MisionesService } from './misiones.service';
 
 @Controller('misiones')
@@ -11,8 +11,9 @@ export class MisionesController {
   }
 
   @Get('trivia/preguntas')
-  getPreguntasTrivia() {
-    return this.misionesService.getPreguntasDelDia();
+  getPreguntasTrivia(@Query('empresa_id') empresaId?: string) {
+    const id = empresaId ? parseInt(empresaId, 10) : 1;
+    return this.misionesService.getPreguntasDelDia(id);
   }
 
   @Post(':uid/trivia')

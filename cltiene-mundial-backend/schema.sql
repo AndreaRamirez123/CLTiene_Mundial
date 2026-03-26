@@ -37,6 +37,8 @@ CREATE TABLE config_marca (
   color_secundario VARCHAR(10) NOT NULL DEFAULT '#ED1E28',
   color_acento VARCHAR(10) NOT NULL DEFAULT '#ECA82D',
   color_fondo VARCHAR(10) NOT NULL DEFAULT '#0f0a1e',
+  terminos_condiciones LONGTEXT DEFAULT NULL,
+  politica_privacidad LONGTEXT DEFAULT NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE
@@ -244,6 +246,25 @@ CREATE TABLE notificaciones_log (
   FOREIGN KEY (jugador_id) REFERENCES jugadores(id) ON DELETE CASCADE,
 
   INDEX idx_jugador_fecha (jugador_id, created_at DESC)
+) ENGINE=InnoDB;
+
+-- ============================================
+-- 8. PREGUNTAS TRIVIA
+-- ============================================
+CREATE TABLE preguntas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  pregunta TEXT NOT NULL,
+  opciones JSON NOT NULL COMMENT 'Array de 4 strings',
+  correcta TINYINT UNSIGNED NOT NULL COMMENT 'Indice 0-3 de la respuesta correcta',
+  empresa_id INT DEFAULT NULL COMMENT 'NULL = global, con valor = solo esa empresa',
+  tipo ENUM('mundial','empresa') NOT NULL DEFAULT 'mundial',
+  dia_semana TINYINT UNSIGNED DEFAULT NULL COMMENT '0=dom, 1=lun, ..., 6=sab, NULL=cualquier dia',
+  activa TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE,
+  INDEX idx_empresa_tipo (empresa_id, tipo),
+  INDEX idx_activa (activa)
 ) ENGINE=InnoDB;
 
 -- ============================================

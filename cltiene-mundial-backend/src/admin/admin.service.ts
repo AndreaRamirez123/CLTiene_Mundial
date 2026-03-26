@@ -59,6 +59,7 @@ export class AdminService implements OnModuleInit {
     const where = empresaId ? { empresa_id: empresaId } : {};
     const [data, total] = await this.jugadorRepo.findAndCount({
       where,
+      relations: ['empresa'],
       order: { monedas: 'DESC' },
       skip,
       take: limit,
@@ -111,10 +112,12 @@ export class AdminService implements OnModuleInit {
       .getMany();
   }
 
-  // Obtener estadísticas (filtrado por empresa si es admin)
+  // Obtener estadísticas
   async obtenerEstadisticas(empresaId?: number) {
     const whereJugador = empresaId ? { empresa_id: empresaId } : {};
-    const totalJugadores = await this.jugadorRepo.count({ where: whereJugador });
+    const totalJugadores = await this.jugadorRepo.count({
+      where: whereJugador,
+    });
 
     const qbPredicciones = this.prediccionRepo.createQueryBuilder('p');
     if (empresaId) {
@@ -138,12 +141,104 @@ export class AdminService implements OnModuleInit {
         : { rol: 'admin' },
     });
 
+    // Actividad real basada en ultimo_acceso
+    const buildActivityQuery = (condition: string) => {
+      const qb = this.jugadorRepo.createQueryBuilder('j').where(condition);
+      if (empresaId) qb.andWhere('j.empresa_id = :empresaId', { empresaId });
+      return qb.getCount();
+    };
+
+    const [activosHoy, activosSemana, activosMes] = await Promise.all([
+      buildActivityQuery('j.ultimo_acceso >= CURDATE()'),
+      buildActivityQuery(
+        'j.ultimo_acceso >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)',
+      ),
+      buildActivityQuery(
+        'j.ultimo_acceso >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)',
+      ),
+    ]);
+
+    const inactivos = totalJugadores - activosMes;
+
+    const actividad = {
+      hoy: activosHoy,
+      semana: activosSemana,
+      mes: activosMes,
+      inactivos,
+    };
+
+    // Jugadores por nivel (campo enum)
+    const porNivel = await this.jugadorRepo
+      .createQueryBuilder('j')
+      .select('j.nivel', 'nivel')
+      .addSelect('COUNT(*)', 'cantidad')
+      .where(empresaId ? 'j.empresa_id = :empresaId' : '1=1', { empresaId })
+      .groupBy('j.nivel')
+      .getRawMany();
+
+    // Jugadores por empresa (solo superadmin)
+    let porEmpresa: any[] = [];
+    if (!empresaId) {
+      porEmpresa = await this.jugadorRepo
+        .createQueryBuilder('j')
+        .innerJoin('j.empresa', 'e')
+        .select('e.nombre', 'empresa')
+        .addSelect('COUNT(*)', 'jugadores')
+        .addSelect('SUM(j.monedas)', 'monedas')
+        .groupBy('e.nombre')
+        .orderBy('jugadores', 'DESC')
+        .getRawMany();
+    }
+
+    // Engagement: usuarios que han participado
+    const qbConPredicciones = this.jugadorRepo
+      .createQueryBuilder('j')
+      .where('j.predicciones_count > 0');
+    if (empresaId)
+      qbConPredicciones.andWhere('j.empresa_id = :empresaId', { empresaId });
+    const jugadoresConPredicciones = await qbConPredicciones.getCount();
+
+    const qbConTrivia = this.jugadorRepo
+      .createQueryBuilder('j')
+      .where('j.trivias_jugadas > 0');
+    if (empresaId)
+      qbConTrivia.andWhere('j.empresa_id = :empresaId', { empresaId });
+    const jugadoresConTrivia = await qbConTrivia.getCount();
+
+    const qbConReferidos = this.jugadorRepo
+      .createQueryBuilder('j')
+      .where('j.referidos_count > 0');
+    if (empresaId)
+      qbConReferidos.andWhere('j.empresa_id = :empresaId', { empresaId });
+    const jugadoresConReferidos = await qbConReferidos.getCount();
+
+    const engagement = {
+      con_predicciones: jugadoresConPredicciones,
+      con_trivia: jugadoresConTrivia,
+      con_referidos: jugadoresConReferidos,
+      total: totalJugadores,
+    };
+
+    // Jugadores por rol
+    const porRol = await this.jugadorRepo
+      .createQueryBuilder('j')
+      .select('j.rol', 'rol')
+      .addSelect('COUNT(*)', 'cantidad')
+      .where(empresaId ? 'j.empresa_id = :empresaId' : '1=1', { empresaId })
+      .groupBy('j.rol')
+      .getRawMany();
+
     return {
       total_jugadores: totalJugadores,
       total_predicciones: totalPredicciones,
       total_monedas_en_circulacion: parseInt(totalMonedas.total) || 0,
       admins: adminCount,
       fecha: new Date(),
+      actividad,
+      engagement,
+      por_nivel: porNivel,
+      por_empresa: porEmpresa,
+      por_rol: porRol,
     };
   }
 

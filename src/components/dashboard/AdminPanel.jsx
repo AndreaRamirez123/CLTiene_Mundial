@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { C } from './constants';
+import { getNombreMarca } from '../../utils/marca';
 import VistaUsuarios from './AdminViews/VistaUsuarios';
 import VistaPrediciones from './AdminViews/VistaPrediciones';
 import VistaEstadisticas from './AdminViews/VistaEstadisticas';
@@ -63,7 +64,7 @@ export default function AdminPanel({ usuario, client }) {
             🛡️ Panel de Administrador
           </h1>
           <p style={{ color: 'var(--texto-sec)', fontSize: 14 }}>
-            Controla todo en CLTiene Mundial
+            Controla todo en {getNombreMarca()}
           </p>
         </div>
 

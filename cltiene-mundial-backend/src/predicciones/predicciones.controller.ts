@@ -28,7 +28,9 @@ export class PrediccionesController {
   // Resolver predicciones de un partido finalizado
   @Post('resolver/:partidoId')
   resolverPredicciones(@Param('partidoId') partidoId: string) {
-    return this.prediccionesService.resolverPrediccionesPartido(parseInt(partidoId, 10));
+    return this.prediccionesService.resolverPrediccionesPartido(
+      parseInt(partidoId, 10),
+    );
   }
 
   // SIMULACION: poner resultado + resolver predicciones de una vez

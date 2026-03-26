@@ -1,17 +1,41 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { actualizarRachaDeAcceso, calcularNivelActividad } from './nivel-actividad.util';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(Jugador)
     private jugadorRepo: Repository<Jugador>,
     private dataSource: DataSource,
   ) {}
+
+  // Recalcular nivel de actividad de todos los jugadores cada hora
+  @Cron('0 * * * *')
+  async recalcularNiveles() {
+    const jugadores = await this.jugadorRepo.find({
+      select: ['id', 'ultimo_acceso', 'predicciones_count', 'trivias_jugadas', 'dias_consecutivos', 'nivel'],
+    });
+
+    let actualizados = 0;
+    for (const jugador of jugadores) {
+      const nuevoNivel = calcularNivelActividad(jugador);
+      if (jugador.nivel !== nuevoNivel) {
+        await this.jugadorRepo.update(jugador.id, { nivel: nuevoNivel });
+        actualizados++;
+      }
+    }
+
+    if (actualizados > 0) {
+      this.logger.log(`Niveles recalculados: ${actualizados} jugadores actualizados`);
+    }
+  }
 
   async getByUid(uid: string, email?: string): Promise<Jugador | null> {
     let jugador = await this.jugadorRepo.findOne({ where: { uid } });

@@ -5,9 +5,13 @@ import { MisionesService } from './misiones.service';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { TriviaHistorial } from '../entities/trivia-historial.entity';
+import { PreguntasModule } from '../preguntas/preguntas.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Jugador, Transaccion, TriviaHistorial])],
+  imports: [
+    TypeOrmModule.forFeature([Jugador, Transaccion, TriviaHistorial]),
+    PreguntasModule,
+  ],
   controllers: [MisionesController],
   providers: [MisionesService],
   exports: [MisionesService],

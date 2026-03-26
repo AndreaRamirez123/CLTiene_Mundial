@@ -3,14 +3,15 @@ import { aplicarConfigMarca } from './utils/marca'
 import Login from './pages/login'
 import Registro from './pages/Registro'
 import Dashboard from './pages/Dashboard'
+import TutorialDemo from './components/dashboard/TutorialDemo'
 
 export default function App() {
   const [usuario, setUsuario] = useState(null)
   const [perfilCompleto, setPerfilCompleto] = useState(false)
+  const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
-    // Aplicar config cacheada (la correcta se carga en login o dashboard)
     const cache = localStorage.getItem('config_marca')
     if (cache) {
       try { aplicarConfigMarca(JSON.parse(cache)) } catch { /* ignore */ }
@@ -37,6 +38,8 @@ export default function App() {
     localStorage.setItem('usuario', JSON.stringify(user))
     setUsuario(user)
     setPerfilCompleto(true)
+    // Mostrar tutorial despues del registro
+    setMostrarTutorial(true)
   }
 
   const handleCerrarSesion = () => {
@@ -45,6 +48,7 @@ export default function App() {
     localStorage.removeItem('config_marca')
     setUsuario(null)
     setPerfilCompleto(false)
+    setMostrarTutorial(false)
   }
 
   if (cargando) return (
@@ -55,5 +59,16 @@ export default function App() {
 
   if (!usuario) return <Login onLoginExitoso={handleLogin} />
   if (!perfilCompleto) return <Registro usuario={usuario} onRegistroCompleto={handleRegistroCompleto} onVolver={handleCerrarSesion} />
-  return <Dashboard usuario={usuario} onCerrarSesion={handleCerrarSesion} />
+
+  return (
+    <>
+      <Dashboard usuario={usuario} onCerrarSesion={handleCerrarSesion} />
+      {mostrarTutorial && (
+        <TutorialDemo
+          onTerminar={() => setMostrarTutorial(false)}
+          onIrA={() => {}}
+        />
+      )}
+    </>
+  )
 }

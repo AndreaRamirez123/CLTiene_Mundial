@@ -1,12 +1,14 @@
 import { C } from "./constants";
+import { getNombreMarca } from "../../utils/marca";
 
 export default function VideoModal({ tiempoVideo, videoVisto, SEGUNDOS_MINIMO, onReclamarVideo, onCerrar, VIDEO_URL }) {
+  const empresa = getNombreMarca();
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16, backdropFilter: "blur(4px)" }}>
       <div style={{ background: "linear-gradient(135deg, var(--card) 0%, rgba(var(--card-rgb, 26, 17, 48), 0.95) 100%)", borderRadius: 20, padding: 24, maxWidth: 500, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 18 }}>▶️ Video CLTiene</div>
+            <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 18 }}>▶️ Video {empresa}</div>
             <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 2 }}>Gana +3 ⚽ viendo el video</div>
           </div>
           <button onClick={onCerrar} style={{ background: "rgba(255,255,255,0.1)", border: "none", fontSize: 20, cursor: "pointer", color: "var(--texto-ter)", width: 32, height: 32, borderRadius: 8, transition: "all 0.2s" }} onMouseEnter={(e) => { e.target.style.background = "rgba(255,255,255,0.15)" }} onMouseLeave={(e) => { e.target.style.background = "rgba(255,255,255,0.1)" }}>
@@ -20,7 +22,7 @@ export default function VideoModal({ tiempoVideo, videoVisto, SEGUNDOS_MINIMO, o
             width="100%"
             height="280"
             src={`${VIDEO_URL.replace("youtu.be/", "youtube.com/embed/").split("?")[0]}?autoplay=1&rel=0`}
-            title="Video CLTiene"
+            title="Video {empresa}"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

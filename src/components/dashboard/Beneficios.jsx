@@ -1,27 +1,28 @@
 import { useState } from "react";
 import { C } from "./constants";
 import client from "../../api/client";
+import { getNombreMarca } from "../../utils/marca";
 
-const CATALOGO = [
+const getCatalogo = (empresa) => [
   {
     id: "descuento_10",
-    nombre: "Descuento 10% en servicios CLTiene",
-    descripcion: "Aplica en cualquier servicio de CLTiene por 30 dias",
+    nombre: `Descuento 10% en servicios ${empresa}`,
+    descripcion: `Aplica en cualquier servicio de ${empresa} por 30 dias`,
     costo: 200,
     icono: "🏷️",
     categoria: "Descuentos",
   },
   {
     id: "descuento_25",
-    nombre: "Descuento 25% en servicios CLTiene",
-    descripcion: "Aplica en cualquier servicio de CLTiene por 30 dias",
+    nombre: `Descuento 25% en servicios ${empresa}`,
+    descripcion: `Aplica en cualquier servicio de ${empresa} por 30 dias`,
     costo: 500,
     icono: "🔥",
     categoria: "Descuentos",
   },
   {
     id: "plan_basico",
-    nombre: "Plan Basico CLTiene - 1 mes gratis",
+    nombre: `Plan Basico ${empresa} - 1 mes gratis`,
     descripcion: "Acceso al plan basico sin costo por un mes",
     costo: 800,
     icono: "⭐",
@@ -30,7 +31,7 @@ const CATALOGO = [
   {
     id: "consultoria",
     nombre: "Consultoria gratuita",
-    descripcion: "Sesion de consultoria personalizada con un experto CLTiene",
+    descripcion: `Sesion de consultoria personalizada con un experto ${empresa}`,
     costo: 1000,
     icono: "💼",
     categoria: "Servicios",
@@ -69,6 +70,8 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
 
   const monedas = perfil?.monedas || 0;
   const elegible = perfil?.elegible_canje || false;
+  const empresa = getNombreMarca();
+  const CATALOGO = getCatalogo(empresa);
 
   const filtrados = categoriaActiva === "Todos" ? CATALOGO : CATALOGO.filter((b) => b.categoria === categoriaActiva);
 
@@ -95,7 +98,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
 
   return (
     <div>
-      <h2 style={{ color: "var(--texto)", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Beneficios CLTiene</h2>
+      <h2 style={{ color: "var(--texto)", fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Beneficios {empresa}</h2>
       <p style={{ color: "var(--texto-ter)", fontSize: 13, marginBottom: 16 }}>Canjea tus monedas por beneficios reales</p>
 
       <div style={{ background: "linear-gradient(135deg, rgba(253,119,81,0.15), rgba(237,30,40,0.1))", border: "1px solid rgba(253,119,81,0.3)", borderRadius: 14, padding: "16px 20px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -182,7 +185,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
 
       <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(64,141,255,0.08)", border: "1px solid rgba(64,141,255,0.2)", borderRadius: 12 }}>
         <div style={{ color: "var(--texto-sec)", fontSize: 11, lineHeight: 1.6 }}>
-          Para garantizar un juego justo, los beneficios estan pensados para jugadores activos. Un asesor CLTiene se pondra en contacto contigo para activar tu beneficio.
+          Para garantizar un juego justo, los beneficios estan pensados para jugadores activos. Un asesor de {empresa} se pondra en contacto contigo para activar tu beneficio.
         </div>
       </div>
 

@@ -14,6 +14,8 @@ export default function VistaMarca({ client, usuario }) {
     color_secundario: "#ED1E28",
     color_acento: "#ECA82D",
     color_fondo: "#0f0a1e",
+    terminos_condiciones: "",
+    politica_privacidad: "",
   });
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -81,6 +83,8 @@ export default function VistaMarca({ client, usuario }) {
         color_secundario: form.color_secundario,
         color_acento: form.color_acento,
         color_fondo: form.color_fondo,
+        terminos_condiciones: form.terminos_condiciones,
+        politica_privacidad: form.politica_privacidad,
         ...(esSuperadmin && empresaSeleccionada ? { empresa_id: empresaSeleccionada } : {}),
       };
       const res = await client.put("/admin/config-marca", payload);
@@ -261,6 +265,47 @@ export default function VistaMarca({ client, usuario }) {
                 <ColorField label="Secundario" value={form.color_secundario} onChange={(v) => set("color_secundario", v)} />
                 <ColorField label="Acento" value={form.color_acento} onChange={(v) => set("color_acento", v)} />
                 <ColorField label="Fondo" value={form.color_fondo} onChange={(v) => set("color_fondo", v)} />
+              </div>
+            </div>
+
+            {/* Textos legales */}
+            <div style={{ marginTop: 22 }}>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Textos Legales</div>
+              <div style={{ display: "grid", gap: 14 }}>
+                <div>
+                  <label style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>
+                    Terminos y Condiciones
+                  </label>
+                  <textarea
+                    value={form.terminos_condiciones || ""}
+                    onChange={(e) => set("terminos_condiciones", e.target.value)}
+                    placeholder="Escribe aqui los terminos y condiciones de tu empresa..."
+                    rows={6}
+                    style={{
+                      width: "100%", padding: "11px 12px", borderRadius: 12,
+                      border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.06)",
+                      color: "var(--texto)", outline: "none", fontSize: 13, resize: "vertical",
+                      fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>
+                    Politica de Privacidad
+                  </label>
+                  <textarea
+                    value={form.politica_privacidad || ""}
+                    onChange={(e) => set("politica_privacidad", e.target.value)}
+                    placeholder="Escribe aqui la politica de privacidad de tu empresa..."
+                    rows={6}
+                    style={{
+                      width: "100%", padding: "11px 12px", borderRadius: 12,
+                      border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.06)",
+                      color: "var(--texto)", outline: "none", fontSize: 13, resize: "vertical",
+                      fontFamily: "inherit", lineHeight: 1.5, boxSizing: "border-box",
+                    }}
+                  />
+                </div>
               </div>
             </div>
 

@@ -37,7 +37,9 @@ export class PrediccionesService {
     }
 
     const partidoId = parseInt(datos.partido_id, 10);
-    const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
+    const partido = await this.partidoRepo.findOne({
+      where: { id: partidoId },
+    });
     if (!partido) {
       throw new BadRequestException('Partido no encontrado');
     }
@@ -47,7 +49,9 @@ export class PrediccionesService {
     });
 
     if (existente) {
-      throw new BadRequestException('Ya tienes una predicción para este partido');
+      throw new BadRequestException(
+        'Ya tienes una predicción para este partido',
+      );
     }
 
     let prediccion: Prediccion;
@@ -68,7 +72,10 @@ export class PrediccionesService {
       await manager.save(Jugador, jugador);
     });
 
-    return { mensaje: 'Predicción guardada. Buena suerte.', id: prediccion!.id };
+    return {
+      mensaje: 'Predicción guardada. Buena suerte.',
+      id: prediccion!.id,
+    };
   }
 
   async getPrediccionesUsuario(uid: string) {
@@ -83,9 +90,13 @@ export class PrediccionesService {
   }
 
   async resolverPrediccionesPartido(partidoId: number) {
-    const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
+    const partido = await this.partidoRepo.findOne({
+      where: { id: partidoId },
+    });
     if (!partido || partido.estado !== 'finalizado' || !partido.resultado) {
-      throw new BadRequestException('El partido no está finalizado o no tiene resultado');
+      throw new BadRequestException(
+        'El partido no está finalizado o no tiene resultado',
+      );
     }
 
     const predicciones = await this.prediccionRepo.find({
@@ -93,7 +104,10 @@ export class PrediccionesService {
     });
 
     if (predicciones.length === 0) {
-      return { mensaje: 'No hay predicciones pendientes para este partido', resueltas: 0 };
+      return {
+        mensaje: 'No hay predicciones pendientes para este partido',
+        resueltas: 0,
+      };
     }
 
     let acertadasSimple = 0;
@@ -102,7 +116,9 @@ export class PrediccionesService {
 
     for (const pred of predicciones) {
       await this.dataSource.transaction(async (manager) => {
-        const jugador = await manager.findOne(Jugador, { where: { id: pred.jugador_id } });
+        const jugador = await manager.findOne(Jugador, {
+          where: { id: pred.jugador_id },
+        });
         if (!jugador) return;
 
         const aciertoSimple = pred.resultado === partido.resultado;
@@ -140,8 +156,10 @@ export class PrediccionesService {
           const saldoNuevo = saldoAnterior + monedasGanadas;
 
           jugador.monedas = saldoNuevo;
-          jugador.monedas_totales_ganadas = (jugador.monedas_totales_ganadas || 0) + monedasGanadas;
-          jugador.predicciones_acertadas = (jugador.predicciones_acertadas || 0) + 1;
+          jugador.monedas_totales_ganadas =
+            (jugador.monedas_totales_ganadas || 0) + monedasGanadas;
+          jugador.predicciones_acertadas =
+            (jugador.predicciones_acertadas || 0) + 1;
           jugador.ultimo_acceso = new Date();
           jugador.nivel = calcularNivelActividad(jugador);
           await manager.save(Jugador, jugador);
@@ -172,10 +190,16 @@ export class PrediccionesService {
     };
   }
 
-  async simularResultado(partidoId: number, golesLocal: number, golesVisitante: number) {
+  async simularResultado(
+    partidoId: number,
+    golesLocal: number,
+    golesVisitante: number,
+  ) {
     const resultado =
-      golesLocal > golesVisitante ? 'local'
-        : golesVisitante > golesLocal ? 'visitante'
+      golesLocal > golesVisitante
+        ? 'local'
+        : golesVisitante > golesLocal
+          ? 'visitante'
           : 'empate';
 
     await this.partidoRepo.update(partidoId, {
@@ -186,7 +210,9 @@ export class PrediccionesService {
     });
 
     const resolucion = await this.resolverPrediccionesPartido(partidoId);
-    const partido = await this.partidoRepo.findOne({ where: { id: partidoId } });
+    const partido = await this.partidoRepo.findOne({
+      where: { id: partidoId },
+    });
 
     return {
       partido: `${partido?.local_equipo} ${golesLocal} - ${golesVisitante} ${partido?.visitante_equipo}`,

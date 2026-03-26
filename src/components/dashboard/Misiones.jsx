@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import client from "../../api/client";
 import { C } from "./constants";
+import { getNombreMarca } from "../../utils/marca";
 import MisionCard from "./MisionCard";
 import TriviaModal from "./TriviaModal";
 import VideoModal from "./VideoModal";
@@ -33,12 +34,13 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
   const codigoReferido = usuario?.uid?.substring(0, 8).toUpperCase() || "";
   const urlInvitacion = `${window.location.origin}?ref=${codigoReferido}`;
-  const mensajeInvitacion = `Unete a CLTiene Mundial 2026! Predice partidos, acumula monedas y gana premios. Registrate aqui: ${urlInvitacion}`;
+  const empresa = getNombreMarca();
+  const mensajeInvitacion = `Unete a ${empresa}! Predice partidos, acumula monedas y gana premios. Registrate aqui: ${urlInvitacion}`;
 
   // Cargar preguntas de trivia dinámicas
   const cargarPreguntasTrivia = async () => {
     try {
-      const res = await client.get("/misiones/trivia/preguntas");
+      const res = await client.get(`/misiones/trivia/preguntas?empresa_id=${usuario?.empresa_id || 1}`);
       setPREGUNTAS_TRIVIA(res.data.preguntas);
     } catch (e) {
       console.error("Error cargando preguntas", e);
@@ -176,9 +178,9 @@ export default function Misiones({ usuario, cargarPerfil }) {
   }
 
   const redesSociales = [
-    { id: "whatsapp", icono: "💬", nombre: "WhatsApp", color: "#25D366" },
-    { id: "facebook", icono: "📘", nombre: "Facebook", color: "#1877F2" },
-    { id: "instagram", icono: "📷", nombre: "Instagram", color: "#E4405F" },
+    { id: "whatsapp", icono: "whatsapp", nombre: "WhatsApp", color: "#25D366" },
+    { id: "facebook", icono: "facebook", nombre: "Facebook", color: "#1877F2" },
+    { id: "instagram", icono: "instagram", nombre: "Instagram", color: "#E4405F" },
   ];
 
   const preguntaActual = PREGUNTAS_TRIVIA[triviaActual];

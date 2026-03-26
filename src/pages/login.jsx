@@ -247,7 +247,7 @@ export default function Login({ onLoginExitoso }) {
                     <a href="#" onClick={(e) => { e.preventDefault(); setVerTerminos(true); }} style={{ color: "var(--brand-primary)" }}>Términos y Condiciones</a>
                     {" "}y la{" "}
                     <a href="#" onClick={(e) => { e.preventDefault(); setVerPrivacidad(true); }} style={{ color: "var(--brand-primary)" }}>Política de Privacidad</a>
-                    {" "}de CLTiene.
+                    {" "}de {marcaActual?.nombre_app || "CLTiene"}.
                 </p>
             </div>
         </div>

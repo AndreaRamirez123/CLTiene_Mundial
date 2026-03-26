@@ -5,6 +5,7 @@ import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { TriviaHistorial } from '../entities/trivia-historial.entity';
 import { calcularNivelActividad } from '../users/nivel-actividad.util';
+import { PreguntasService } from '../preguntas/preguntas.service';
 
 interface Mision {
   id: string;
@@ -43,8 +44,8 @@ const MISIONES: Mision[] = [
   {
     id: 'ver_video',
     icono: '▶️',
-    titulo: 'Ver video CLTiene',
-    desc: 'Mira un video de la marca',
+    titulo: 'Ver video de la marca',
+    desc: 'Mira un video de tu empresa',
     goles: 3,
     tipo: 'manual',
   },
@@ -66,9 +67,8 @@ const MISIONES: Mision[] = [
   },
 ];
 
-// Banco de preguntas - Cada conjunto de 6 es para un día diferente
-const BANCO_PREGUNTAS = [
-  // Lunes
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _LEGACY_PREGUNTAS = [
   [
     {
       pregunta: '¿En qué país se jugará la final del Mundial 2026?',
@@ -412,6 +412,7 @@ export class MisionesService {
     @InjectRepository(TriviaHistorial)
     private readonly triviaRepo: Repository<TriviaHistorial>,
     private readonly dataSource: DataSource,
+    private readonly preguntasService: PreguntasService,
   ) {}
 
   async getMisiones(uid: string) {
@@ -585,10 +586,11 @@ export class MisionesService {
     };
   }
 
-  // Obtener preguntas dinámicas para el día actual
-  getPreguntasDelDia() {
-    const hoy = new Date().getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
-    const preguntas = BANCO_PREGUNTAS[hoy];
+  // Obtener preguntas desde la DB para una empresa
+  async getPreguntasDelDia(empresaId: number) {
+    const preguntas = await this.preguntasService.getPreguntasPorEmpresa(empresaId, 6);
+    const hoy = new Date().getDay();
+
     return {
       preguntas,
       fecha: new Date().toISOString().split('T')[0],

@@ -11,10 +11,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
     titulo: "USA - Mexico - Canada 2026",
   });
   const [promoIndex, setPromoIndex] = useState(0);
-  const [expandedPartido, setExpandedPartido] = useState(null);
   const [misPredicciones, setMisPredicciones] = useState([]);
-  const [prediccionesForm, setPrediccionesForm] = useState({});
-  const [enviando, setEnviando] = useState({});
 
   const promosClTiene = [
     {
@@ -97,44 +94,10 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
     try {
       if (usuario?.uid) {
         const res = await client.get(`/predicciones/${usuario.uid}`);
-        setMisPredicciones(res.data.slice(0, 3)); // Solo las 3 últimas
+        setMisPredicciones(res.data.slice(0, 3)); 
       }
     } catch {}
   };
-
-  // Confirmar una predicción
-  const confirmarPrediccion = async (partido) => {
-    const pred = prediccionesForm[partido.id];
-    if (!pred?.resultado) {
-      alert("Selecciona un resultado");
-      return;
-    }
-
-    setEnviando((e) => ({ ...e, [partido.id]: true }));
-    try {
-      const res = await client.post(`/predicciones/${usuario.uid}`, {
-        partido_id: String(partido.id),
-        resultado: pred.resultado,
-        goles_local: Number(pred.gl) || 0,
-        goles_visitante: Number(pred.gv) || 0,
-        monedas_apostadas: 0,
-      });
-      alert(res.data.mensaje);
-      await cargarMisPredicciones();
-      setPrediccionesForm((p) => {
-        const newForm = { ...p };
-        delete newForm[partido.id];
-        return newForm;
-      });
-    } catch (e) {
-      alert(e.response?.data?.message || "Error al guardar predicción");
-    } finally {
-      setEnviando((e) => ({ ...e, [partido.id]: false }));
-    }
-  };
-
-  const setFormPartido = (id, k, v) =>
-    setPrediccionesForm((p) => ({ ...p, [id]: { ...p[id], [k]: v } }));
 
   useEffect(() => {
     let activo = true;
@@ -199,6 +162,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
         </div>
       </div>
 
+      {usuario?.empresa_id && usuario.empresa_id === 1 && (
       <div
         className="micro-card anim-stadium-glow"
         style={{
@@ -392,6 +356,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
           ))}
         </div>
       </div>
+      )}
 
       {misPredicciones.length > 0 && (
         <div style={{ marginBottom: 16 }}>
@@ -455,46 +420,37 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
         </div>
       ) : (
         proximos.map((p, idx) => (
-          <div 
-            key={p.id} 
-            className="anim-slide-up micro-card" 
-            style={{ 
-              background: expandedPartido === p.id ? "linear-gradient(135deg, rgba(253,119,81,0.15), rgba(236,168,45,0.1))" : "var(--card)", 
-              border: expandedPartido === p.id ? "1px solid rgba(253,119,81,0.4)" : "1px solid var(--card-border)", 
-              borderRadius: 14, 
-              padding: "14px 16px", 
-              marginBottom: 10, 
-              animationDelay: `${idx * 0.1}s`, 
+          <div
+            key={p.id}
+            className="anim-slide-up micro-card"
+            onClick={() => setTab("polla")}
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--card-border)",
+              borderRadius: 14,
+              padding: "14px 16px",
+              marginBottom: 10,
+              animationDelay: `${idx * 0.1}s`,
               animationFillMode: "both",
               cursor: "pointer",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
-            onClick={() => setExpandedPartido(expandedPartido === p.id ? null : p.id)}
             onMouseEnter={(e) => {
-              if (expandedPartido !== p.id) {
-                e.currentTarget.style.borderColor = "rgba(253,119,81,0.3)";
-                e.currentTarget.style.background = "rgba(253,119,81,0.05)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }
+              e.currentTarget.style.borderColor = "rgba(253,119,81,0.3)";
+              e.currentTarget.style.background = "rgba(253,119,81,0.05)";
+              e.currentTarget.style.transform = "translateY(-2px)";
             }}
             onMouseLeave={(e) => {
-              if (expandedPartido !== p.id) {
-                e.currentTarget.style.borderColor = "var(--card-border)";
-                e.currentTarget.style.background = "var(--card)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }
+              e.currentTarget.style.borderColor = "var(--card-border)";
+              e.currentTarget.style.background = "var(--card)";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, alignItems: "center" }}>
               <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>
                 Grupo {p.grupo}
               </span>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>📅 {formatearFecha(p.fecha)} · {p.hora}</span>
-                <span style={{ fontSize: 16, transition: "transform 0.3s", transform: expandedPartido === p.id ? "rotate(180deg)" : "rotate(0deg)" }}>
-                  ▼
-                </span>
-              </div>
+              <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>📅 {formatearFecha(p.fecha)} · {p.hora}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>
               <div style={{ textAlign: "center" }}>
@@ -509,166 +465,13 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
                 <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13, marginTop: 6 }}>{p.visitante}</div>
               </div>
             </div>
-
-            {expandedPartido === p.id && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(253,119,81,0.2)", animation: "slideDown 0.3s ease" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-                  <div style={{ background: "rgba(253,119,81,0.1)", border: "1px solid rgba(253,119,81,0.2)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-                    <div style={{ color: "var(--texto-ter)", fontSize: 11, marginBottom: 4 }}>Estadio</div>
-                    <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 12 }}>{p.estadio || "TBD"}</div>
-                  </div>
-                  <div style={{ background: "rgba(236,168,45,0.1)", border: "1px solid rgba(236,168,45,0.2)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-                    <div style={{ color: "var(--texto-ter)", fontSize: 11, marginBottom: 4 }}>Árbitro</div>
-                    <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 12 }}>{p.arbitro || "TBD"}</div>
-                  </div>
-                </div>
-
-                {/* Selector de resultado */}
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8, fontWeight: 700 }}>¿Quién gana?</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                    {[
-                      { val: "local", label: p.local, codigo: p.bandera_l },
-                      { val: "empate", label: "Empate", codigo: null },
-                      { val: "visitante", label: p.visitante, codigo: p.bandera_v },
-                    ].map((op) => {
-                      const activa = prediccionesForm[p.id]?.resultado === op.val;
-                      return (
-                        <button
-                          key={op.val}
-                          onClick={() => setFormPartido(p.id, "resultado", op.val)}
-                          style={{
-                            padding: "10px 6px",
-                            borderRadius: 10,
-                            cursor: "pointer",
-                            border: activa ? "2px solid #FD7751" : "1px solid var(--input-border)",
-                            background: activa ? "rgba(253,119,81,0.2)" : "var(--input-bg)",
-                            color: activa ? "#FD7751" : "var(--texto-sec)",
-                            fontWeight: activa ? 800 : 600,
-                            fontSize: 12,
-                            textAlign: "center",
-                            transition: "all 0.3s",
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!activa) {
-                              e.target.style.borderColor = "rgba(253,119,81,0.3)";
-                              e.target.style.transform = "translateY(-1px)";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!activa) {
-                              e.target.style.borderColor = "var(--input-border)";
-                              e.target.style.transform = "translateY(0)";
-                            }
-                          }}
-                        >
-                          <div style={{ marginBottom: 3, display: "flex", justifyContent: "center" }}>
-                            {op.codigo ? <Bandera codigo={op.codigo} nombre={op.label} size={20} /> : <span style={{ fontSize: 16 }}>🤝</span>}
-                          </div>
-                          {op.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Campos de goles (opcional) */}
-                {prediccionesForm[p.id]?.resultado && (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-                    <div>
-                      <label style={{ color: "var(--texto-sec)", fontSize: 11, fontWeight: 700 }}>Goles {p.local}</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        value={prediccionesForm[p.id]?.gl || ""}
-                        onChange={(e) => setFormPartido(p.id, "gl", e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "8px",
-                          borderRadius: 8,
-                          border: "1px solid var(--input-border)",
-                          background: "var(--input-bg)",
-                          color: "var(--texto)",
-                          fontWeight: 700,
-                          fontSize: 14,
-                          marginTop: 4,
-                          textAlign: "center",
-                        }}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label style={{ color: "var(--texto-sec)", fontSize: 11, fontWeight: 700 }}>Goles {p.visitante}</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="10"
-                        value={prediccionesForm[p.id]?.gv || ""}
-                        onChange={(e) => setFormPartido(p.id, "gv", e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "8px",
-                          borderRadius: 8,
-                          border: "1px solid var(--input-border)",
-                          background: "var(--input-bg)",
-                          color: "var(--texto)",
-                          fontWeight: 700,
-                          fontSize: 14,
-                          marginTop: 4,
-                          textAlign: "center",
-                        }}
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                if (prediccionesForm[p.id]?.resultado) {
-                  confirmarPrediccion(p);
-                } else {
-                  setExpandedPartido(p.id);
-                }
-              }} 
-              disabled={enviando[p.id]}
-              style={{ 
-                width: "100%", 
-                marginTop: 12, 
-                padding: "9px", 
-                background: prediccionesForm[p.id]?.resultado 
-                  ? "linear-gradient(135deg, #16C784, #0fa968)" 
-                  : "linear-gradient(135deg, #FD7751, #e5622a)", 
-                border: "none", 
-                borderRadius: 10, 
-                color: "#fff", 
-                fontWeight: 700, 
-                fontSize: 13, 
-                cursor: enviando[p.id] ? "not-allowed" : "pointer",
-                transition: "all 0.3s",
-                opacity: enviando[p.id] ? 0.7 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!enviando[p.id]) {
-                  e.target.style.transform = "translateY(-2px)";
-                  e.target.style.boxShadow = prediccionesForm[p.id]?.resultado
-                    ? "0 8px 20px rgba(22,199,132,0.3)"
-                    : "0 8px 20px rgba(253,119,81,0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!enviando[p.id]) {
-                  e.target.style.transform = "translateY(0)";
-                  e.target.style.boxShadow = "none";
-                }
-              }}
-            >
-              {enviando[p.id] ? "Guardando..." : prediccionesForm[p.id]?.resultado ? "✅ Guardar prediccion" : "⚽ Hacer prediccion"}
-            </button>
+            <div style={{
+              marginTop: 10, padding: "8px", borderRadius: 10, textAlign: "center",
+              background: "linear-gradient(135deg, #FD7751, #e5622a)",
+              color: "#fff", fontWeight: 700, fontSize: 13,
+            }}>
+              ⚽ Predecir este partido
+            </div>
           </div>
         ))
       )}

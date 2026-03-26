@@ -108,7 +108,7 @@ export default function VistaUsuarios({ usuarios, client }) {
                             <div style={{ color: 'var(--texto)', fontWeight: 600, marginBottom: 3 }}>{t.tipo}</div>
                             <div style={{ color: 'var(--texto-ter)', fontSize: 10 }}>{new Date(t.created_at).toLocaleDateString()}</div>
                           </div>
-                          <div style={{ 
+                          <div style={{
                             color: t.monto > 0 ? C.verde : C.naranja,
                             fontWeight: 700,
                             fontSize: 13,
@@ -154,6 +154,7 @@ export default function VistaUsuarios({ usuarios, client }) {
             <thead>
               <tr style={{ borderBottom: `2px solid ${C.naranja}40` }}>
                 <th style={{ padding: '10px 8px', textAlign: 'left', color: C.naranja, fontWeight: 600 }}>Email</th>
+                <th style={{ padding: '10px 8px', textAlign: 'left', color: C.naranja, fontWeight: 600 }}>Empresa</th>
                 <th style={{ padding: '10px 8px', textAlign: 'center', color: C.naranja, fontWeight: 600 }}>Monedas</th>
                 <th style={{ padding: '10px 8px', textAlign: 'center', color: C.naranja, fontWeight: 600 }}>Predicciones</th>
                 <th style={{ padding: '10px 8px', textAlign: 'center', color: C.naranja, fontWeight: 600 }}>Goles</th>
@@ -165,6 +166,7 @@ export default function VistaUsuarios({ usuarios, client }) {
               {usuarios.map((u, i) => (
                 <tr key={i} style={{ borderBottom: `1px solid rgba(255,255,255,0.05)`, transition: 'background 0.2s' }}>
                   <td style={{ padding: '10px 8px', color: 'var(--texto)' }}>{u.email}</td>
+                  <td style={{ padding: '10px 8px', color: 'var(--texto-sec)', fontSize: 12 }}>{u.empresa?.nombre || '—'}</td>
                   <td style={{ padding: '10px 8px', textAlign: 'center', color: C.dorado, fontWeight: 600 }}>{u.monedas}</td>
                   <td style={{ padding: '10px 8px', textAlign: 'center', color: 'var(--texto-sec)' }}>{u.predicciones_count || 0}</td>
                   <td style={{ padding: '10px 8px', textAlign: 'center', color: C.verde, fontWeight: 600 }}>{u.goles || 0}</td>

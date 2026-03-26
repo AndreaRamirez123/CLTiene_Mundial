@@ -1,8 +1,38 @@
-import { getLogoMarca, getNombreMarca } from "../utils/marca";
+import { getLogoMarca, getNombreMarca, leerConfigMarca } from "../utils/marca";
 
 const C = { naranja: "var(--brand-primary)", morado: "#822BD2", dorado: "var(--brand-accent)" };
 
 export default function Terminos({ onVolver }) {
+  const config = leerConfigMarca();
+  const nombreEmpresa = config?.nombre_app || "CLTiene Mundial";
+  const textoPersonalizado = config?.terminos_condiciones;
+
+  // Si la empresa tiene terminos personalizados, mostrar esos
+  if (textoPersonalizado) {
+    return (
+      <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #0f0a1e 0%, #1a1035 100%)", color: "#fff" }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(15,10,30,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(253,119,81,0.15)", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={onVolver} style={{ background: "rgba(253,119,81,0.1)", border: "1px solid rgba(253,119,81,0.3)", borderRadius: 10, width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", color: C.naranja, fontSize: 18, cursor: "pointer" }}>
+            ←
+          </button>
+          <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 28 }} />
+          <span style={{ fontWeight: 800, fontSize: 15 }}>Terminos y Condiciones</span>
+        </div>
+        <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 60px" }}>
+          <div style={{ background: "linear-gradient(135deg, rgba(253,119,81,0.12), rgba(130,43,210,0.12))", border: "1px solid rgba(253,119,81,0.2)", borderRadius: 16, padding: "24px 20px", marginBottom: 28, textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Terminos y Condiciones</h1>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{nombreEmpresa}</p>
+          </div>
+          <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 14, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
+            {textoPersonalizado}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Terminos por defecto de CLTiene
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #0f0a1e 0%, #1a1035 100%)", color: "#fff" }}>
       {/* Header fijo */}

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -30,7 +34,7 @@ export class AuthService {
     });
   }
 
-  // Config publica de marca por slug (sin auth, para pantalla de login)
+  // Config publica de marca por slug
   async obtenerConfigPublica(slug: string) {
     const empresaId = await this.resolverEmpresa(slug);
     const config = await this.configMarcaRepo.findOne({
@@ -44,7 +48,9 @@ export class AuthService {
     if (!slug || slug === 'default') {
       return this.getEmpresaDefault();
     }
-    const empresa = await this.empresaRepo.findOne({ where: { slug, estado: 'activa' } });
+    const empresa = await this.empresaRepo.findOne({
+      where: { slug, estado: 'activa' },
+    });
     if (!empresa) {
       throw new BadRequestException('Empresa no encontrada o inactiva.');
     }
@@ -52,7 +58,9 @@ export class AuthService {
   }
 
   private async getEmpresaDefault(): Promise<number> {
-    let empresa = await this.empresaRepo.findOne({ where: { slug: 'default' } });
+    let empresa = await this.empresaRepo.findOne({
+      where: { slug: 'default' },
+    });
     if (!empresa) {
       empresa = this.empresaRepo.create({
         nombre: 'CLTiene Mundial',
@@ -74,11 +82,15 @@ export class AuthService {
       where: { email, empresa_id: empresaId },
     });
     if (existe) {
-      throw new BadRequestException('Este correo ya esta registrado en esta empresa.');
+      throw new BadRequestException(
+        'Este correo ya esta registrado en esta empresa.',
+      );
     }
 
     if (password.length < 6) {
-      throw new BadRequestException('La contrasena debe tener al menos 6 caracteres.');
+      throw new BadRequestException(
+        'La contrasena debe tener al menos 6 caracteres.',
+      );
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -113,7 +125,17 @@ export class AuthService {
 
     const jugador = await this.jugadorRepo.findOne({
       where: { email, empresa_id: empresaId },
-      select: ['id', 'uid', 'email', 'password', 'nombre', 'rol', 'monedas', 'telefono', 'empresa_id'],
+      select: [
+        'id',
+        'uid',
+        'email',
+        'password',
+        'nombre',
+        'rol',
+        'monedas',
+        'telefono',
+        'empresa_id',
+      ],
     });
 
     if (!jugador) {
@@ -133,17 +155,20 @@ export class AuthService {
     };
   }
 
-  async completarPerfil(uid: string, datos: {
-    nombre: string;
-    telefono: string;
-    tipojugador: string;
-    relacion_cltiene: string;
-    es_referido: number;
-    nombre_referidor: string;
-    referido_por: string;
-    departamento: string;
-    ciudad: string;
-  }) {
+  async completarPerfil(
+    uid: string,
+    datos: {
+      nombre: string;
+      telefono: string;
+      tipojugador: string;
+      relacion_cltiene: string;
+      es_referido: number;
+      nombre_referidor: string;
+      referido_por: string;
+      departamento: string;
+      ciudad: string;
+    },
+  ) {
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
     if (!jugador) {
       throw new BadRequestException('Usuario no encontrado.');
@@ -151,7 +176,9 @@ export class AuthService {
 
     const telLimpio = datos.telefono.replace(/\D/g, '');
     if (!/^3\d{9}$/.test(telLimpio)) {
-      throw new BadRequestException('El numero de telefono no es valido. Debe ser un celular colombiano de 10 digitos.');
+      throw new BadRequestException(
+        'El numero de telefono no es valido. Debe ser un celular colombiano de 10 digitos.',
+      );
     }
 
     // Verificar telefono unico dentro de la misma empresa
@@ -159,7 +186,9 @@ export class AuthService {
       where: { telefono: telLimpio, empresa_id: jugador.empresa_id },
     });
     if (telExiste && telExiste.id !== jugador.id) {
-      throw new BadRequestException('Este numero de telefono ya esta registrado por otro jugador.');
+      throw new BadRequestException(
+        'Este numero de telefono ya esta registrado por otro jugador.',
+      );
     }
 
     const bonoRegistro = 100;
@@ -190,7 +219,10 @@ export class AuthService {
         descripcion: 'Bono de bienvenida por registro',
       });
 
-      return { mensaje: 'Perfil completado', usuario: this.limpiarUsuario(saved) };
+      return {
+        mensaje: 'Perfil completado',
+        usuario: this.limpiarUsuario(saved),
+      };
     });
   }
 
@@ -260,7 +292,8 @@ export class AuthService {
   }
 
   private generarUid(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let uid = '';
     for (let i = 0; i < 28; i++) {
       uid += chars.charAt(Math.floor(Math.random() * chars.length));
