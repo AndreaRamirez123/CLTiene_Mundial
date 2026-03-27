@@ -157,6 +157,13 @@ export class Jugador {
   @Column({ type: 'tinyint', default: 0 })
   elegible_canje: number;
 
+  // Reset de contraseña
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  reset_token: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  reset_token_expira: Date | null;
+
   // Metadata
   @CreateDateColumn()
   created_at: Date;

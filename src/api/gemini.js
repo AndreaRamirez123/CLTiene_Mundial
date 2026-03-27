@@ -2,7 +2,7 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const WORLD_CUP_START_CACHE_KEY = "world-cup-start-v1";
 const WORLD_CUP_START_CACHE_TTL_MS = 1000 * 60 * 60 * 24;
 
-async function generarContenidoConGemini(prompt) {
+async function generarContenidoConGemini(prompt, conFuentes = false) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
   const res = await fetch(url, {
@@ -22,11 +22,37 @@ async function generarContenidoConGemini(prompt) {
 
   const data = await res.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-  return text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+  const clean = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+
+  if (conFuentes) {
+    // Extraer URLs reales del groundingMetadata
+    const chunks = data.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const urls = chunks
+      .filter(c => c.web?.uri && !c.web.uri.includes("vertexaisearch"))
+      .map(c => ({ uri: c.web.uri, title: c.web.title || "" }));
+    return { text: clean, urls };
+  }
+
+  return clean;
 }
 
-export async function obtenerNoticiasMundial() {
-  const prompt = `Busca en internet las ultimas noticias reales sobre el Mundial de Futbol 2026 (USA, Mexico y Canada). Trae exactamente 5 noticias actuales de fuentes reales como ESPN, FIFA, Marca, AS, BBC, etc.
+const NOTICIAS_CACHE_KEY = "noticias-mundial-v1";
+const NOTICIAS_CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutos
+
+export async function obtenerNoticiasMundial(forzar = false) {
+  // Revisar caché
+  if (!forzar) {
+    try {
+      const cacheCrudo = localStorage.getItem(NOTICIAS_CACHE_KEY);
+      if (cacheCrudo) {
+        const cache = JSON.parse(cacheCrudo);
+        const vigente = cache.savedAt && Date.now() - cache.savedAt < NOTICIAS_CACHE_TTL_MS;
+        if (vigente && cache.data?.length) return cache.data;
+      }
+    } catch {}
+  }
+
+  const prompt = `Busca en internet las ultimas noticias reales sobre el Mundial de Futbol 2026 (USA, Mexico y Canada). Trae exactamente 5 noticias actuales de fuentes reales.
 
 Responde SOLO con un JSON valido (sin markdown, sin backticks, sin texto adicional) con este formato exacto:
 [
@@ -35,15 +61,24 @@ Responde SOLO con un JSON valido (sin markdown, sin backticks, sin texto adicion
     "resumen": "Resumen de 2-3 oraciones con la informacion real",
     "categoria": "Una de: Selecciones | Sedes | Clasificacion | Jugadores | FIFA",
     "fecha": "Fecha de la noticia",
-    "fuente": "Nombre del medio real de donde viene la noticia",
-    "url": "URL directa al articulo original de la noticia"
+    "fuente": "Nombre del medio real de donde viene la noticia"
   }
-]
+]`;
 
-Es MUY importante que la URL sea real y funcional, que apunte al articulo original de la noticia.`;
+  const resultado = await generarContenidoConGemini(prompt, true);
+  const noticias = JSON.parse(resultado.text);
+  const urlsReales = resultado.urls || [];
 
-  const clean = await generarContenidoConGemini(prompt);
-  return JSON.parse(clean);
+  // Asignar URLs reales del grounding a cada noticia
+  const data = noticias.map((noticia, i) => ({
+    ...noticia,
+    url: urlsReales[i]?.uri || `https://www.google.com/search?q=${encodeURIComponent(noticia.titulo + " Mundial 2026")}`,
+  }));
+
+  // Guardar en caché
+  localStorage.setItem(NOTICIAS_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), data }));
+
+  return data;
 }
 
 export async function obtenerInicioMundial() {

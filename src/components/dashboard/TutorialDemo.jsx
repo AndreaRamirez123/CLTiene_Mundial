@@ -201,7 +201,7 @@ export default function TutorialDemo({ onTerminar }) {
                 <rect
                   x={rect.left - pad} y={rect.top - pad}
                   width={rect.width + pad * 2} height={rect.height + pad * 2}
-                  rx={esNavbar ? "0" : "12"} fill="black"
+                  rx={esNavbar ? "14" : "12"} fill="black"
                 />
               )}
             </mask>
@@ -217,10 +217,11 @@ export default function TutorialDemo({ onTerminar }) {
           position: 'fixed', zIndex: 10003, pointerEvents: 'none',
           top: rect.top - pad, left: rect.left - pad,
           width: rect.width + pad * 2, height: rect.height + pad * 2,
-          borderRadius: esNavbar ? 0 : 12,
-          border: esNavbar ? '2px solid rgba(253,119,81,0.95)' : '3px solid #FD7751',
+          borderRadius: esNavbar ? 14 : 12,
+          border: esNavbar ? '3px solid rgba(253,119,81,0.98)' : '3px solid #FD7751',
+          background: esNavbar ? 'rgba(253,119,81,0.12)' : 'transparent',
           boxShadow: esNavbar
-            ? '0 0 14px rgba(253,119,81,0.45), 0 0 28px rgba(253,119,81,0.22)'
+            ? '0 0 18px rgba(253,119,81,0.6), 0 0 36px rgba(253,119,81,0.3)'
             : '0 0 24px rgba(253,119,81,0.5), inset 0 0 12px rgba(253,119,81,0.15)',
           animation: 'pulse 2s infinite',
         }} />

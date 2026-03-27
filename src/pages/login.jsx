@@ -9,12 +9,15 @@ import { ThemeToggle } from "../store/useTheme";
 const GOOGLE_CLIENT_ID = "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
 
 export default function Login({ onLoginExitoso }) {
-    const [modo, setModo] = useState("login");
+    const [modo, setModo] = useState("login"); // "login" | "registro" | "reset-email" | "reset-codigo"
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState("");
+    const [exito, setExito] = useState("");
     const [mostrarPass, setMostrarPass] = useState(false);
+    const [codigoReset, setCodigoReset] = useState("");
+    const [nuevaPassword, setNuevaPassword] = useState("");
     const [verTerminos, setVerTerminos] = useState(false);
     const [verPrivacidad, setVerPrivacidad] = useState(false);
     const [empresas, setEmpresas] = useState([]);
@@ -45,24 +48,24 @@ export default function Login({ onLoginExitoso }) {
             .catch(() => {});
     }, [empresaSlug]);
 
+    const initGoogle = () => {
+        if (window.google?.accounts && googleBtnRef.current) {
+            window.google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: manejarGoogle,
+            });
+            window.google.accounts.id.renderButton(googleBtnRef.current, {
+                theme: "outline",
+                size: "large",
+                width: 396,
+                text: "continue_with",
+                shape: "pill",
+                locale: "es",
+            });
+        }
+    };
+
     useEffect(() => {
-        const initGoogle = () => {
-            if (window.google?.accounts) {
-                window.google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: manejarGoogle,
-                });
-                window.google.accounts.id.renderButton(googleBtnRef.current, {
-                    theme: "outline",
-                    size: "large",
-                    width: 396,
-                    text: "continue_with",
-                    shape: "pill",
-                    locale: "es",
-                });
-            }
-        };
-        // Esperar a que cargue el script de Google
         if (window.google?.accounts) {
             initGoogle();
         } else {
@@ -75,6 +78,13 @@ export default function Login({ onLoginExitoso }) {
             return () => clearInterval(interval);
         }
     }, []);
+
+    // Re-renderizar botón de Google al volver al modo login/registro
+    useEffect(() => {
+        if (modo === "login" || modo === "registro") {
+            setTimeout(() => initGoogle(), 50);
+        }
+    }, [modo]);
 
     const manejarGoogle = async (response) => {
         setCargando(true);
@@ -93,7 +103,7 @@ export default function Login({ onLoginExitoso }) {
         }
     };
 
-    const limpiar = () => setError("");
+    const limpiar = () => { setError(""); setExito(""); };
 
     const manejarEmailPassword = async () => {
         if (!email || !password) { setError("Completa todos los campos"); return; }
@@ -111,6 +121,40 @@ export default function Login({ onLoginExitoso }) {
         } catch (e) {
             const msg = e.response?.data?.message;
             setError(Array.isArray(msg) ? msg[0] : msg || "Ocurrió un error. Intenta de nuevo");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const solicitarCodigo = async () => {
+        if (!email) { setError("Ingresa tu correo electrónico"); return; }
+        setCargando(true); setError(""); setExito("");
+        try {
+            const res = await client.post("/auth/solicitar-reset", { email, empresa_slug: empresaSlug });
+            setExito(res.data.mensaje);
+            setModo("reset-codigo");
+        } catch (e) {
+            const msg = e.response?.data?.message;
+            setError(Array.isArray(msg) ? msg[0] : msg || "Error al enviar el código");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const resetearPassword = async () => {
+        if (!codigoReset || !nuevaPassword) { setError("Completa todos los campos"); return; }
+        if (nuevaPassword.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
+        setCargando(true); setError(""); setExito("");
+        try {
+            const res = await client.post("/auth/reset-password", {
+                email, codigo: codigoReset, nueva_password: nuevaPassword, empresa_slug: empresaSlug,
+            });
+            setExito(res.data.mensaje);
+            setCodigoReset(""); setNuevaPassword("");
+            setTimeout(() => { setModo("login"); setExito(""); }, 2000);
+        } catch (e) {
+            const msg = e.response?.data?.message;
+            setError(Array.isArray(msg) ? msg[0] : msg || "Error al cambiar la contraseña");
         } finally {
             setCargando(false);
         }
@@ -139,9 +183,10 @@ export default function Login({ onLoginExitoso }) {
                 </div>
 
                 <p style={s.desc}>
-                    {modo === "login"
-                        ? "Ingresa para gestionar tus apuestas y premios"
-                        : "Regístrate y obtén un bono de bienvenida"}
+                    {modo === "login" && "Ingresa para gestionar tus apuestas y premios"}
+                    {modo === "registro" && "Regístrate y obtén un bono de bienvenida"}
+                    {modo === "reset-email" && "Ingresa tu correo para recuperar tu contraseña"}
+                    {modo === "reset-codigo" && "Ingresa el código que recibiste en tu correo"}
                 </p>
 
                 {/* Selector de empresa */}
@@ -173,74 +218,186 @@ export default function Login({ onLoginExitoso }) {
                     </div>
                 )}
 
-                {/* Email */}
-                <div style={s.inputWrap}>
-                    <span style={s.inputIcono}>✉️</span>
-                    <input
-                        type="email"
-                        placeholder="Correo electrónico"
-                        value={email}
-                        onChange={(e) => { setEmail(e.target.value); limpiar(); }}
-                        style={s.input}
-                        autoFocus
-                    />
-                </div>
+                {exito && (
+                    <div style={s.exitoBox}>
+                        <span style={{ marginRight: "6px" }}>✅</span>{exito}
+                    </div>
+                )}
 
-                {/* Password */}
-                <div style={s.inputWrap}>
-                    <span style={s.inputIcono}>🔒</span>
-                    <input
-                        type={mostrarPass ? "text" : "password"}
-                        placeholder={modo === "registro" ? "Contraseña (mínimo 6 caracteres)" : "Contraseña"}
-                        value={password}
-                        onChange={(e) => { setPassword(e.target.value); limpiar(); }}
-                        style={{ ...s.input, paddingRight: "44px" }}
-                        onKeyDown={(e) => e.key === "Enter" && manejarEmailPassword()}
-                    />
-                    <button onClick={() => setMostrarPass(!mostrarPass)} style={s.ojito}>
-                        {mostrarPass ? "🙈" : "👁️"}
-                    </button>
-                </div>
+                {/* === VISTA: Login / Registro === */}
+                {(modo === "login" || modo === "registro") && (
+                    <>
+                        {/* Email */}
+                        <div style={s.inputWrap}>
+                            <span style={s.inputIcono}>✉️</span>
+                            <input
+                                type="email"
+                                placeholder="Correo electrónico"
+                                value={email}
+                                onChange={(e) => { setEmail(e.target.value); limpiar(); }}
+                                style={s.input}
+                                autoFocus
+                            />
+                        </div>
 
-                {/* Botón principal */}
-                <button
-                    onClick={manejarEmailPassword}
-                    disabled={cargando}
-                    style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
-                >
-                    {cargando ? "Cargando..." : modo === "login" ? "✓ Ingresar" : "✓ Crear cuenta"}
-                </button>
-
-                {/* Divisor */}
-                <div style={s.divisor}>
-                    <div style={s.linea} />
-                    <span style={s.oText}>o</span>
-                    <div style={s.linea} />
-                </div>
-
-                {/* Google */}
-                <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }} />
-
-                {/* Switch login/registro */}
-                <div style={s.switchWrap}>
-                    {modo === "login" ? (
-                        <>
-                            <span style={s.switchText}>¿Aún no tienes cuenta?</span>
-                            <p style={s.switchSub}>Regístrate ahora y obtén un bono de bienvenida</p>
-                            <button onClick={() => { setModo("registro"); limpiar(); }} style={s.btnRegistro}>
-                                Crear Cuenta y Ganar 100 Monedas 🎁
+                        {/* Password */}
+                        <div style={s.inputWrap}>
+                            <span style={s.inputIcono}>🔒</span>
+                            <input
+                                type={mostrarPass ? "text" : "password"}
+                                placeholder={modo === "registro" ? "Contraseña (mínimo 6 caracteres)" : "Contraseña"}
+                                value={password}
+                                onChange={(e) => { setPassword(e.target.value); limpiar(); }}
+                                style={{ ...s.input, paddingRight: "44px" }}
+                                onKeyDown={(e) => e.key === "Enter" && manejarEmailPassword()}
+                            />
+                            <button onClick={() => setMostrarPass(!mostrarPass)} style={s.ojito}>
+                                {mostrarPass ? "🙈" : "👁️"}
                             </button>
-                        </>
-                    ) : (
-                        <>
-                            <span style={s.switchText}>¿Ya tienes cuenta?</span>
-                            <br />
-                            <button onClick={() => { setModo("login"); limpiar(); }} style={{ ...s.btnRegistro, marginTop: "12px" }}>
-                                Iniciar sesión
+                        </div>
+
+                        {/* Olvidaste tu contraseña */}
+                        {modo === "login" && (
+                            <div style={{ textAlign: "right", marginBottom: "12px", marginTop: "-4px" }}>
+                                <button
+                                    onClick={() => { setModo("reset-email"); limpiar(); }}
+                                    style={s.linkBtn}
+                                >
+                                    ¿Olvidaste tu contraseña?
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Botón principal */}
+                        <button
+                            onClick={manejarEmailPassword}
+                            disabled={cargando}
+                            style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
+                        >
+                            {cargando ? "Cargando..." : modo === "login" ? "✓ Ingresar" : "✓ Crear cuenta"}
+                        </button>
+
+                        {/* Divisor */}
+                        <div style={s.divisor}>
+                            <div style={s.linea} />
+                            <span style={s.oText}>o</span>
+                            <div style={s.linea} />
+                        </div>
+
+                        {/* Google */}
+                        <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }} />
+
+                        {/* Switch login/registro */}
+                        <div style={s.switchWrap}>
+                            {modo === "login" ? (
+                                <>
+                                    <span style={s.switchText}>¿Aún no tienes cuenta?</span>
+                                    <p style={s.switchSub}>Regístrate ahora y obtén un bono de bienvenida</p>
+                                    <button onClick={() => { setModo("registro"); limpiar(); }} style={s.btnRegistro}>
+                                        Crear Cuenta y Ganar 100 Monedas 🎁
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <span style={s.switchText}>¿Ya tienes cuenta?</span>
+                                    <br />
+                                    <button onClick={() => { setModo("login"); limpiar(); }} style={{ ...s.btnRegistro, marginTop: "12px" }}>
+                                        Iniciar sesión
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {/* === VISTA: Reset - Ingresar email === */}
+                {modo === "reset-email" && (
+                    <>
+                        <div style={s.inputWrap}>
+                            <span style={s.inputIcono}>✉️</span>
+                            <input
+                                type="email"
+                                placeholder="Correo electrónico"
+                                value={email}
+                                onChange={(e) => { setEmail(e.target.value); limpiar(); }}
+                                style={s.input}
+                                autoFocus
+                                onKeyDown={(e) => e.key === "Enter" && solicitarCodigo()}
+                            />
+                        </div>
+
+                        <button
+                            onClick={solicitarCodigo}
+                            disabled={cargando}
+                            style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
+                        >
+                            {cargando ? "Enviando..." : "Enviar código de recuperación"}
+                        </button>
+
+                        <div style={{ textAlign: "center", marginTop: "12px" }}>
+                            <button onClick={() => { setModo("login"); limpiar(); }} style={s.linkBtn}>
+                                Volver al inicio de sesión
                             </button>
-                        </>
-                    )}
-                </div>
+                        </div>
+                    </>
+                )}
+
+                {/* === VISTA: Reset - Ingresar código y nueva contraseña === */}
+                {modo === "reset-codigo" && (
+                    <>
+                        <div style={s.inputWrap}>
+                            <span style={s.inputIcono}>🔑</span>
+                            <input
+                                type="text"
+                                placeholder="Ingresa el código"
+                                value={codigoReset}
+                                onChange={(e) => { setCodigoReset(e.target.value.replace(/\D/g, "").slice(0, 6)); limpiar(); }}
+                                style={{
+                                    ...s.input,
+                                    textAlign: "center",
+                                    ...(codigoReset ? { letterSpacing: "10px", fontSize: "24px", fontWeight: 700 } : {}),
+                                }}
+                                maxLength={6}
+                                autoFocus
+                            />
+                        </div>
+
+                        <div style={s.inputWrap}>
+                            <span style={s.inputIcono}>🔒</span>
+                            <input
+                                type={mostrarPass ? "text" : "password"}
+                                placeholder="Nueva contraseña (mínimo 6 caracteres)"
+                                value={nuevaPassword}
+                                onChange={(e) => { setNuevaPassword(e.target.value); limpiar(); }}
+                                style={{ ...s.input, paddingRight: "44px" }}
+                                onKeyDown={(e) => e.key === "Enter" && resetearPassword()}
+                            />
+                            <button onClick={() => setMostrarPass(!mostrarPass)} style={s.ojito}>
+                                {mostrarPass ? "🙈" : "👁️"}
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={resetearPassword}
+                            disabled={cargando}
+                            style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
+                        >
+                            {cargando ? "Cambiando..." : "Cambiar contraseña"}
+                        </button>
+
+                        <div style={{ textAlign: "center", marginTop: "8px" }}>
+                            <button onClick={solicitarCodigo} disabled={cargando} style={s.linkBtn}>
+                                Reenviar código
+                            </button>
+                        </div>
+
+                        <div style={{ textAlign: "center", marginTop: "8px" }}>
+                            <button onClick={() => { setModo("login"); limpiar(); setCodigoReset(""); setNuevaPassword(""); }} style={s.linkBtn}>
+                                Volver al inicio de sesión
+                            </button>
+                        </div>
+                    </>
+                )}
 
                 <p style={s.legal}>
                     Al ingresar aceptas los{" "}
@@ -316,6 +473,17 @@ const s = {
         width: "100%", padding: "13px", background: "transparent",
         border: "2px solid #408DFF", borderRadius: "12px",
         color: "#408DFF", fontSize: "14px", fontWeight: 700, cursor: "pointer",
+    },
+    exitoBox: {
+        background: "#EAFFF3", border: "1px solid #34D39950",
+        borderRadius: "10px", padding: "10px 14px",
+        color: "#059669", fontSize: "14px", marginBottom: "16px",
+        display: "flex", alignItems: "center",
+    },
+    linkBtn: {
+        background: "none", border: "none", color: "#822BD2",
+        fontSize: "13px", cursor: "pointer", padding: 0,
+        textDecoration: "underline",
     },
     legal: { color: "#999999", fontSize: "12px", textAlign: "center", marginTop: "16px", lineHeight: 1.5 },
 };

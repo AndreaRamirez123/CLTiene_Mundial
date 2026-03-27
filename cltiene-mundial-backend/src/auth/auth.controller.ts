@@ -31,6 +31,18 @@ export class AuthController {
     return this.authService.loginConGoogle(body.credential, body.empresa_slug);
   }
 
+  @Post('solicitar-reset')
+  solicitarReset(@Body() body: { email: string; empresa_slug?: string }) {
+    return this.authService.solicitarResetPassword(body.email, body.empresa_slug);
+  }
+
+  @Post('reset-password')
+  resetPassword(
+    @Body() body: { email: string; codigo: string; nueva_password: string; empresa_slug?: string },
+  ) {
+    return this.authService.resetPassword(body.email, body.codigo, body.nueva_password, body.empresa_slug);
+  }
+
   @Post('completar-perfil')
   completarPerfil(
     @Body()

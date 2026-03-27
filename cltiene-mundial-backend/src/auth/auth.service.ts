@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import * as nodemailer from 'nodemailer';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { Empresa } from '../entities/empresa.entity';
@@ -143,8 +144,15 @@ export class AuthService {
       const superadminEnOtra = await this.jugadorRepo.findOne({
         where: { email, rol: 'superadmin' },
         select: [
-          'id', 'email', 'password', 'nombre', 'telefono',
-          'correo', 'departamento', 'ciudad', 'tipojugador',
+          'id',
+          'email',
+          'password',
+          'nombre',
+          'telefono',
+          'correo',
+          'departamento',
+          'ciudad',
+          'tipojugador',
           'relacion_cltiene',
         ],
       });
@@ -333,6 +341,121 @@ export class AuthService {
       usuario: this.limpiarUsuario(jugador),
       googleNombre: nombre,
     };
+  }
+
+  // === RESET DE CONTRASEÑA ===
+
+  private async enviarEmail(to: string, subject: string, html: string) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || '',
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      html,
+    });
+  }
+
+  private generarCodigo6Digitos(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  async solicitarResetPassword(email: string, empresaSlug?: string) {
+    const empresaId = await this.resolverEmpresa(empresaSlug);
+
+    const jugador = await this.jugadorRepo.findOne({
+      where: { email, empresa_id: empresaId },
+    });
+
+    if (!jugador) {
+      return {
+        mensaje:
+          'Si el correo está registrado, recibirás un código de recuperación.',
+      };
+    }
+
+    const codigo = this.generarCodigo6Digitos();
+    jugador.reset_token = codigo;
+    jugador.reset_token_expira = new Date(Date.now() + 15 * 60 * 1000);
+    await this.jugadorRepo.save(jugador);
+
+    try {
+      await this.enviarEmail(
+        email,
+        'Recupera tu contraseña - CLTiene Mundial',
+        `
+          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: #231F20;">Recupera tu contraseña</h2>
+            <p>Tu código de verificación es:</p>
+            <div style="background: #F8F7F5; border-radius: 12px; padding: 20px; text-align: center; margin: 16px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #636161;">${codigo}</span>
+            </div>
+            <p style="color: #080808; font-size: 14px;">Este código expira en 15 minutos. Si no solicitaste este cambio, ignora este correo.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #999; font-size: 14px; text-align: center;">Este es un correo automático, por favor no respondas a este mensaje.</p>
+          </div>
+        `,
+      );
+    } catch (err: unknown) {
+      console.error('Error enviando email de reset:', err);
+      throw new BadRequestException(
+        'No se pudo enviar el correo. Intenta de nuevo más tarde.',
+      );
+    }
+
+    return {
+      mensaje:
+        'Si el correo está registrado, recibirás un código de recuperación.',
+    };
+  }
+
+  async resetPassword(
+    email: string,
+    codigo: string,
+    nuevaPassword: string,
+    empresaSlug?: string,
+  ) {
+    const empresaId = await this.resolverEmpresa(empresaSlug);
+
+    if (nuevaPassword.length < 6) {
+      throw new BadRequestException(
+        'La contraseña debe tener al menos 6 caracteres.',
+      );
+    }
+
+    const jugador = await this.jugadorRepo.findOne({
+      where: { email, empresa_id: empresaId },
+      select: ['id', 'reset_token', 'reset_token_expira'],
+    });
+
+    if (!jugador || !jugador.reset_token) {
+      throw new BadRequestException('Código inválido o expirado.');
+    }
+
+    if (jugador.reset_token !== codigo) {
+      throw new BadRequestException('Código inválido o expirado.');
+    }
+
+    if (
+      !jugador.reset_token_expira ||
+      new Date() > jugador.reset_token_expira
+    ) {
+      throw new BadRequestException('Código inválido o expirado.');
+    }
+
+    const hash = await bcrypt.hash(nuevaPassword, 10);
+    jugador.password = hash;
+    jugador.reset_token = null;
+    jugador.reset_token_expira = null;
+    await this.jugadorRepo.save(jugador);
+
+    return { mensaje: 'Contraseña actualizada correctamente.' };
   }
 
   private generarToken(jugador: Jugador) {

@@ -7,11 +7,11 @@ export default function Noticias() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
-  const cargarNoticias = async () => {
+  const cargarNoticias = async (forzar = false) => {
     setCargando(true);
     setError(null);
     try {
-      const data = await obtenerNoticiasMundial();
+      const data = await obtenerNoticiasMundial(forzar);
       setNoticias(data);
     } catch {
       setError("No se pudieron cargar las noticias");
@@ -26,7 +26,7 @@ export default function Noticias() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>📰 Noticias del Mundial</span>
-        <button onClick={cargarNoticias} disabled={cargando} style={{ background: "none", border: "none", color: C.naranja, fontSize: 13, cursor: "pointer", fontWeight: 700 }}>
+        <button onClick={() => cargarNoticias(true)} disabled={cargando} style={{ background: "none", border: "none", color: C.naranja, fontSize: 13, cursor: "pointer", fontWeight: 700 }}>
           {cargando ? "Cargando..." : "Actualizar ↻"}
         </button>
       </div>
