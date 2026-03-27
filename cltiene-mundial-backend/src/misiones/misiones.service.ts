@@ -448,11 +448,13 @@ export class MisionesService {
       }));
       const totalCompletadas = lista.filter((m) => m.ok).length;
 
+      const hoyStr1 = new Date().toISOString().split('T')[0];
       return {
         misiones: lista,
         completadas: totalCompletadas,
         total: lista.length,
         goles_otorgados: golesGanados,
+        trivia_disponible: jugador.ultimo_trivia !== hoyStr1,
       };
     }
 
@@ -465,11 +467,13 @@ export class MisionesService {
     }));
 
     const totalCompletadas = lista.filter((m) => m.ok).length;
+    const hoyStr2 = new Date().toISOString().split('T')[0];
 
     return {
       misiones: lista,
       completadas: totalCompletadas,
       total: lista.length,
+      trivia_disponible: jugador.ultimo_trivia !== hoyStr2,
     };
   }
 

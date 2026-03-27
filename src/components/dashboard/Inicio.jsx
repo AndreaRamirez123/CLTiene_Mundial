@@ -4,8 +4,10 @@ import { useCountdown } from "../../hooks/useCountdown";
 import client from "../../api/client";
 import { getLogoMarca, getNombreMarca } from "../../utils/marca";
 import { formatearFecha, Bandera } from "./constants";
+import { useTheme } from "../../store/useTheme";
 
 export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
+  const { tema } = useTheme();
   const [inicioMundial, setInicioMundial] = useState({
     targetDate: "2026-06-11T00:00:00-05:00",
     titulo: "USA - Mexico - Canada 2026",
@@ -87,7 +89,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
   const promoActual = promosClTiene[promoIndex];
   const proximos = partidos.filter((p) => p.estado === "pendiente").slice(0, 3);
   const tiempo = useCountdown(inicioMundial.targetDate);
-  const esTemaClaro = document.body.classList.contains("tema-claro");
+  const esTemaClaro = tema === "claro";
 
   // Cargar predicciones del usuario
   const cargarMisPredicciones = async () => {

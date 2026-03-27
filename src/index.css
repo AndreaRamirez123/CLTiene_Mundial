@@ -187,6 +187,16 @@ html, body, #root {
 .nav-desktop { display: flex !important; }
 .nav-mobile { display: none !important; }
 
+/* Hitbox para tutorial de navegación */
+.tutorial-navbar-hitbox {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50px;
+  pointer-events: none;
+}
+
 /* Móvil (< 768px): hamburguesa visible, barra completa oculta */
 @media (max-width: 768px) {
   .nav-desktop { display: none !important; }

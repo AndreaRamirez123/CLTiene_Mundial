@@ -47,8 +47,10 @@ export function ThemeProvider({ children }) {
     localStorage.setItem("cltiene_tema", tema);
     if (tema === "claro") {
       document.documentElement.classList.add("tema-claro");
+      document.body.classList.add("tema-claro");
     } else {
       document.documentElement.classList.remove("tema-claro");
+      document.body.classList.remove("tema-claro");
     }
   }, [tema]);
 

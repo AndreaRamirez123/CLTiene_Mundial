@@ -104,7 +104,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
             <span className="anim-goal-flash" style={{ fontSize: 16 }}>⚽</span>
             <span className="anim-count" style={{ color: C.verde, fontWeight: 900, fontSize: 16 }}>{perfil?.goles || 0}</span>
           </div>
-          <ThemeToggle />
+          <div id="tutorial-tema" style={{ display: "flex", alignItems: "center" }}>
+            <ThemeToggle />
+          </div>
           <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 13 }}>Salir</button>
         </div>
       </div>
@@ -159,6 +161,18 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         )}
       </div>
 
+      {/* Footer */}
+      <footer style={{
+        maxWidth: 600, margin: "0 auto", padding: "24px 14px 100px",
+        textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <p style={{ color: "var(--texto-ter)", fontSize: 11 }}>
+          Powered by <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>Divergency</span>
+        </p>
+        <p style={{ color: "var(--texto-ter)", fontSize: 10, marginTop: 4, opacity: 0.6 }}>
+          {new Date().getFullYear()} Todos los derechos reservados.
+        </p>
+      </footer>
 
       {toast && (
         <div className={`anim-slide-up ${toast.tipo === "exito" ? "anim-success-ring" : "anim-shake"}`} style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 300, background: toast.tipo === "exito" ? "linear-gradient(135deg, #16C784, #0fa968)" : "linear-gradient(135deg, #ED1E28, #c0392b)", borderRadius: 14, padding: "14px 24px", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", maxWidth: "90%" }}>
@@ -166,6 +180,9 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>{toast.mensaje}</span>
         </div>
       )}
+
+      {/* Hitbox tutorial para la barra inferior */}
+      <div id="tutorial-navbar-hitbox" className="tutorial-navbar-hitbox" aria-hidden="true" />
 
       {/* Barra inferior DESKTOP: todos los tabs (oculta en móvil) */}
       <div id="tutorial-navbar" className="nav-desktop" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
@@ -189,7 +206,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       </div>
 
       {/* Barra inferior MÓVIL: 4 tabs + hamburguesa (oculta en desktop) */}
-      <div className="nav-mobile" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "none", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
+      <div id="tutorial-navbar-mobile" className="nav-mobile" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "none", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
         {[
           { id: "inicio", i: "🏠", l: "Inicio" },
           { id: "polla", i: "⚽", l: "Polla" },

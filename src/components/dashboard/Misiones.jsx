@@ -16,6 +16,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const [misiones, setMisiones] = useState([]);
   const [completadas, setCompletadas] = useState(0);
   const [total, setTotal] = useState(0);
+  const [triviaDisponible, setTriviaDisponible] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [reclamando, setReclamando] = useState(null);
   const [mostrarCompartir, setMostrarCompartir] = useState(false);
@@ -50,9 +51,18 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const cargarMisiones = async (uid) => {
     try {
       const res = await client.get(`/misiones/${uid}`);
-      setMisiones(res.data.misiones);
+      // Override trivia: si es diaria y esta disponible hoy, marcar como pendiente
+      const disponible = res.data.trivia_disponible ?? false;
+      const misionesAjustadas = res.data.misiones.map((m) => {
+        if (m.id === "trivia_mundial" && disponible && m.ok) {
+          return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
+        }
+        return m;
+      });
+      setMisiones(misionesAjustadas);
       setCompletadas(res.data.completadas);
       setTotal(res.data.total);
+      setTriviaDisponible(res.data.trivia_disponible ?? false);
       if (res.data.goles_otorgados > 0) {
         await cargarPerfil();
       }

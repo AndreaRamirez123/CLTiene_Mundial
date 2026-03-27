@@ -123,7 +123,7 @@ export class AuthService {
   async login(email: string, password: string, empresaSlug?: string) {
     const empresaId = await this.resolverEmpresa(empresaSlug);
 
-    const jugador = await this.jugadorRepo.findOne({
+    let jugador = await this.jugadorRepo.findOne({
       where: { email, empresa_id: empresaId },
       select: [
         'id',
@@ -138,7 +138,54 @@ export class AuthService {
       ],
     });
 
+    // Si no existe en esta empresa, verificar si es superadmin en otra
     if (!jugador) {
+      const superadminEnOtra = await this.jugadorRepo.findOne({
+        where: { email, rol: 'superadmin' },
+        select: [
+          'id', 'email', 'password', 'nombre', 'telefono',
+          'correo', 'departamento', 'ciudad', 'tipojugador',
+          'relacion_cltiene',
+        ],
+      });
+
+      if (superadminEnOtra) {
+        const passValida = await bcrypt.compare(
+          password,
+          superadminEnOtra.password,
+        );
+        if (!passValida) {
+          throw new UnauthorizedException('Correo o contrasena incorrectos.');
+        }
+
+        // Auto-crear cuenta superadmin completa en esta empresa
+        const uid = this.generarUid();
+        jugador = this.jugadorRepo.create({
+          uid,
+          email,
+          password: superadminEnOtra.password,
+          correo: superadminEnOtra.correo || email,
+          nombre: superadminEnOtra.nombre || '',
+          telefono: superadminEnOtra.telefono || '',
+          departamento: superadminEnOtra.departamento || '',
+          ciudad: superadminEnOtra.ciudad || '',
+          tipojugador: superadminEnOtra.tipojugador || null,
+          relacion_cltiene: superadminEnOtra.relacion_cltiene || null,
+          monedas: 100,
+          monedas_totales_ganadas: 100,
+          codigo_referido: uid.substring(0, 8).toUpperCase(),
+          nivel: 'activo',
+          dias_consecutivos: 1,
+          ultimo_acceso: new Date(),
+          rol: 'superadmin',
+          empresa_id: empresaId,
+        });
+        jugador = await this.jugadorRepo.save(jugador);
+
+        const token = this.generarToken(jugador);
+        return { token, usuario: this.limpiarUsuario(jugador) };
+      }
+
       throw new UnauthorizedException('Correo o contrasena incorrectos.');
     }
 
@@ -246,22 +293,34 @@ export class AuthService {
     });
 
     if (!jugador) {
+      // Verificar si es superadmin en otra empresa
+      const superadminEnOtra = await this.jugadorRepo.findOne({
+        where: { email, rol: 'superadmin' },
+      });
+
       const uid = this.generarUid();
       const randomPass = await bcrypt.hash(this.generarUid(), 10);
+      const esSuperadmin = !!superadminEnOtra;
 
       jugador = this.jugadorRepo.create({
         uid,
         email,
         password: randomPass,
-        correo: email,
-        nombre: '',
-        telefono: '',
-        monedas: 0,
-        monedas_totales_ganadas: 0,
+        correo: superadminEnOtra?.correo || email,
+        nombre: superadminEnOtra?.nombre || '',
+        telefono: superadminEnOtra?.telefono || '',
+        departamento: superadminEnOtra?.departamento || '',
+        ciudad: superadminEnOtra?.ciudad || '',
+        tipojugador: superadminEnOtra?.tipojugador || null,
+        relacion_cltiene: superadminEnOtra?.relacion_cltiene || null,
+        monedas: esSuperadmin ? 100 : 0,
+        monedas_totales_ganadas: esSuperadmin ? 100 : 0,
         codigo_referido: uid.substring(0, 8).toUpperCase(),
-        nivel: 'inactivo',
-        dias_consecutivos: 0,
+        nivel: esSuperadmin ? 'activo' : 'inactivo',
+        dias_consecutivos: esSuperadmin ? 1 : 0,
+        ultimo_acceso: esSuperadmin ? new Date() : null,
         empresa_id: empresaId,
+        rol: esSuperadmin ? 'superadmin' : 'jugador',
       });
 
       jugador = await this.jugadorRepo.save(jugador);

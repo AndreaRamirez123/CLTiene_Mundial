@@ -219,14 +219,18 @@ export class AdminService implements OnModuleInit {
       total: totalJugadores,
     };
 
-    // Jugadores por rol
-    const porRol = await this.jugadorRepo
+    // Jugadores por rol (admin no ve superadmins, superadmin ve todo)
+    const qbRol = this.jugadorRepo
       .createQueryBuilder('j')
       .select('j.rol', 'rol')
-      .addSelect('COUNT(*)', 'cantidad')
-      .where(empresaId ? 'j.empresa_id = :empresaId' : '1=1', { empresaId })
-      .groupBy('j.rol')
-      .getRawMany();
+      .addSelect('COUNT(*)', 'cantidad');
+    if (empresaId) {
+      qbRol
+        .where('j.empresa_id = :empresaId', { empresaId })
+        .andWhere("j.rol != 'superadmin'");
+    }
+    qbRol.groupBy('j.rol');
+    const porRol = await qbRol.getRawMany();
 
     return {
       total_jugadores: totalJugadores,
