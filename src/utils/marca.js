@@ -75,3 +75,14 @@ export const getSubtituloMarca = () => {
   const config = leerConfigMarca();
   return config?.subtitulo || "Mundial 2026";
 };
+
+export const getPublicidadMarca = () => {
+  const config = leerConfigMarca();
+  if (!config?.publicidad_json) return [];
+  try {
+    const parsed = JSON.parse(config.publicidad_json);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};

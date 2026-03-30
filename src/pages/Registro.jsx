@@ -257,7 +257,7 @@ function PantallaBienvenida({ aceptado, setAceptado, setVerTerminos }) {
         <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "52px", marginBottom: "12px" }}>⚽</div>
             <h1 style={{ color: C.grisOsc, fontSize: "21px", fontWeight: 800, marginBottom: "10px", lineHeight: 1.2 }}>
-                ¡Bienvenido a la Polla CLTiene!
+                ¡Bienvenido a Predicciones CLTiene!
             </h1>
             <p style={{ color: C.grisOsc, fontSize: "14px", marginBottom: "20px", lineHeight: 1.6 }}>
                 Predice los partidos del <strong style={{ color: C.naranja }}>Mundial 2026</strong>,
@@ -500,7 +500,7 @@ function PantallaFinal({ nombre }) {
                         style={{ ...s.btnPrimario, width: "100%", marginLeft: 0 }}
                         onClick={() => window.location.href = "/dashboard"}
                     >
-                        Ir a la Polla ⚽
+                        Ir a Predicciones ⚽
                     </button>
                 </div>
             </div>

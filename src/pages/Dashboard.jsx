@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getLogoMarca, getNombreMarca } from "../utils/marca";
 import client from "../api/client";
-import { useNotificaciones } from "../hooks/useNotificaciones";
+//import { useNotificaciones } from "../hooks/useNotificaciones";
 import { C } from "../components/dashboard/constants";
 import Inicio from "../components/dashboard/Inicio";
 import Polla from "../components/dashboard/Polla";
@@ -35,7 +35,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
     setTimeout(() => setToast(null), 3000);
   };
 
-  useNotificaciones({ uid: usuario?.uid, client });
+  //useNotificaciones({ uid: usuario?.uid, client });
 
   const cargarPerfil = () =>
     client.get(`/jugadores/${usuario.uid}`).then((r) => setPerfil(r.data)).catch(() => { });
@@ -188,7 +188,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       <div id="tutorial-navbar" className="nav-desktop" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "flex", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
         {[
           { id: "inicio", i: "🏠", l: "Inicio" },
-          { id: "polla", i: "⚽", l: "Polla" },
+          { id: "polla", i: "⚽", l: "Predicciones" },
           { id: "ranking", i: "🏆", l: "Ranking" },
           { id: "misiones", i: "🎯", l: "Misiones" },
           { id: "beneficios", i: "🎁", l: "Beneficios" },
@@ -209,7 +209,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       <div id="tutorial-navbar-mobile" className="nav-mobile" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--navbar)", borderTop: "1px solid var(--nav-border)", display: "none", padding: "6px 0", zIndex: 100, transition: "background 0.3s ease" }}>
         {[
           { id: "inicio", i: "🏠", l: "Inicio" },
-          { id: "polla", i: "⚽", l: "Polla" },
+          { id: "polla", i: "⚽", l: "Predicciones" },
           { id: "ranking", i: "🏆", l: "Ranking" },
           { id: "misiones", i: "🎯", l: "Misiones" },
         ].map((t) => (

@@ -3,6 +3,7 @@ import axios from 'axios'
 const client = axios.create({
   baseURL: 'http://localhost:3000',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 })
 
 // Interceptor: agregar token JWT a cada request

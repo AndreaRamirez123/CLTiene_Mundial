@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { obtenerInicioMundial } from "../../api/gemini";
 import { useCountdown } from "../../hooks/useCountdown";
-import client from "../../api/client";
-import { getLogoMarca, getNombreMarca } from "../../utils/marca";
-import { formatearFecha, Bandera } from "./constants";
+import { getLogoMarca, getNombreMarca, getPublicidadMarca } from "../../utils/marca";
+import { Bandera, C } from "./constants";
 import { useTheme } from "../../store/useTheme";
 
 export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
@@ -13,7 +12,6 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
     titulo: "USA - Mexico - Canada 2026",
   });
   const [promoIndex, setPromoIndex] = useState(0);
-  const [misPredicciones, setMisPredicciones] = useState([]);
 
   const promosClTiene = [
     {
@@ -86,20 +84,85 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
     },
   ];
 
-  const promoActual = promosClTiene[promoIndex];
-  const proximos = partidos.filter((p) => p.estado === "pendiente").slice(0, 3);
+  const promosMarca = getPublicidadMarca();
+  const promosFinal = promosMarca.length
+    ? promosMarca
+    : (usuario?.empresa_id === 1 ? promosClTiene : []);
+  const promoActual = promosFinal[promoIndex % Math.max(promosFinal.length, 1)];
+  const grupos = useMemo(() => {
+    const mapa = new Map();
+    (partidos || []).forEach((p) => {
+      if (!p?.grupo) return;
+      const grupoKey = String(p.grupo).toUpperCase();
+      if (!mapa.has(grupoKey)) mapa.set(grupoKey, new Map());
+      const equipos = mapa.get(grupoKey);
+      const agregarEquipo = (nombre, bandera) => {
+        if (!nombre) return;
+        if (!equipos.has(nombre)) {
+          equipos.set(nombre, {
+            nombre,
+            bandera,
+            pj: 0,
+            g: 0,
+            e: 0,
+            p: 0,
+            gf: 0,
+            gc: 0,
+            dg: 0,
+            pts: 0,
+          });
+        }
+      };
+      agregarEquipo(p.local, p.bandera_l);
+      agregarEquipo(p.visitante, p.bandera_v);
+
+      const tieneMarcador =
+        typeof p.goles_local === "number" && typeof p.goles_visitante === "number";
+      if (tieneMarcador) {
+        const localEq = equipos.get(p.local);
+        const visEq = equipos.get(p.visitante);
+        if (localEq && visEq) {
+          localEq.pj += 1;
+          visEq.pj += 1;
+          localEq.gf += p.goles_local;
+          localEq.gc += p.goles_visitante;
+          visEq.gf += p.goles_visitante;
+          visEq.gc += p.goles_local;
+
+          if (p.goles_local > p.goles_visitante) {
+            localEq.g += 1;
+            visEq.p += 1;
+            localEq.pts += 3;
+          } else if (p.goles_local < p.goles_visitante) {
+            visEq.g += 1;
+            localEq.p += 1;
+            visEq.pts += 3;
+          } else {
+            localEq.e += 1;
+            visEq.e += 1;
+            localEq.pts += 1;
+            visEq.pts += 1;
+          }
+        }
+      }
+    });
+
+    return Array.from(mapa.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([grupo, equipos]) => ({
+        grupo,
+        equipos: Array.from(equipos.values())
+          .map((eq) => ({ ...eq, dg: eq.gf - eq.gc }))
+          .sort((a, b) => {
+            if (b.pts !== a.pts) return b.pts - a.pts;
+            if (b.dg !== a.dg) return b.dg - a.dg;
+            if (b.gf !== a.gf) return b.gf - a.gf;
+            return a.nombre.localeCompare(b.nombre);
+          }),
+      }));
+  }, [partidos]);
   const tiempo = useCountdown(inicioMundial.targetDate);
   const esTemaClaro = tema === "claro";
-
-  // Cargar predicciones del usuario
-  const cargarMisPredicciones = async () => {
-    try {
-      if (usuario?.uid) {
-        const res = await client.get(`/predicciones/${usuario.uid}`);
-        setMisPredicciones(res.data.slice(0, 3)); 
-      }
-    } catch {}
-  };
 
   useEffect(() => {
     let activo = true;
@@ -110,22 +173,19 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
       })
       .catch(() => {});
 
-    if (usuario?.uid) {
-      cargarMisPredicciones();
-    }
-
     return () => {
       activo = false;
     };
   }, []);
 
   useEffect(() => {
+    if (!promosFinal.length) return;
     const intervalId = window.setInterval(() => {
-      setPromoIndex((actual) => (actual + 1) % promosClTiene.length);
+      setPromoIndex((actual) => (actual + 1) % promosFinal.length);
     }, 5000);
 
     return () => window.clearInterval(intervalId);
-  }, [promosClTiene.length]);
+  }, [promosFinal.length]);
 
   return (
     <div>
@@ -164,12 +224,12 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
         </div>
       </div>
 
-      {usuario?.empresa_id && usuario.empresa_id === 1 && (
+      {promosFinal.length > 0 && promoActual && (
       <div
         className="micro-card anim-stadium-glow"
         style={{
-          background: promoActual.gradient,
-          border: `1px solid ${promoActual.border}`,
+          background: promoActual.gradient || "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14), rgba(255,255,255,0.04))",
+          border: `1px solid ${promoActual.border || "rgba(64,141,255,0.32)"}`,
           borderRadius: 16,
           padding: "16px",
           marginBottom: 16,
@@ -178,7 +238,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
           transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
-        <div style={{ position: "absolute", right: -12, top: -8, fontSize: 74, opacity: 0.1 }}>{promoActual.heroIcon}</div>
+        <div style={{ position: "absolute", right: -12, top: -8, fontSize: 74, opacity: 0.1 }}>{promoActual.heroIcon || "⭐"}</div>
         
         {/* Botones de navegación del carrusel */}
         <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 6, zIndex: 10 }}>
@@ -243,13 +303,14 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
             <img src={getLogoMarca()} alt={getNombreMarca()} style={{ width: 28, height: 28, objectFit: "contain" }} />
           </div>
           <div>
-            <div style={{ color: promoActual.accent, fontSize: 11, fontWeight: 800, letterSpacing: 0.6 }}>{promoActual.eyebrow}</div>
-            <div className="anim-slide-up" style={{ color: "var(--texto)", fontSize: 17, fontWeight: 900 }}>{promoActual.titulo}</div>
+            <div style={{ color: promoActual.accent || "var(--brand-accent)", fontSize: 11, fontWeight: 800, letterSpacing: 0.6 }}>{promoActual.eyebrow || "PROMO"}</div>
+            <div className="anim-slide-up" style={{ color: "var(--texto)", fontSize: 17, fontWeight: 900 }}>{promoActual.titulo || "Beneficios para ti"}</div>
           </div>
         </div>
         <div className="anim-slide-up" style={{ color: "var(--texto-sec)", fontSize: 13, lineHeight: 1.6, marginBottom: 12 }}>
-          {promoActual.descripcion}
+          {promoActual.descripcion || "Conoce los beneficios y servicios disponibles para tu empresa."}
         </div>
+        {Array.isArray(promoActual.items) && promoActual.items.length > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 12 }}>
           {promoActual.items.map((item) => (
             <div 
@@ -279,9 +340,10 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
             </div>
           ))}
         </div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 10, marginBottom: 10 }}>
           <a
-            href={promoActual.url}
+            href={promoActual.url || "https://cltiene.com/"}
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -290,7 +352,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
               justifyContent: "center",
               width: "100%",
               padding: "10px 12px",
-              background: promoActual.button,
+              background: promoActual.button || "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))",
               border: "none",
               borderRadius: 12,
               color: "#fff",
@@ -310,7 +372,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
               e.target.style.boxShadow = "0 8px 22px rgba(253,119,81,0.22)";
             }}
           >
-            {promoActual.cta}
+            {promoActual.cta || "Conocer más"}
           </a>
           <button
             onClick={() => setTab("beneficios")}
@@ -341,7 +403,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
 
         {/* Indicadores del carrusel */}
         <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-          {promosClTiene.map((_, idx) => (
+          {promosFinal.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setPromoIndex(idx)}
@@ -360,123 +422,64 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
       </div>
       )}
 
-      {misPredicciones.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16, marginBottom: 10 }}>📊 Mis predicciones recientes</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-            {misPredicciones.map((pred) => {
-              const getEstadoColor = (estado) => {
-                switch (estado) {
-                  case "acertada_especial":
-                    return { bg: "rgba(236,168,45,0.2)", border: "rgba(236,168,45,0.4)", icon: "🎯", label: "Exacto" };
-                  case "acertada_simple":
-                    return { bg: "rgba(22,199,132,0.2)", border: "rgba(22,199,132,0.4)", icon: "✅", label: "Acertada" };
-                  case "fallida":
-                    return { bg: "rgba(253,119,81,0.2)", border: "rgba(253,119,81,0.4)", icon: "❌", label: "Fallida" };
-                  default:
-                    return { bg: "rgba(64,141,255,0.2)", border: "rgba(64,141,255,0.4)", icon: "⏳", label: "Pendiente" };
-                }
-              };
-              const estado = getEstadoColor(pred.estado);
-              return (
-                <div
-                  key={pred.id}
-                  style={{
-                    background: estado.bg,
-                    border: `1px solid ${estado.border}`,
-                    borderRadius: 12,
-                    padding: "10px",
-                    textAlign: "center",
-                    transition: "all 0.3s",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  <div style={{ fontSize: 18, marginBottom: 4 }}>{estado.icon}</div>
-                  <div style={{ color: "var(--texto)", fontSize: 10, fontWeight: 700, lineHeight: 1.2 }}>
-                    {pred.partido?.local_equipo || "?"} vs {pred.partido?.visitante_equipo || "?"}
-                  </div>
-                  <div style={{ color: "var(--texto-ter)", fontSize: 9, marginTop: 2 }}>{estado.label}</div>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>🏆 Tabla de grupos</span>
+          <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>Mundial 2026</span>
+        </div>
+
+        {grupos.length === 0 ? (
+          <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "20px 0" }}>
+            Cargando grupos...
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
+            {grupos.map((g) => (
+              <div
+                key={g.grupo}
+                style={{
+                  background: "rgba(0,0,0,0.28)",
+                  border: "1px solid rgba(var(--brand-primary-rgb), 0.22)",
+                  borderRadius: 14,
+                  padding: "12px 12px 10px",
+                  overflow: "hidden",
+                }}
+              >
+                <div style={{ color: "var(--brand-primary)", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>
+                  Grupo {g.grupo}
                 </div>
-              );
-            })}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr repeat(7, 24px)", gap: 4, color: "var(--texto-ter)", fontSize: 10, marginBottom: 6, letterSpacing: 0.2 }}>
+                  <div>Equipo</div>
+                  <div style={{ textAlign: "center" }}>PJ</div>
+                  <div style={{ textAlign: "center" }}>G</div>
+                  <div style={{ textAlign: "center" }}>E</div>
+                  <div style={{ textAlign: "center" }}>P</div>
+                  <div style={{ textAlign: "center" }}>GF</div>
+                  <div style={{ textAlign: "center" }}>GC</div>
+                  <div style={{ textAlign: "center" }}>PTS</div>
+                </div>
+                {g.equipos.map((eq) => (
+                  <div key={eq.nombre} style={{ display: "grid", gridTemplateColumns: "1fr repeat(7, 24px)", gap: 4, padding: "6px 0", borderTop: "1px solid rgba(255,255,255,0.06)", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                      <Bandera codigo={eq.bandera} nombre={eq.nombre} size={24} />
+                      <span style={{ color: "var(--texto)", fontSize: 12, fontWeight: 700, lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {eq.nombre}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.pj}</div>
+                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.g}</div>
+                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.e}</div>
+                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.p}</div>
+                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.gf}</div>
+                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.gc}</div>
+                    <div style={{ textAlign: "center", color: C.naranja, fontSize: 11, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{eq.pts}</div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
-        </div>
-      )}
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>⚽ Proximos partidos</span>
-        <button onClick={() => setTab("polla")} style={{ background: "none", border: "none", color: "#FD7751", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>
-          Predecir todos →
-        </button>
+        )}
       </div>
-
-      {proximos.length === 0 ? (
-        <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "20px 0" }}>
-          Cargando partidos...
-        </div>
-      ) : (
-        proximos.map((p, idx) => (
-          <div
-            key={p.id}
-            className="anim-slide-up micro-card"
-            onClick={() => setTab("polla")}
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--card-border)",
-              borderRadius: 14,
-              padding: "14px 16px",
-              marginBottom: 10,
-              animationDelay: `${idx * 0.1}s`,
-              animationFillMode: "both",
-              cursor: "pointer",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(253,119,81,0.3)";
-              e.currentTarget.style.background = "rgba(253,119,81,0.05)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--card-border)";
-              e.currentTarget.style.background = "var(--card)";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, alignItems: "center" }}>
-              <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>
-                Grupo {p.grupo}
-              </span>
-              <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>📅 {formatearFecha(p.fecha)} · {p.hora}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8 }}>
-              <div style={{ textAlign: "center" }}>
-                <Bandera codigo={p.bandera_l} nombre={p.local} />
-                <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13, marginTop: 6 }}>{p.local}</div>
-              </div>
-              <div style={{ background: "var(--card)", borderRadius: 8, padding: "8px 12px" }}>
-                <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>VS</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <Bandera codigo={p.bandera_v} nombre={p.visitante} />
-                <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13, marginTop: 6 }}>{p.visitante}</div>
-              </div>
-            </div>
-            <div style={{
-              marginTop: 10, padding: "8px", borderRadius: 10, textAlign: "center",
-              background: "linear-gradient(135deg, #FD7751, #e5622a)",
-              color: "#fff", fontWeight: 700, fontSize: 13,
-            }}>
-              ⚽ Predecir este partido
-            </div>
-          </div>
-        ))
-      )}
 
       <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.1))", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 14, padding: "16px", marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.3s", position: "relative", overflow: "hidden" }}
         onMouseEnter={(e) => {

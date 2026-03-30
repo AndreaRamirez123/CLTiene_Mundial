@@ -35,7 +35,7 @@ const PASOS = [
   {
     target: 'navbar-auto',
     titulo: 'Navegacion',
-    descripcion: 'Usa la barra inferior para moverte: Polla para predecir partidos, Misiones para ganar goles, Ranking para competir y Beneficios para canjear premios.',
+    descripcion: 'Usa la barra inferior para moverte: Predicciones para predecir partidos, Misiones para ganar goles, Ranking para competir y Beneficios para canjear premios.',
     icono: '🧭',
   },
   {

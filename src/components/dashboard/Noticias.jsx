@@ -64,13 +64,14 @@ export default function Noticias() {
           FIFA: { bg: "rgba(236,168,45,0.15)", color: C.dorado },
         }[n.categoria] || { bg: "rgba(255,255,255,0.1)", color: "var(--texto)" };
 
+        const wrapperProps = { href: n.url, target: "_blank", rel: "noopener noreferrer" };
+
         return (
-          <a key={i} href={n.url} target="_blank" rel="noopener noreferrer"
+          <a key={i} {...wrapperProps}
             style={{ textDecoration: "none", display: "block", background: "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))", border: "1px solid var(--card-border)", borderRadius: 16, padding: "18px", marginBottom: 14, position: "relative", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease" }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.naranja; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(253,119,81,0.15)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}
           >
-            {/* Decoración de fondo */}
             <div style={{ position: "absolute", right: -15, top: -15, fontSize: 60, opacity: 0.04, userSelect: "none" }}>📰</div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>

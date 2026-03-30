@@ -50,6 +50,10 @@ export class ConfigMarca {
   @Column({ type: 'longtext', nullable: true })
   politica_privacidad: string;
 
+  // Publicidad / carrusel (JSON string)
+  @Column({ type: 'longtext', nullable: true })
+  publicidad_json: string;
+
   @UpdateDateColumn()
   updated_at: Date;
 }

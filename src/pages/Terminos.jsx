@@ -50,7 +50,7 @@ export default function Terminos({ onVolver }) {
           <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
           <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Términos y Condiciones</h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-            Polla CLTiene - Mundial 2026
+            Predicciones CLTiene - Mundial 2026
           </p>
           <div style={{ display: "inline-block", marginTop: 10, background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: "4px 14px" }}>
             <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>Ultima actualizacion: Marzo 2026</span>
@@ -63,7 +63,7 @@ export default function Terminos({ onVolver }) {
           y gamificación diseñada para captar, conocer y fidelizar potenciales clientes de la empresa
 
           MULTISERVICIOS CL TIENE, aprovechando el Mundial de Futbol 2026.
-          La App funciona como una <b>"polla deportiva con monedas virtuales"</b> donde los usuarios participan
+          La App funciona como un sistema de <b>"predicciones deportivas con monedas virtuales"</b> donde los usuarios participan
           haciendo predicciones sobre partidos del torneo, <b>sin apostar dinero real</b>.
         </Section>
 

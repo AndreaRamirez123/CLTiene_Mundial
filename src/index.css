@@ -197,7 +197,7 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* Móvil (< 768px): hamburguesa visible, barra completa oculta */
+/* hamburguesa visible, barra completa oculta */
 @media (max-width: 768px) {
   .nav-desktop { display: none !important; }
   .nav-mobile { display: flex !important; }

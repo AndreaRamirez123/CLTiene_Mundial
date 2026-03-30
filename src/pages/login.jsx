@@ -272,7 +272,7 @@ export default function Login({ onLoginExitoso }) {
                         <button
                             onClick={manejarEmailPassword}
                             disabled={cargando}
-                            style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
+                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
                             {cargando ? "Cargando..." : modo === "login" ? "✓ Ingresar" : "✓ Crear cuenta"}
                         </button>
@@ -329,7 +329,7 @@ export default function Login({ onLoginExitoso }) {
                         <button
                             onClick={solicitarCodigo}
                             disabled={cargando}
-                            style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
+                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
                             {cargando ? "Enviando..." : "Enviar código de recuperación"}
                         </button>
@@ -380,7 +380,7 @@ export default function Login({ onLoginExitoso }) {
                         <button
                             onClick={resetearPassword}
                             disabled={cargando}
-                            style={{ ...s.btnPrimario, opacity: cargando ? 0.8 : 1 }}
+                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
                             {cargando ? "Cambiando..." : "Cambiar contraseña"}
                         </button>
@@ -457,10 +457,8 @@ const s = {
     },
     btnPrimario: {
         width: "100%", padding: "14px",
-        background: "linear-gradient(135deg, #FC3276, #822BD2)",
         color: "#fff", border: "none", borderRadius: "12px",
         fontSize: "16px", fontWeight: 700, cursor: "pointer",
-        boxShadow: "0 6px 24px rgba(252,50,118,0.4)",
         marginBottom: "16px",
     },
     divisor: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" },

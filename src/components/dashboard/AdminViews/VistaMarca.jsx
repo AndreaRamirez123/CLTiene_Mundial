@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { C } from "../constants";
-import { guardarConfigMarca } from "../../../utils/marca";
+import { aplicarConfigMarca, guardarConfigMarca } from "../../../utils/marca";
 
 export default function VistaMarca({ client, usuario }) {
   const esSuperadmin = usuario?.rol === "superadmin";
@@ -14,6 +14,7 @@ export default function VistaMarca({ client, usuario }) {
     color_secundario: "#ED1E28",
     color_acento: "#ECA82D",
     color_fondo: "#0f0a1e",
+    publicidad_json: "",
     terminos_condiciones: "",
     politica_privacidad: "",
   });
@@ -51,7 +52,10 @@ export default function VistaMarca({ client, usuario }) {
     client
       .get("/config-marca")
       .then((res) => {
-        if (res?.data) setForm((f) => ({ ...f, ...res.data }));
+        if (res?.data) {
+          setForm((f) => ({ ...f, ...res.data }));
+          aplicarConfigMarca(res.data);
+        }
       })
       .catch(() => {})
       .finally(() => setCargando(false));
@@ -63,7 +67,10 @@ export default function VistaMarca({ client, usuario }) {
       .get(`/admin/empresas/${empresaId}`)
       .then((res) => {
         const config = res?.data?.configMarca;
-        if (config) setForm((f) => ({ ...f, ...config }));
+        if (config) {
+          setForm((f) => ({ ...f, ...config }));
+          aplicarConfigMarca(config);
+        }
       })
       .catch(() => {})
       .finally(() => setCargando(false));
@@ -83,6 +90,7 @@ export default function VistaMarca({ client, usuario }) {
         color_secundario: form.color_secundario,
         color_acento: form.color_acento,
         color_fondo: form.color_fondo,
+        publicidad_json: form.publicidad_json,
         terminos_condiciones: form.terminos_condiciones,
         politica_privacidad: form.politica_privacidad,
         ...(esSuperadmin && empresaSeleccionada ? { empresa_id: empresaSeleccionada } : {}),
@@ -307,6 +315,40 @@ export default function VistaMarca({ client, usuario }) {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Publicidad / Carrusel */}
+            <div style={{ marginTop: 22 }}>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Publicidad (Carrusel)</div>
+              <div style={{ color: "var(--texto-ter)", fontSize: 11, marginBottom: 8 }}>
+                Pega un JSON con los items del carrusel. Si lo dejas vacio, no se muestra.
+              </div>
+              <textarea
+                value={form.publicidad_json || ""}
+                onChange={(e) => set("publicidad_json", e.target.value)}
+                placeholder={`[
+  {
+    "eyebrow": "PLAN SALUD",
+    "titulo": "Salud al instante",
+    "descripcion": "Texto corto",
+    "items": [{"icono":"🩺","texto":"Orientación médica"}],
+    "cta": "Ver plan",
+    "url": "https://tuweb.com",
+    "heroIcon": "🩺",
+    "gradient": "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14))",
+    "border": "rgba(64,141,255,0.32)",
+    "accent": "#7BC6FF",
+    "button": "linear-gradient(135deg, #408DFF, #16C784)"
+  }
+]`}
+                rows={8}
+                style={{
+                  width: "100%", padding: "11px 12px", borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.06)",
+                  color: "var(--texto)", outline: "none", fontSize: 12, resize: "vertical",
+                  fontFamily: "monospace", lineHeight: 1.5, boxSizing: "border-box",
+                }}
+              />
             </div>
 
             <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 10 }}>

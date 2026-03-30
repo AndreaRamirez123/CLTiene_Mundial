@@ -35,6 +35,7 @@ export const Bandera = ({ codigo, nombre, size = 36 }) => (
   <img
     src={`https://flagcdn.com/${size === 36 ? "48x36" : "32x24"}/${codigo}.png`}
     alt={nombre}
+    title={nombre}
     style={{
       width: size === 36 ? 48 : 32,
       height: size,

@@ -32,6 +32,7 @@ export class ConfigMarcaAdminController {
       color_secundario?: string;
       color_acento?: string;
       color_fondo?: string;
+      publicidad_json?: string;
     },
   ) {
     let empresaId = req.jugador.empresa_id;

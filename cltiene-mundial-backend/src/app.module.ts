@@ -17,6 +17,7 @@ import { AdminModule } from './admin/admin.module';
 import { ConfigMarcaModule } from './config-marca/config-marca.module';
 import { EmpresasModule } from './empresas/empresas.module';
 import { PreguntasModule } from './preguntas/preguntas.module';
+import { NoticiasModule } from './noticias/noticias.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -53,6 +54,7 @@ import { AppService } from './app.service';
     ConfigMarcaModule,
     EmpresasModule,
     PreguntasModule,
+    NoticiasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

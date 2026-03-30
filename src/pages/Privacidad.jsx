@@ -58,7 +58,7 @@ export default function Privacidad({ onVolver }) {
         {/* Secciones */}
         <Section icono="🏢" titulo="1. Responsable del Tratamiento" color={C.azul}>
           <Item><b>Empresa:</b> MULTISERVICIOS CL TIENE</Item>
-          <Item><b>Aplicación:</b> Polla CLTiene - Mundial 2026</Item>
+          <Item><b>Aplicación:</b> Predicciones CLTiene - Mundial 2026</Item>
           <Item>CLTiene actúa como responsable del tratamiento de los datos personales recopilados a través de la aplicación.</Item>
         </Section>
 

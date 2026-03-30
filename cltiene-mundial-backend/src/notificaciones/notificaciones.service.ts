@@ -162,7 +162,10 @@ export class NotificacionesService {
         .map((j) =>
           this.notifLogRepo.create({
             jugador_id: j.id,
-            tipo: data.tipo as 'previa_fecha' | 'recordatorio_pendiente' | 'inactividad',
+            tipo: data.tipo as
+              | 'previa_fecha'
+              | 'recordatorio_pendiente'
+              | 'inactividad',
             titulo: data.titulo,
             mensaje: data.cuerpo,
             enviada: 1,
