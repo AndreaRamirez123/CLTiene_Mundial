@@ -126,7 +126,7 @@ export default function VistaEstadisticas({ estadisticas }) {
         <p style={{ color: 'var(--texto-sec)', fontSize: 12, marginBottom: 18 }}>
           Porcentaje de usuarios que participaron en cada actividad
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
           {[
             { label: 'Hicieron predicciones', valor: engagement.con_predicciones || 0, pct: pctPredicciones, color: '#FD7751' },
             { label: 'Jugaron trivia', valor: engagement.con_trivia || 0, pct: pctTrivia, color: '#408DFF' },
@@ -157,7 +157,7 @@ export default function VistaEstadisticas({ estadisticas }) {
       </div>
 
       {/* Graficas */}
-      <div style={{ display: 'grid', gridTemplateColumns: porEmpresa.length > 0 ? '1fr 1fr' : '1fr 1fr', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
         {/* Barras: Actividad de usuarios */}
         <div style={{
           background: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 20,

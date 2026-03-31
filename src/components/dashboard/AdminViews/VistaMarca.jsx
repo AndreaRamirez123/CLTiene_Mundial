@@ -15,6 +15,7 @@ export default function VistaMarca({ client, usuario }) {
     color_acento: "#ECA82D",
     color_fondo: "#0f0a1e",
     publicidad_json: "",
+    beneficios_json: "",
     terminos_condiciones: "",
     politica_privacidad: "",
   });
@@ -50,6 +51,7 @@ export default function VistaMarca({ client, usuario }) {
     color_acento: "#ECA82D",
     color_fondo: "#0f0a1e",
     publicidad_json: "",
+    beneficios_json: "",
     terminos_condiciones: "",
     politica_privacidad: "",
   };
@@ -67,7 +69,7 @@ export default function VistaMarca({ client, usuario }) {
       .then((res) => {
         if (res?.data) {
           setForm({ ...formLimpio, ...res.data });
-          aplicarConfigMarca(res.data);
+          if (!esSuperadmin) aplicarConfigMarca(res.data);
         }
       })
       .catch(() => {})
@@ -81,7 +83,6 @@ export default function VistaMarca({ client, usuario }) {
       .then((res) => {
         const config = res?.data?.configMarca;
         setForm({ ...formLimpio, ...config });
-        if (config) aplicarConfigMarca(config);
       })
       .catch(() => {})
       .finally(() => setCargando(false));
@@ -102,6 +103,7 @@ export default function VistaMarca({ client, usuario }) {
         color_acento: form.color_acento,
         color_fondo: form.color_fondo,
         publicidad_json: form.publicidad_json,
+        beneficios_json: form.beneficios_json,
         terminos_condiciones: form.terminos_condiciones,
         politica_privacidad: form.politica_privacidad,
         ...(esSuperadmin && empresaSeleccionada ? { empresa_id: empresaSeleccionada } : {}),
@@ -109,7 +111,7 @@ export default function VistaMarca({ client, usuario }) {
       const res = await client.put("/admin/config-marca", payload);
       const data = res?.data || form;
       setForm((f) => ({ ...f, ...data }));
-      guardarConfigMarca(data);
+      if (!esSuperadmin) guardarConfigMarca(data);
       setMensaje({ tipo: "exito", texto: "Marca actualizada correctamente" });
       alert("Cambios guardados correctamente");
     } catch (e) {
@@ -162,7 +164,7 @@ export default function VistaMarca({ client, usuario }) {
         </div>
       )}
 
-      <div style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 18, padding: 24, boxShadow: "0 12px 40px rgba(0,0,0,0.25)" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 18, padding: "24px 16px", boxShadow: "0 12px 40px rgba(0,0,0,0.25)", overflow: "hidden" }}>
         <div style={{ marginBottom: 16 }}>
           <h2 style={{ color: "var(--texto)", fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
             🎨 Configuracion de Marca
@@ -198,7 +200,7 @@ export default function VistaMarca({ client, usuario }) {
               </div>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16 }}>
               <Campo
                 label="Nombre de la app"
                 value={form.nombre_app}
@@ -338,6 +340,13 @@ export default function VistaMarca({ client, usuario }) {
               key={empresaSeleccionada || "default"}
               value={form.publicidad_json}
               onChange={(json) => set("publicidad_json", json)}
+            />
+
+            {/* Beneficios */}
+            <EditorBeneficios
+              key={`ben-${empresaSeleccionada || "default"}`}
+              value={form.beneficios_json}
+              onChange={(json) => set("beneficios_json", json)}
             />
 
             <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 10 }}>
@@ -857,6 +866,186 @@ function EditorCarrusel({ value, onChange }) {
                     </div>
                   </div>
                 </details>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const CATEGORIAS_BENEFICIO = ["Descuentos", "Planes", "Servicios", "Exclusivos"];
+
+const BENEFICIO_VACIO = {
+  id: "",
+  nombre: "",
+  descripcion: "",
+  costo: 200,
+  icono: "🏷️",
+  categoria: "Descuentos",
+};
+
+function EditorBeneficios({ value, onChange }) {
+  const [beneficios, setBeneficios] = useState(() => {
+    try { const arr = JSON.parse(value); return Array.isArray(arr) ? arr : []; }
+    catch { return []; }
+  });
+  const [abierto, setAbierto] = useState(null);
+
+  const sincronizar = (nuevos) => {
+    setBeneficios(nuevos);
+    onChange(nuevos.length > 0 ? JSON.stringify(nuevos) : "");
+  };
+
+  const agregar = () => {
+    const id = `beneficio_${Date.now()}`;
+    const nuevo = [...beneficios, { ...BENEFICIO_VACIO, id }];
+    sincronizar(nuevo);
+    setAbierto(nuevo.length - 1);
+  };
+
+  const eliminar = (idx) => {
+    sincronizar(beneficios.filter((_, i) => i !== idx));
+    setAbierto(null);
+  };
+
+  const actualizar = (idx, campo, valor) => {
+    const copia = beneficios.map((b, i) => (i === idx ? { ...b, [campo]: valor } : b));
+    sincronizar(copia);
+  };
+
+  const inputStyle = {
+    padding: "9px 10px", borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.06)",
+    color: "var(--texto)", outline: "none", fontSize: 13, width: "100%", boxSizing: "border-box",
+  };
+
+  const labelStyle = { color: "var(--texto-sec)", fontSize: 11, fontWeight: 600, marginBottom: 4, display: "block" };
+
+  return (
+    <div style={{ marginTop: 22 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700 }}>Beneficios (Catalogo de canjes)</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>
+            {beneficios.length === 0 ? "Sin beneficios. Se usara el catalogo por defecto." : `${beneficios.length} beneficio${beneficios.length > 1 ? "s" : ""}`}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={agregar}
+          style={{
+            padding: "8px 14px", borderRadius: 10, border: "none",
+            background: "rgba(22,199,132,0.15)", color: "#16C784",
+            fontWeight: 700, fontSize: 12, cursor: "pointer",
+          }}
+        >
+          + Agregar beneficio
+        </button>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {beneficios.map((ben, idx) => (
+          <div
+            key={ben.id || idx}
+            style={{
+              border: "1px solid var(--card-border)", borderRadius: 14,
+              background: "rgba(255,255,255,0.03)", overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              onClick={() => setAbierto(abierto === idx ? null : idx)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 14px", cursor: "pointer", userSelect: "none",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 20 }}>{ben.icono || "🎁"}</span>
+                <div>
+                  <span style={{ color: "var(--texto)", fontSize: 13, fontWeight: 700 }}>
+                    {ben.nombre || `Beneficio ${idx + 1}`}
+                  </span>
+                  <span style={{ color: "var(--texto-ter)", fontSize: 11, marginLeft: 8 }}>
+                    🪙 {ben.costo || 0} — {ben.categoria || "Sin categoria"}
+                  </span>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); eliminar(idx); }}
+                  style={{
+                    padding: "4px 10px", borderRadius: 8, border: "none",
+                    background: "rgba(231,76,60,0.15)", color: "#e74c3c",
+                    fontSize: 11, cursor: "pointer", fontWeight: 600,
+                  }}
+                >
+                  Eliminar
+                </button>
+                <span style={{ color: "var(--texto-ter)", fontSize: 14, transition: "transform 0.2s", transform: abierto === idx ? "rotate(180deg)" : "rotate(0)" }}>
+                  ▼
+                </span>
+              </div>
+            </div>
+
+            {/* Contenido */}
+            {abierto === idx && (
+              <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* Icono */}
+                <div>
+                  <span style={labelStyle}>Icono</span>
+                  <EmojiPicker value={ben.icono || ""} onChange={(v) => actualizar(idx, "icono", v)} />
+                </div>
+
+                {/* Nombre */}
+                <div>
+                  <span style={labelStyle}>Nombre del beneficio</span>
+                  <input style={inputStyle} value={ben.nombre || ""} placeholder="Descuento 10% en servicios" onChange={(e) => actualizar(idx, "nombre", e.target.value)} />
+                </div>
+
+                {/* Descripcion */}
+                <div>
+                  <span style={labelStyle}>Descripcion</span>
+                  <textarea
+                    style={{ ...inputStyle, resize: "vertical", minHeight: 50, fontFamily: "inherit" }}
+                    value={ben.descripcion || ""}
+                    placeholder="Aplica en cualquier servicio por 30 dias..."
+                    rows={2}
+                    onChange={(e) => actualizar(idx, "descripcion", e.target.value)}
+                  />
+                </div>
+
+                {/* Costo + Categoria */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <span style={labelStyle}>Costo en monedas</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      style={inputStyle}
+                      value={ben.costo || 0}
+                      onChange={(e) => actualizar(idx, "costo", Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <span style={labelStyle}>Categoria</span>
+                    <select
+                      value={ben.categoria || "Descuentos"}
+                      onChange={(e) => actualizar(idx, "categoria", e.target.value)}
+                      style={{
+                        ...inputStyle, cursor: "pointer", appearance: "auto",
+                      }}
+                    >
+                      {CATEGORIAS_BENEFICIO.map((cat) => (
+                        <option key={cat} value={cat} style={{ background: "#1a1a2e", color: "#fff" }}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
             )}
           </div>

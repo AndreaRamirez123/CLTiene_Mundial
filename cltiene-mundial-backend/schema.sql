@@ -39,6 +39,8 @@ CREATE TABLE config_marca (
   color_fondo VARCHAR(10) NOT NULL DEFAULT '#0f0a1e',
   terminos_condiciones LONGTEXT DEFAULT NULL,
   politica_privacidad LONGTEXT DEFAULT NULL,
+  publicidad_json LONGTEXT DEFAULT NULL,
+  beneficios_json LONGTEXT DEFAULT NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE

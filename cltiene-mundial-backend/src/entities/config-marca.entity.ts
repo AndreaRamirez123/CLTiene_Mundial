@@ -54,6 +54,10 @@ export class ConfigMarca {
   @Column({ type: 'longtext', nullable: true })
   publicidad_json: string;
 
+  // Catalogo de beneficios (JSON string)
+  @Column({ type: 'longtext', nullable: true })
+  beneficios_json: string;
+
   @UpdateDateColumn()
   updated_at: Date;
 }

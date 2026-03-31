@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { C } from "./constants";
 import client from "../../api/client";
-import { getNombreMarca } from "../../utils/marca";
+import { getNombreMarca, leerConfigMarca } from "../../utils/marca";
 
-const getCatalogo = (empresa) => [
+const getCatalogoDefault = (empresa) => [
   {
     id: "descuento_10",
     nombre: `Descuento 10% en servicios ${empresa}`,
@@ -54,7 +54,16 @@ const getCatalogo = (empresa) => [
   },
 ];
 
-const CATEGORIAS = ["Todos", "Descuentos", "Planes", "Servicios", "Exclusivos"];
+const getBeneficiosEmpresa = () => {
+  const config = leerConfigMarca();
+  if (config?.beneficios_json) {
+    try {
+      const arr = JSON.parse(config.beneficios_json);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    } catch { /* fallback */ }
+  }
+  return null;
+};
 
 export default function Beneficios({ usuario, perfil, cargarPerfil }) {
   const bordeSuave = "1px solid var(--input-border)";
@@ -71,8 +80,9 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
   const monedas = perfil?.monedas || 0;
   const elegible = perfil?.elegible_canje || false;
   const empresa = getNombreMarca();
-  const CATALOGO = getCatalogo(empresa);
+  const CATALOGO = getBeneficiosEmpresa() || getCatalogoDefault(empresa);
 
+  const categoriasDisponibles = ["Todos", ...new Set(CATALOGO.map((b) => b.categoria).filter(Boolean))];
   const filtrados = categoriaActiva === "Todos" ? CATALOGO : CATALOGO.filter((b) => b.categoria === categoriaActiva);
 
   const handleCanjear = async () => {
@@ -114,7 +124,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
       </div>
 
       <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
-        {CATEGORIAS.map((cat) => (
+        {categoriasDisponibles.map((cat) => (
           <button
             key={cat}
             onClick={() => setCategoriaActiva(cat)}

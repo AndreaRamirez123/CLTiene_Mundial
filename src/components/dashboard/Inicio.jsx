@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { obtenerInicioMundial } from "../../api/gemini";
 import { useCountdown } from "../../hooks/useCountdown";
 import { getLogoMarca, getNombreMarca, getPublicidadMarca } from "../../utils/marca";
-import { Bandera, C } from "./constants";
 import { useTheme } from "../../store/useTheme";
 
 export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
-  const { tema } = useTheme();
+  useTheme();
   const [inicioMundial, setInicioMundial] = useState({
     targetDate: "2026-06-11T00:00:00-05:00",
     titulo: "USA - Mexico - Canada 2026",
@@ -162,7 +161,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
       }));
   }, [partidos]);
   const tiempo = useCountdown(inicioMundial.targetDate);
-  const esTemaClaro = tema === "claro";
+
 
   useEffect(() => {
     let activo = true;
@@ -191,12 +190,8 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
     <div>
       <div
         style={{
-          background: esTemaClaro
-            ? "linear-gradient(135deg, #7b2cbf, #5a189a)"
-            : "linear-gradient(135deg, #7c1a8c, #1a0f3d)",
-          border: esTemaClaro
-            ? "1px solid rgba(123,44,191,0.45)"
-            : "1px solid rgba(130,43,210,0.5)",
+          background: `linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))`,
+          border: `1px solid rgba(var(--brand-primary-rgb), 0.45)`,
           borderRadius: 16,
           padding: "18px 16px",
           marginBottom: 16,
@@ -213,7 +208,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
             [tiempo.minutos, "MIN"],
             [tiempo.segundos, "SEG"],
           ].map(([numero, label]) => (
-            <div key={label} style={{ background: esTemaClaro ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.3)", border: esTemaClaro ? "1px solid rgba(255,255,255,0.12)" : "1px solid transparent", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+            <div key={label} style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
               <div style={{ color: "#FFFFFF", fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{numero}</div>
               <div style={{ color: "rgba(255,255,255,0.72)", fontSize: 10 }}>{label}</div>
             </div>
@@ -394,64 +389,9 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
       </div>
       )}
 
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>🏆 Tabla de grupos</span>
-          <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>Mundial 2026</span>
-        </div>
-
-        {grupos.length === 0 ? (
-          <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "20px 0" }}>
-            Cargando grupos...
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
-            {grupos.map((g) => (
-              <div
-                key={g.grupo}
-                style={{
-                  background: "rgba(0,0,0,0.28)",
-                  border: "1px solid rgba(var(--brand-primary-rgb), 0.22)",
-                  borderRadius: 14,
-                  padding: "12px 12px 10px",
-                  overflow: "hidden",
-                }}
-              >
-                <div style={{ color: "var(--brand-primary)", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>
-                  Grupo {g.grupo}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr repeat(7, 24px)", gap: 4, color: "var(--texto-ter)", fontSize: 10, marginBottom: 6, letterSpacing: 0.2 }}>
-                  <div>Equipo</div>
-                  <div style={{ textAlign: "center" }}>PJ</div>
-                  <div style={{ textAlign: "center" }}>G</div>
-                  <div style={{ textAlign: "center" }}>E</div>
-                  <div style={{ textAlign: "center" }}>P</div>
-                  <div style={{ textAlign: "center" }}>GF</div>
-                  <div style={{ textAlign: "center" }}>GC</div>
-                  <div style={{ textAlign: "center" }}>PTS</div>
-                </div>
-                {g.equipos.map((eq) => (
-                  <div key={eq.nombre} style={{ display: "grid", gridTemplateColumns: "1fr repeat(7, 24px)", gap: 4, padding: "6px 0", borderTop: "1px solid rgba(255,255,255,0.06)", alignItems: "center" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                      <Bandera codigo={eq.bandera} nombre={eq.nombre} size={24} />
-                      <span style={{ color: "var(--texto)", fontSize: 12, fontWeight: 700, lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {eq.nombre}
-                      </span>
-                    </div>
-                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.pj}</div>
-                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.g}</div>
-                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.e}</div>
-                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.p}</div>
-                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.gf}</div>
-                    <div style={{ textAlign: "center", color: "var(--texto)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>{eq.gc}</div>
-                    <div style={{ textAlign: "center", color: C.naranja, fontSize: 11, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{eq.pts}</div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {grupos.length > 0 && (
+        <TablaGrupos grupos={grupos} />
+      )}
 
       <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.1))", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 14, padding: "16px", marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.3s", position: "relative", overflow: "hidden" }}
         onMouseEnter={(e) => {
@@ -556,6 +496,88 @@ function CarruselItems({ items }) {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+    </div>
+  );
+}
+
+function TablaGrupos({ grupos }) {
+  const [grupoActivo, setGrupoActivo] = useState(0);
+  const grupo = grupos[grupoActivo];
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ color: "var(--texto)", fontWeight: 800, fontSize: 16 }}>🏆 Tabla de grupos</span>
+        <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>Mundial 2026</span>
+      </div>
+
+      {/* Tabs de grupos */}
+      <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 12, paddingBottom: 4 }}>
+        {grupos.map((g, i) => (
+          <button
+            key={g.grupo}
+            onClick={() => setGrupoActivo(i)}
+            style={{
+              padding: "6px 14px", borderRadius: 20, whiteSpace: "nowrap",
+              cursor: "pointer", fontSize: 12, fontWeight: 700, border: "none",
+              background: grupoActivo === i ? "rgba(var(--brand-primary-rgb), 0.2)" : "rgba(255,255,255,0.06)",
+              color: grupoActivo === i ? "var(--brand-primary)" : "var(--texto-sec)",
+              transition: "all 0.2s",
+            }}
+          >
+            Grupo {g.grupo}
+          </button>
+        ))}
+      </div>
+
+      {/* Tabla del grupo activo */}
+      {grupo && (
+        <div
+          key={grupo.grupo}
+          style={{
+            background: "rgba(0,0,0,0.28)",
+            border: "1px solid rgba(var(--brand-primary-rgb), 0.22)",
+            borderRadius: 14,
+            padding: "14px 14px 10px",
+            animation: "fadeSlideIn 0.3s ease",
+          }}
+        >
+          <div style={{ color: "var(--brand-primary)", fontWeight: 800, fontSize: 15, marginBottom: 10 }}>
+            Grupo {grupo.grupo}
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 320 }}>
+              <thead>
+                <tr style={{ color: "var(--texto-ter)", fontSize: 11 }}>
+                  <th style={{ textAlign: "left", padding: "4px 6px", fontWeight: 600 }}>Equipo</th>
+                  {["PJ", "G", "E", "P", "GF", "GC", "PTS"].map((h) => (
+                    <th key={h} style={{ textAlign: "center", padding: "4px 4px", fontWeight: 600, width: 30 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {grupo.equipos.map((eq) => (
+                  <tr key={eq.nombre} style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <td style={{ padding: "8px 6px", display: "flex", alignItems: "center", gap: 8 }}>
+                      <img
+                        src={`https://flagcdn.com/24x18/${(eq.bandera || "").toLowerCase()}.png`}
+                        alt={eq.nombre}
+                        style={{ width: 24, height: 18, objectFit: "cover", borderRadius: 2 }}
+                        onError={(e) => { e.target.style.display = "none"; }}
+                      />
+                      <span style={{ color: "var(--texto)", fontSize: 13, fontWeight: 700 }}>{eq.nombre}</span>
+                    </td>
+                    {[eq.pj, eq.g, eq.e, eq.p, eq.gf, eq.gc].map((v, i) => (
+                      <td key={i} style={{ textAlign: "center", color: "var(--texto)", fontSize: 12, fontVariantNumeric: "tabular-nums" }}>{v}</td>
+                    ))}
+                    <td style={{ textAlign: "center", color: "var(--brand-accent)", fontSize: 12, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{eq.pts}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

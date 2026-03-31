@@ -54,10 +54,11 @@ export default function Login({ onLoginExitoso }) {
                 client_id: GOOGLE_CLIENT_ID,
                 callback: manejarGoogle,
             });
+            const ancho = Math.min(googleBtnRef.current.offsetWidth || 396, 396);
             window.google.accounts.id.renderButton(googleBtnRef.current, {
                 theme: "outline",
                 size: "large",
-                width: 396,
+                width: ancho,
                 text: "continue_with",
                 shape: "pill",
                 locale: "es",
