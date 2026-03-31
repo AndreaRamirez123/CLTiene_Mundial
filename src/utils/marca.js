@@ -25,11 +25,27 @@ const hexToRgb = (hex) => {
   return `${r}, ${g}, ${b}`;
 };
 
+const resolverUrlLogo = (url) => {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `http://localhost:3000${url}`;
+  return url;
+};
+
 export const aplicarConfigMarca = (config) => {
   if (!config || typeof document === "undefined") return;
   const root = document.documentElement;
 
   if (config.nombre_app) document.title = config.nombre_app;
+
+  // Favicon dinámico
+  const logoUrl = resolverUrlLogo(config.logo_url) || logoDefault;
+  const existente = document.querySelector("link[rel*='icon']");
+  if (existente) existente.remove();
+  const link = document.createElement("link");
+  link.rel = "icon";
+  link.href = logoUrl;
+  document.head.appendChild(link);
   if (config.color_primario) root.style.setProperty("--brand-primary", config.color_primario);
   if (config.color_secundario) root.style.setProperty("--brand-secondary", config.color_secundario);
   if (config.color_acento) root.style.setProperty("--brand-accent", config.color_acento);
@@ -52,13 +68,6 @@ export const guardarConfigMarca = (config) => {
   if (!config) return;
   localStorage.setItem("config_marca", JSON.stringify(config));
   aplicarConfigMarca(config);
-};
-
-const resolverUrlLogo = (url) => {
-  if (!url) return null;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `http://localhost:3000${url}`;
-  return url;
 };
 
 export const getLogoMarca = () => {
