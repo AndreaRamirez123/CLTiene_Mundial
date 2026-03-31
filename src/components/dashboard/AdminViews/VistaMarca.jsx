@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { C } from "../constants";
 import { aplicarConfigMarca, guardarConfigMarca } from "../../../utils/marca";
 
@@ -41,6 +41,19 @@ export default function VistaMarca({ client, usuario }) {
   }, [client]);
 
   // Cuando cambia la empresa seleccionada, cargar su config
+  const formLimpio = {
+    nombre_app: "",
+    subtitulo: "",
+    logo_url: "",
+    color_primario: "#FD7751",
+    color_secundario: "#ED1E28",
+    color_acento: "#ECA82D",
+    color_fondo: "#0f0a1e",
+    publicidad_json: "",
+    terminos_condiciones: "",
+    politica_privacidad: "",
+  };
+
   useEffect(() => {
     if (esSuperadmin && empresaSeleccionada) {
       cargarConfigEmpresa(empresaSeleccionada);
@@ -53,7 +66,7 @@ export default function VistaMarca({ client, usuario }) {
       .get("/config-marca")
       .then((res) => {
         if (res?.data) {
-          setForm((f) => ({ ...f, ...res.data }));
+          setForm({ ...formLimpio, ...res.data });
           aplicarConfigMarca(res.data);
         }
       })
@@ -67,10 +80,8 @@ export default function VistaMarca({ client, usuario }) {
       .get(`/admin/empresas/${empresaId}`)
       .then((res) => {
         const config = res?.data?.configMarca;
-        if (config) {
-          setForm((f) => ({ ...f, ...config }));
-          aplicarConfigMarca(config);
-        }
+        setForm({ ...formLimpio, ...config });
+        if (config) aplicarConfigMarca(config);
       })
       .catch(() => {})
       .finally(() => setCargando(false));
@@ -99,12 +110,14 @@ export default function VistaMarca({ client, usuario }) {
       const data = res?.data || form;
       setForm((f) => ({ ...f, ...data }));
       guardarConfigMarca(data);
-      setMensaje({ tipo: "exito", texto: "Marca actualizada" });
+      setMensaje({ tipo: "exito", texto: "Marca actualizada correctamente" });
+      alert("Cambios guardados correctamente");
     } catch (e) {
       setMensaje({ tipo: "error", texto: "No se pudo actualizar" });
+      alert("Error: No se pudieron guardar los cambios");
     } finally {
       setGuardando(false);
-      setTimeout(() => setMensaje(null), 2500);
+      setTimeout(() => setMensaje(null), 4000);
     }
   };
 
@@ -238,6 +251,9 @@ export default function VistaMarca({ client, usuario }) {
                         }
                         const formData = new FormData();
                         formData.append("logo", file);
+                        if (esSuperadmin && empresaSeleccionada) {
+                          formData.append("empresa_id", empresaSeleccionada);
+                        }
                         try {
                           const res = await client.post("/admin/config-marca/upload-logo", formData, {
                             headers: { "Content-Type": "multipart/form-data" },
@@ -318,38 +334,11 @@ export default function VistaMarca({ client, usuario }) {
             </div>
 
             {/* Publicidad / Carrusel */}
-            <div style={{ marginTop: 22 }}>
-              <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Publicidad (Carrusel)</div>
-              <div style={{ color: "var(--texto-ter)", fontSize: 11, marginBottom: 8 }}>
-                Pega un JSON con los items del carrusel. Si lo dejas vacio, no se muestra.
-              </div>
-              <textarea
-                value={form.publicidad_json || ""}
-                onChange={(e) => set("publicidad_json", e.target.value)}
-                placeholder={`[
-  {
-    "eyebrow": "PLAN SALUD",
-    "titulo": "Salud al instante",
-    "descripcion": "Texto corto",
-    "items": [{"icono":"🩺","texto":"Orientación médica"}],
-    "cta": "Ver plan",
-    "url": "https://tuweb.com",
-    "heroIcon": "🩺",
-    "gradient": "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14))",
-    "border": "rgba(64,141,255,0.32)",
-    "accent": "#7BC6FF",
-    "button": "linear-gradient(135deg, #408DFF, #16C784)"
-  }
-]`}
-                rows={8}
-                style={{
-                  width: "100%", padding: "11px 12px", borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.06)",
-                  color: "var(--texto)", outline: "none", fontSize: 12, resize: "vertical",
-                  fontFamily: "monospace", lineHeight: 1.5, boxSizing: "border-box",
-                }}
-              />
-            </div>
+            <EditorCarrusel
+              key={empresaSeleccionada || "default"}
+              value={form.publicidad_json}
+              onChange={(json) => set("publicidad_json", json)}
+            />
 
             <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 10 }}>
               <button
@@ -395,6 +384,485 @@ function Campo({ label, value, placeholder, onChange }) {
         }}
       />
     </label>
+  );
+}
+
+// --- Helpers para colores ---
+const rgbaToHex = (rgba) => {
+  if (!rgba) return "#000000";
+  if (rgba.startsWith("#")) return rgba;
+  const nums = rgba.match(/[\d.]+/g);
+  if (!nums || nums.length < 3) return "#000000";
+  const r = parseInt(nums[0]).toString(16).padStart(2, "0");
+  const g = parseInt(nums[1]).toString(16).padStart(2, "0");
+  const b = parseInt(nums[2]).toString(16).padStart(2, "0");
+  return `#${r}${g}${b}`;
+};
+
+const hexToRgba = (hex, alpha = 1) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+};
+
+// --- Presets de gradientes ---
+const GRADIENT_PRESETS = [
+  { nombre: "Azul-Verde", valor: "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14))" },
+  { nombre: "Naranja", valor: "linear-gradient(135deg, rgba(253,119,81,0.2), rgba(236,168,45,0.14))" },
+  { nombre: "Morado", valor: "linear-gradient(135deg, rgba(123,44,191,0.2), rgba(90,24,154,0.14))" },
+  { nombre: "Rojo", valor: "linear-gradient(135deg, rgba(237,30,40,0.2), rgba(253,119,81,0.14))" },
+  { nombre: "Cyan", valor: "linear-gradient(135deg, rgba(0,188,212,0.2), rgba(64,141,255,0.14))" },
+  { nombre: "Rosa", valor: "linear-gradient(135deg, rgba(233,30,99,0.2), rgba(156,39,176,0.14))" },
+  { nombre: "Verde", valor: "linear-gradient(135deg, rgba(22,199,132,0.2), rgba(76,175,80,0.14))" },
+  { nombre: "Dorado", valor: "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(255,193,7,0.14))" },
+];
+
+const BUTTON_PRESETS = [
+  { nombre: "Azul-Verde", valor: "linear-gradient(135deg, #408DFF, #16C784)" },
+  { nombre: "Naranja", valor: "linear-gradient(135deg, #FD7751, #ECA82D)" },
+  { nombre: "Morado", valor: "linear-gradient(135deg, #7B2CBF, #5A189A)" },
+  { nombre: "Rojo", valor: "linear-gradient(135deg, #ED1E28, #FD7751)" },
+  { nombre: "Cyan", valor: "linear-gradient(135deg, #00BCD4, #408DFF)" },
+  { nombre: "Rosa", valor: "linear-gradient(135deg, #E91E63, #9C27B0)" },
+  { nombre: "Verde", valor: "linear-gradient(135deg, #16C784, #4CAF50)" },
+  { nombre: "Dorado", valor: "linear-gradient(135deg, #ECA82D, #FFC107)" },
+];
+
+// --- Emojis organizados por categoria ---
+const EMOJI_CATEGORIAS = [
+  { label: "Salud", emojis: ["🩺", "💊", "🏥", "❤️", "🧑‍⚕️", "🩹", "💉", "🦷", "👁️", "🧬"] },
+  { label: "Vehiculos", emojis: ["🚗", "🏍️", "🚕", "🚙", "🛞", "🔧", "⛽", "🅿️", "🚨", "🛣️"] },
+  { label: "Agua", emojis: ["💧", "🚿", "🌊", "🪠", "🧊", "💦", "🌧️", "☔", "🏗️", "🔩"] },
+  { label: "Hogar", emojis: ["🏠", "🔑", "💡", "🔌", "🧹", "🛠️", "🧰", "🪛", "🏢", "🪜"] },
+  { label: "Dinero", emojis: ["💰", "💳", "💵", "🏦", "📈", "💎", "🪙", "💲", "🧾", "📊"] },
+  { label: "Educacion", emojis: ["🎓", "📚", "✏️", "💻", "🧠", "📝", "🔬", "🎒", "📖", "🏫"] },
+  { label: "Servicios", emojis: ["📱", "📦", "🛡️", "⚡", "📡", "☁️", "🔒", "🌐", "📞", "✉️"] },
+  { label: "Viajes", emojis: ["✈️", "🌍", "🏖️", "🗺️", "🧳", "🏔️", "🚀", "🎯", "⛵", "🚂"] },
+  { label: "Otros", emojis: ["🎁", "🏆", "⭐", "🌟", "🔔", "🤝", "🎉", "🔥", "👍", "📢"] },
+];
+
+function EmojiPicker({ value, onChange, compact }) {
+  const [abierto, setAbierto] = useState(false);
+  const [cat, setCat] = useState(0);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef(null);
+
+  const abrir = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const alturaPopup = 320;
+      const cabeAbajo = rect.bottom + alturaPopup < window.innerHeight;
+      setPos({
+        top: cabeAbajo ? rect.bottom + 4 : rect.top - alturaPopup - 4,
+        left: Math.min(rect.left, window.innerWidth - 296),
+      });
+    }
+    setAbierto(!abierto);
+  };
+
+  return (
+    <div style={{ display: "inline-block" }}>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={abrir}
+        style={{
+          width: compact ? 40 : 48, height: compact ? 40 : 48, borderRadius: 10,
+          border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)",
+          fontSize: compact ? 18 : 22, cursor: "pointer", display: "flex",
+          alignItems: "center", justifyContent: "center", color: "var(--texto)",
+        }}
+      >
+        {value || <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>+</span>}
+      </button>
+      {abierto && (
+        <>
+          <div onClick={() => setAbierto(false)} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
+          <div style={{
+            position: "fixed", top: pos.top, left: pos.left, zIndex: 1000,
+            background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 14,
+            padding: 10, boxShadow: "0 12px 40px rgba(0,0,0,0.6)", width: 280,
+          }}>
+            {/* Tabs de categorias */}
+            <div style={{ display: "flex", gap: 4, marginBottom: 8, flexWrap: "wrap" }}>
+              {EMOJI_CATEGORIAS.map((c, i) => (
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={() => setCat(i)}
+                  style={{
+                    padding: "3px 8px", borderRadius: 6, border: "none",
+                    background: cat === i ? "rgba(255,255,255,0.18)" : "transparent",
+                    color: cat === i ? "#fff" : "rgba(255,255,255,0.5)",
+                    fontSize: 10, fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            {/* Grid de emojis */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
+              {EMOJI_CATEGORIAS[cat].emojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => { onChange(emoji); setAbierto(false); }}
+                  style={{
+                    width: 44, height: 44, borderRadius: 10, border: value === emoji ? "2px solid rgba(255,255,255,0.5)" : "2px solid transparent",
+                    background: value === emoji ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                    fontSize: 22, cursor: "pointer", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.transform = "scale(1.1)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = value === emoji ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "scale(1)"; }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            {value && (
+              <button
+                type="button"
+                onClick={() => { onChange(""); setAbierto(false); }}
+                style={{
+                  width: "100%", padding: "6px 0", borderRadius: 8, border: "none",
+                  background: "rgba(231,76,60,0.15)", color: "#e74c3c",
+                  fontSize: 11, cursor: "pointer", fontWeight: 600, marginTop: 8,
+                }}
+              >
+                Quitar icono
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+const SLIDE_VACIO = {
+  eyebrow: "",
+  titulo: "",
+  descripcion: "",
+  items: [],
+  cta: "Conocer mas",
+  url: "",
+  heroIcon: "",
+  gradient: "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14))",
+  border: "rgba(64,141,255,0.32)",
+  accent: "#7BC6FF",
+  button: "linear-gradient(135deg, #408DFF, #16C784)",
+};
+
+function parsearSlides(json) {
+  try {
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+function EditorCarrusel({ value, onChange }) {
+  const [slides, setSlides] = useState(() => parsearSlides(value));
+  const [abierto, setAbierto] = useState(null);
+
+  const sincronizar = (nuevoSlides) => {
+    setSlides(nuevoSlides);
+    onChange(nuevoSlides.length > 0 ? JSON.stringify(nuevoSlides) : "");
+  };
+
+  const agregar = () => {
+    const nuevo = [...slides, { ...SLIDE_VACIO }];
+    sincronizar(nuevo);
+    setAbierto(nuevo.length - 1);
+  };
+
+  const eliminar = (idx) => {
+    sincronizar(slides.filter((_, i) => i !== idx));
+    setAbierto(null);
+  };
+
+  const actualizar = (idx, campo, valor) => {
+    const copia = slides.map((s, i) => (i === idx ? { ...s, [campo]: valor } : s));
+    sincronizar(copia);
+  };
+
+  const agregarItem = (idx) => {
+    const items = [...(slides[idx].items || []), { icono: "", texto: "" }];
+    actualizar(idx, "items", items);
+  };
+
+  const actualizarItem = (slideIdx, itemIdx, campo, valor) => {
+    const items = (slides[slideIdx].items || []).map((it, i) =>
+      i === itemIdx ? { ...it, [campo]: valor } : it
+    );
+    actualizar(slideIdx, "items", items);
+  };
+
+  const eliminarItem = (slideIdx, itemIdx) => {
+    const items = (slides[slideIdx].items || []).filter((_, i) => i !== itemIdx);
+    actualizar(slideIdx, "items", items);
+  };
+
+  const inputStyle = {
+    padding: "9px 10px", borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.06)",
+    color: "var(--texto)", outline: "none", fontSize: 13, width: "100%", boxSizing: "border-box",
+  };
+
+  const labelStyle = { color: "var(--texto-sec)", fontSize: 11, fontWeight: 600, marginBottom: 4, display: "block" };
+
+  return (
+    <div style={{ marginTop: 22 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700 }}>Publicidad (Carrusel)</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>
+            {slides.length === 0 ? "Sin slides. Agrega uno para mostrar el carrusel." : `${slides.length} slide${slides.length > 1 ? "s" : ""}`}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={agregar}
+          style={{
+            padding: "8px 14px", borderRadius: 10, border: "none",
+            background: "rgba(22,199,132,0.15)", color: "#16C784",
+            fontWeight: 700, fontSize: 12, cursor: "pointer",
+          }}
+        >
+          + Agregar slide
+        </button>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {slides.map((slide, idx) => (
+          <div
+            key={idx}
+            style={{
+              border: "1px solid var(--card-border)", borderRadius: 14,
+              background: "rgba(255,255,255,0.03)", overflow: "hidden",
+            }}
+          >
+            {/* Header del slide (siempre visible) */}
+            <div
+              onClick={() => setAbierto(abierto === idx ? null : idx)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "12px 14px", cursor: "pointer", userSelect: "none",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>{slide.heroIcon || "📢"}</span>
+                <span style={{ color: "var(--texto)", fontSize: 13, fontWeight: 700 }}>
+                  {slide.titulo || `Slide ${idx + 1}`}
+                </span>
+                {slide.eyebrow && (
+                  <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>— {slide.eyebrow}</span>
+                )}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); eliminar(idx); }}
+                  style={{
+                    padding: "4px 10px", borderRadius: 8, border: "none",
+                    background: "rgba(231,76,60,0.15)", color: "#e74c3c",
+                    fontSize: 11, cursor: "pointer", fontWeight: 600,
+                  }}
+                >
+                  Eliminar
+                </button>
+                <span style={{ color: "var(--texto-ter)", fontSize: 14, transition: "transform 0.2s", transform: abierto === idx ? "rotate(180deg)" : "rotate(0)" }}>
+                  ▼
+                </span>
+              </div>
+            </div>
+
+            {/* Contenido expandible */}
+            {abierto === idx && (
+              <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* Fila 1: Eyebrow + Titulo */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 10 }}>
+                  <div>
+                    <span style={labelStyle}>Etiqueta superior</span>
+                    <input style={inputStyle} value={slide.eyebrow || ""} placeholder="PLAN SALUD" onChange={(e) => actualizar(idx, "eyebrow", e.target.value)} />
+                  </div>
+                  <div>
+                    <span style={labelStyle}>Titulo</span>
+                    <input style={inputStyle} value={slide.titulo || ""} placeholder="Salud al instante" onChange={(e) => actualizar(idx, "titulo", e.target.value)} />
+                  </div>
+                </div>
+
+                {/* Descripcion */}
+                <div>
+                  <span style={labelStyle}>Descripcion</span>
+                  <textarea
+                    style={{ ...inputStyle, resize: "vertical", minHeight: 50, fontFamily: "inherit" }}
+                    value={slide.descripcion || ""}
+                    placeholder="Texto descriptivo corto..."
+                    rows={2}
+                    onChange={(e) => actualizar(idx, "descripcion", e.target.value)}
+                  />
+                </div>
+
+                {/* Icono principal */}
+                <div>
+                  <span style={labelStyle}>Icono del slide</span>
+                  <EmojiPicker value={slide.heroIcon || ""} onChange={(v) => actualizar(idx, "heroIcon", v)} />
+                </div>
+
+                {/* Texto boton + URL */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 10 }}>
+                  <div>
+                    <span style={labelStyle}>Texto del boton</span>
+                    <input style={inputStyle} value={slide.cta || ""} placeholder="Ver plan" onChange={(e) => actualizar(idx, "cta", e.target.value)} />
+                  </div>
+                  <div>
+                    <span style={labelStyle}>URL del boton</span>
+                    <input style={inputStyle} value={slide.url || ""} placeholder="https://tuweb.com" onChange={(e) => actualizar(idx, "url", e.target.value)} />
+                  </div>
+                </div>
+
+                {/* Items (iconos + texto) */}
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={labelStyle}>Items destacados</span>
+                    <button
+                      type="button"
+                      onClick={() => agregarItem(idx)}
+                      style={{
+                        padding: "4px 10px", borderRadius: 8, border: "none",
+                        background: "rgba(255,255,255,0.08)", color: "var(--texto-sec)",
+                        fontSize: 11, cursor: "pointer", fontWeight: 600,
+                      }}
+                    >
+                      + Item
+                    </button>
+                  </div>
+                  {(slide.items || []).map((item, iIdx) => (
+                    <div key={iIdx} style={{
+                      marginBottom: 10, padding: 10, borderRadius: 10,
+                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                    }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}>
+                        <div style={{ flexShrink: 0 }}>
+                          <EmojiPicker compact value={item.icono || ""} onChange={(v) => actualizarItem(idx, iIdx, "icono", v)} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <input
+                            style={{ ...inputStyle, marginBottom: 6 }}
+                            value={item.texto || ""}
+                            placeholder="Titulo del item (ej: Grua y asistencia)"
+                            onChange={(e) => actualizarItem(idx, iIdx, "texto", e.target.value)}
+                          />
+                          <input
+                            style={{ ...inputStyle, fontSize: 12 }}
+                            value={item.descripcion || ""}
+                            placeholder="Descripcion breve (opcional)"
+                            onChange={(e) => actualizarItem(idx, iIdx, "descripcion", e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => eliminarItem(idx, iIdx)}
+                          style={{
+                            padding: "6px 8px", borderRadius: 8, border: "none",
+                            background: "rgba(231,76,60,0.12)", color: "#e74c3c",
+                            fontSize: 12, cursor: "pointer", flexShrink: 0, marginTop: 2,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Colores / estilos */}
+                <details style={{ cursor: "pointer" }}>
+                  <summary style={{ color: "var(--texto-ter)", fontSize: 11, fontWeight: 600, marginBottom: 8 }}>
+                    Estilos avanzados (colores, gradientes)
+                  </summary>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
+                    {/* Colores con picker */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      <div>
+                        <span style={labelStyle}>Color acento</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <input
+                            type="color"
+                            value={slide.accent || "#7BC6FF"}
+                            onChange={(e) => actualizar(idx, "accent", e.target.value)}
+                            style={{ width: 36, height: 36, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
+                          />
+                          <input style={{ ...inputStyle, flex: 1 }} value={slide.accent || ""} placeholder="#7BC6FF" onChange={(e) => actualizar(idx, "accent", e.target.value)} />
+                        </div>
+                      </div>
+                      <div>
+                        <span style={labelStyle}>Color borde</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <input
+                            type="color"
+                            value={rgbaToHex(slide.border) || "#408DFF"}
+                            onChange={(e) => actualizar(idx, "border", hexToRgba(e.target.value, 0.32))}
+                            style={{ width: 36, height: 36, border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
+                          />
+                          <input style={{ ...inputStyle, flex: 1 }} value={slide.border || ""} placeholder="rgba(64,141,255,0.32)" onChange={(e) => actualizar(idx, "border", e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Gradiente fondo - presets */}
+                    <div>
+                      <span style={labelStyle}>Gradiente fondo</span>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+                        {GRADIENT_PRESETS.map((p) => (
+                          <button
+                            key={p.nombre}
+                            type="button"
+                            title={p.nombre}
+                            onClick={() => actualizar(idx, "gradient", p.valor)}
+                            style={{
+                              width: 36, height: 36, borderRadius: 10, border: slide.gradient === p.valor ? "2px solid #fff" : "2px solid transparent",
+                              background: p.valor, cursor: "pointer", transition: "border 0.2s",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <input style={inputStyle} value={slide.gradient || ""} placeholder="linear-gradient(135deg, ...)" onChange={(e) => actualizar(idx, "gradient", e.target.value)} />
+                    </div>
+
+                    {/* Gradiente boton - presets */}
+                    <div>
+                      <span style={labelStyle}>Gradiente boton</span>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+                        {BUTTON_PRESETS.map((p) => (
+                          <button
+                            key={p.nombre}
+                            type="button"
+                            title={p.nombre}
+                            onClick={() => actualizar(idx, "button", p.valor)}
+                            style={{
+                              width: 36, height: 36, borderRadius: 10, border: slide.button === p.valor ? "2px solid #fff" : "2px solid transparent",
+                              background: p.valor, cursor: "pointer", transition: "border 0.2s",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <input style={inputStyle} value={slide.button || ""} placeholder="linear-gradient(135deg, ...)" onChange={(e) => actualizar(idx, "button", e.target.value)} />
+                    </div>
+                  </div>
+                </details>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

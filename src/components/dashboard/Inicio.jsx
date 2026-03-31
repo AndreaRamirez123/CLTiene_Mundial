@@ -311,35 +311,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
           {promoActual.descripcion || "Conoce los beneficios y servicios disponibles para tu empresa."}
         </div>
         {Array.isArray(promoActual.items) && promoActual.items.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 12 }}>
-          {promoActual.items.map((item) => (
-            <div 
-              key={item.texto} 
-              style={{ 
-                background: "rgba(255,255,255,0.06)", 
-                border: "1px solid rgba(255,255,255,0.08)", 
-                borderRadius: 12, 
-                padding: "10px 8px", 
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.3s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.12)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              <div style={{ fontSize: 18, marginBottom: 4 }}>{item.icono}</div>
-              <div style={{ color: "var(--texto)", fontSize: 11, fontWeight: 700 }}>{item.texto}</div>
-            </div>
-          ))}
-        </div>
+          <CarruselItems items={promoActual.items} />
         )}
         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 10, marginBottom: 10 }}>
           <a
@@ -526,6 +498,64 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
           Reclamar
         </button>
       </div>
+    </div>
+  );
+}
+
+function CarruselItems({ items }) {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    if (items.length <= 1) return;
+    const timer = setInterval(() => {
+      setIdx((prev) => (prev + 1) % items.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [items.length]);
+
+  const item = items[idx];
+  if (!item) return null;
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div
+        key={idx}
+        style={{
+          background: "rgba(255,255,255,0.06)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 12,
+          padding: "14px 16px",
+          textAlign: "center",
+          animation: "fadeSlideIn 0.4s ease",
+        }}
+      >
+        <div style={{ fontSize: 28, marginBottom: 6 }}>{item.icono}</div>
+        <div style={{ color: "var(--texto)", fontSize: 13, fontWeight: 800 }}>{item.texto}</div>
+        {item.descripcion && (
+          <div style={{ color: "var(--texto-sec)", fontSize: 11, marginTop: 4, lineHeight: 1.4 }}>{item.descripcion}</div>
+        )}
+      </div>
+      {items.length > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 5, marginTop: 8 }}>
+          {items.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              style={{
+                width: idx === i ? 18 : 6, height: 6, borderRadius: 3,
+                background: idx === i ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.25)",
+                border: "none", cursor: "pointer", transition: "all 0.3s", padding: 0,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

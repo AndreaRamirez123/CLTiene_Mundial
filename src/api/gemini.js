@@ -18,7 +18,7 @@ async function generarContenidoConGemini(prompt, conFuentes = false) {
     signal: controller.signal,
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      // SIN herramientas
+      
     }),
   }).finally(() => clearTimeout(timeoutId));
 
