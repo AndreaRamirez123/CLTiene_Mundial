@@ -92,22 +92,22 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const posicion = ranking.find((r) => r.esYo)?.pos || "—";
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)" }}>
-      <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease" }}>
-        <img src={getLogoMarca()} className="logo-header" style={{ height: 28 }} alt={getNombreMarca()} />
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div id="tutorial-monedas" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 12px" }}>
-            <span className="anim-coin" style={{ fontSize: 16 }}>🪙</span>
-            <span className="anim-count" style={{ color: C.dorado, fontWeight: 900, fontSize: 16 }}>{monedas}</span>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)", overflowX: "hidden", maxWidth: "100vw" }}>
+      <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease", gap: 8, overflow: "hidden" }}>
+        <img src={getLogoMarca()} className="logo-header" style={{ height: 28, flexShrink: 0, maxWidth: 100, objectFit: "contain" }} alt={getNombreMarca()} />
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <div id="tutorial-monedas" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 10px" }}>
+            <span className="anim-coin" style={{ fontSize: 14 }}>🪙</span>
+            <span className="anim-count" style={{ color: C.dorado, fontWeight: 900, fontSize: 14 }}>{monedas}</span>
           </div>
-          <div id="tutorial-goles" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 12px", animationDelay: "1s" }}>
-            <span className="anim-goal-flash" style={{ fontSize: 16 }}>⚽</span>
-            <span className="anim-count" style={{ color: C.verde, fontWeight: 900, fontSize: 16 }}>{perfil?.goles || 0}</span>
+          <div id="tutorial-goles" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(22,199,132,0.15)", border: "1px solid rgba(22,199,132,0.4)", borderRadius: 20, padding: "5px 10px" }}>
+            <span className="anim-goal-flash" style={{ fontSize: 14 }}>⚽</span>
+            <span className="anim-count" style={{ color: C.verde, fontWeight: 900, fontSize: 14 }}>{perfil?.goles || 0}</span>
           </div>
           <div id="tutorial-tema" style={{ display: "flex", alignItems: "center" }}>
             <ThemeToggle />
           </div>
-          <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 13 }}>Salir</button>
+          <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 }}>Salir</button>
         </div>
       </div>
 
@@ -213,14 +213,14 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           { id: "ranking", i: "🏆", l: "Ranking" },
           { id: "misiones", i: "🎯", l: "Misiones" },
         ].map((t) => (
-          <button key={t.id} onClick={() => { setTab(t.id); setMenuAbierto(false); }} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
-            <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
-            <span style={{ fontSize: 10, color: tab === t.id ? C.naranja : "var(--texto-ter)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
+          <button key={t.id} onClick={() => { setTab(t.id); setMenuAbierto(false); }} style={{ flex: "1 1 0", minWidth: 0, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
+            <span style={{ fontSize: 18, filter: tab === t.id ? "none" : "grayscale(1)", opacity: tab === t.id ? 1 : 0.4 }}>{t.i}</span>
+            <span style={{ fontSize: 9, color: tab === t.id ? C.naranja : "var(--texto-ter)", fontWeight: tab === t.id ? 700 : 400 }}>{t.l}</span>
           </button>
         ))}
-        <button onClick={() => setMenuAbierto(!menuAbierto)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
+        <button onClick={() => setMenuAbierto(!menuAbierto)} style={{ flex: "1 1 0", minWidth: 0, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0" }}>
           <span style={{ fontSize: 18, opacity: menuAbierto ? 1 : 0.5, color: menuAbierto ? C.naranja : "var(--texto)", lineHeight: 1.2 }}>{menuAbierto ? "✕" : "•••"}</span>
-          <span style={{ fontSize: 10, color: menuAbierto ? C.naranja : "var(--texto-ter)", fontWeight: menuAbierto ? 700 : 400 }}>Más</span>
+          <span style={{ fontSize: 9, color: menuAbierto ? C.naranja : "var(--texto-ter)", fontWeight: menuAbierto ? 700 : 400 }}>Más</span>
         </button>
       </div>
 

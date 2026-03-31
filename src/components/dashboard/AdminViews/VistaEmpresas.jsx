@@ -47,8 +47,10 @@ export default function VistaEmpresas({ client }) {
     setError('');
     setMensaje('');
     try {
-      await client.post(`/admin/empresas/${mostrarFormAdmin}/crear-admin`, formAdmin);
-      setMensaje('Admin creado exitosamente');
+      const res = await client.post(`/admin/empresas/${mostrarFormAdmin}/crear-admin`, formAdmin);
+      const msg = res.data?.promovido ? 'Usuario existente promovido a Admin' : 'Admin creado exitosamente';
+      setMensaje(msg);
+      alert(msg);
       setFormAdmin({ email: '', password: '', nombre: '' });
       setMostrarFormAdmin(null);
     } catch (err) {

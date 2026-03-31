@@ -104,14 +104,54 @@ export class EmpresasService {
       throw new NotFoundException('Empresa no encontrada.');
     }
 
-    const existeEmail = await this.jugadorRepo.findOne({
-      where: { email: datos.email },
+    // Buscar si ya existe en esta empresa
+    const existeEnEmpresa = await this.jugadorRepo.findOne({
+      where: { email: datos.email, empresa_id: empresaId },
     });
-    if (existeEmail) {
-      throw new BadRequestException('Ya existe un usuario con ese email.');
+
+    if (existeEnEmpresa) {
+      // Ya existe en esta empresa: solo promover a admin
+      existeEnEmpresa.rol = 'admin';
+      existeEnEmpresa.nivel = 'activo';
+      if (datos.nombre) existeEnEmpresa.nombre = datos.nombre;
+      const saved = await this.jugadorRepo.save(existeEnEmpresa);
+      const { password, ...resultado } = saved as any;
+      return { ...resultado, promovido: true };
     }
 
-    if (datos.password.length < 6) {
+    // Buscar si existe en otra empresa
+    const existeEnOtra = await this.jugadorRepo.findOne({
+      where: { email: datos.email },
+    });
+
+    if (existeEnOtra) {
+      // Existe en otra empresa: crear nuevo registro como admin en esta empresa
+      const uid = this.generarUid();
+      const hash = await bcrypt.hash(datos.password || uid, 10);
+
+      const admin = this.jugadorRepo.create({
+        uid,
+        email: datos.email,
+        password: hash,
+        correo: datos.email,
+        nombre: datos.nombre || existeEnOtra.nombre || '',
+        telefono: existeEnOtra.telefono || '',
+        monedas: 0,
+        monedas_totales_ganadas: 0,
+        codigo_referido: uid.substring(0, 8).toUpperCase(),
+        nivel: 'activo',
+        dias_consecutivos: 0,
+        rol: 'admin',
+        empresa_id: empresaId,
+      });
+
+      const saved = await this.jugadorRepo.save(admin);
+      const { password, ...resultado } = saved as any;
+      return resultado;
+    }
+
+    // Usuario nuevo: validar password y crear
+    if (!datos.password || datos.password.length < 6) {
       throw new BadRequestException(
         'La contrasena debe tener al menos 6 caracteres.',
       );
