@@ -16,7 +16,7 @@ const C = {
     negro: "#1f2321",
 };
 
-export default function Registro({ usuario, onRegistroCompleto, onVolver }) {
+export default function Registro({ usuario, preRegistro, onRegistroCompleto, onVolver }) {
     const [step, setStep] = useState(0);
     const [aceptado, setAceptado] = useState(false);
     const [verTerminos, setVerTerminos] = useState(false);
@@ -63,21 +63,45 @@ export default function Registro({ usuario, onRegistroCompleto, onVolver }) {
     };
 
     const guardarPerfil = async (datos) => {
-        if (!usuario?.uid) return;
         setGuardando(true);
         try {
-            const res = await client.post("/auth/completar-perfil", {
-                uid: usuario.uid,
-                nombre: datos.nombre,
-                telefono: datos.telefono,
-                tipojugador: datos.tipojugador,
-                relacion_cltiene: datos.relacionCLTiene,
-                es_referido: datos.esReferido ? 1 : 0,
-                nombre_referidor: datos.nombreReferidor || "",
-                referido_por: datos.codigoReferidor || "",
-                departamento: datos.departamento || "",
-                ciudad: datos.ciudad || "",
-            });
+            let res;
+            if (preRegistro) {
+                // Registro nuevo: crear jugador completo en una sola llamada
+                res = await client.post("/auth/registro-completo", {
+                    email: preRegistro.email,
+                    password: preRegistro.password,
+                    empresa_slug: preRegistro.empresa_slug,
+                    nombre: datos.nombre,
+                    telefono: datos.telefono,
+                    tipojugador: datos.tipojugador,
+                    relacion_cltiene: datos.relacionCLTiene,
+                    es_referido: datos.esReferido ? 1 : 0,
+                    nombre_referidor: datos.nombreReferidor || "",
+                    referido_por: datos.codigoReferidor || "",
+                    departamento: datos.departamento || "",
+                    ciudad: datos.ciudad || "",
+                });
+                // Guardar token y usuario en localStorage
+                localStorage.setItem("token", res.data.token);
+                localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
+            } else if (usuario?.uid) {
+                // Completar perfil de usuario existente (Google login)
+                res = await client.post("/auth/completar-perfil", {
+                    uid: usuario.uid,
+                    nombre: datos.nombre,
+                    telefono: datos.telefono,
+                    tipojugador: datos.tipojugador,
+                    relacion_cltiene: datos.relacionCLTiene,
+                    es_referido: datos.esReferido ? 1 : 0,
+                    nombre_referidor: datos.nombreReferidor || "",
+                    referido_por: datos.codigoReferidor || "",
+                    departamento: datos.departamento || "",
+                    ciudad: datos.ciudad || "",
+                });
+            } else {
+                return false;
+            }
             return res.data.usuario || true;
         } catch (err) {
             const msg = err.response?.data?.message || "Error al registrar";

@@ -43,6 +43,28 @@ export class AuthController {
     return this.authService.resetPassword(body.email, body.codigo, body.nueva_password, body.empresa_slug);
   }
 
+  @Post('registro-completo')
+  registroCompleto(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+      empresa_slug?: string;
+      nombre: string;
+      telefono: string;
+      tipojugador: string;
+      relacion_cltiene: string;
+      es_referido: number;
+      nombre_referidor: string;
+      referido_por: string;
+      departamento: string;
+      ciudad: string;
+    },
+  ) {
+    const { email, password, empresa_slug, ...datos } = body;
+    return this.authService.registroCompleto(email, password, empresa_slug || 'default', datos);
+  }
+
   @Post('completar-perfil')
   completarPerfil(
     @Body()

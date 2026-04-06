@@ -76,6 +76,22 @@ export class AuthService {
     return empresa.id;
   }
 
+  private validarPasswordSegura(password: string) {
+    const reglas = [
+      password.length >= 8,
+      /[A-ZÀ-ÖØ-ÝÑ]/.test(password),
+      /[a-zà-öø-ÿñ]/.test(password),
+      /[0-9]/.test(password),
+      /[^A-Za-z0-9À-ÖØ-Ýà-öø-ÿÑñÜü]/.test(password),
+    ];
+    const cumplidas = reglas.filter(Boolean).length;
+    if (cumplidas < 4) {
+      throw new BadRequestException(
+        'La contraseña debe cumplir al menos 4 de 5 requisitos: 8+ caracteres, mayúscula, minúscula, número y carácter especial.',
+      );
+    }
+  }
+
   async registro(email: string, password: string, empresaSlug?: string) {
     const empresaId = await this.resolverEmpresa(empresaSlug);
 
@@ -88,11 +104,7 @@ export class AuthService {
       );
     }
 
-    if (password.length < 6) {
-      throw new BadRequestException(
-        'La contrasena debe tener al menos 6 caracteres.',
-      );
-    }
+    this.validarPasswordSegura(password);
 
     const hash = await bcrypt.hash(password, 10);
     const uid = this.generarUid();
@@ -119,6 +131,98 @@ export class AuthService {
       token,
       usuario: this.limpiarUsuario(saved),
     };
+  }
+
+  async registroCompleto(
+    email: string,
+    password: string,
+    empresaSlug: string,
+    datos: {
+      nombre: string;
+      telefono: string;
+      tipojugador: string;
+      relacion_cltiene: string;
+      es_referido: number;
+      nombre_referidor: string;
+      referido_por: string;
+      departamento: string;
+      ciudad: string;
+    },
+  ) {
+    const empresaId = await this.resolverEmpresa(empresaSlug);
+
+    const existe = await this.jugadorRepo.findOne({
+      where: { email, empresa_id: empresaId },
+    });
+    if (existe) {
+      throw new BadRequestException(
+        'Este correo ya esta registrado en esta empresa.',
+      );
+    }
+
+    this.validarPasswordSegura(password);
+
+    const telLimpio = datos.telefono.replace(/\D/g, '');
+    if (!/^3\d{9}$/.test(telLimpio)) {
+      throw new BadRequestException(
+        'El numero de telefono no es valido. Debe ser un celular colombiano de 10 digitos.',
+      );
+    }
+
+    const telExiste = await this.jugadorRepo.findOne({
+      where: { telefono: telLimpio, empresa_id: empresaId },
+    });
+    if (telExiste) {
+      throw new BadRequestException(
+        'Este numero de telefono ya esta registrado por otro jugador.',
+      );
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    const uid = this.generarUid();
+    const bonoRegistro = 100;
+
+    return this.dataSource.transaction(async (manager) => {
+      const jugador = this.jugadorRepo.create({
+        uid,
+        email,
+        password: hash,
+        correo: email,
+        nombre: datos.nombre,
+        telefono: telLimpio,
+        tipojugador: datos.tipojugador || null,
+        relacion_cltiene: datos.relacion_cltiene || null,
+        es_referido: datos.es_referido,
+        nombre_referidor: datos.nombre_referidor || '',
+        referido_por: datos.referido_por || '',
+        departamento: datos.departamento || '',
+        ciudad: datos.ciudad || '',
+        monedas: bonoRegistro,
+        monedas_totales_ganadas: bonoRegistro,
+        codigo_referido: uid.substring(0, 8).toUpperCase(),
+        nivel: 'activo',
+        dias_consecutivos: 1,
+        ultimo_acceso: new Date(),
+        empresa_id: empresaId,
+      });
+
+      const saved: Jugador = await manager.save(Jugador, jugador);
+
+      await manager.save(Transaccion, {
+        jugador_id: saved.id,
+        tipo: 'registro',
+        monto: bonoRegistro,
+        saldo_anterior: 0,
+        saldo_nuevo: bonoRegistro,
+        descripcion: 'Bono de bienvenida por registro',
+      });
+
+      const token = this.generarToken(saved);
+      return {
+        token,
+        usuario: this.limpiarUsuario(saved),
+      };
+    });
   }
 
   async login(email: string, password: string, empresaSlug?: string) {
@@ -423,11 +527,7 @@ export class AuthService {
   ) {
     const empresaId = await this.resolverEmpresa(empresaSlug);
 
-    if (nuevaPassword.length < 6) {
-      throw new BadRequestException(
-        'La contraseña debe tener al menos 6 caracteres.',
-      );
-    }
+    this.validarPasswordSegura(nuevaPassword);
 
     const jugador = await this.jugadorRepo.findOne({
       where: { email, empresa_id: empresaId },

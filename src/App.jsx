@@ -10,6 +10,7 @@ export default function App() {
   const [perfilCompleto, setPerfilCompleto] = useState(false)
   const [mostrarTutorial, setMostrarTutorial] = useState(false)
   const [cargando, setCargando] = useState(true)
+  const [preRegistro, setPreRegistro] = useState(null) // {email, password, empresa_slug}
 
   useEffect(() => {
     const cache = localStorage.getItem('config_marca')
@@ -34,10 +35,11 @@ export default function App() {
   }
 
   const handleRegistroCompleto = (userActualizado) => {
-    const user = { ...usuario, ...userActualizado }
+    const user = { ...(usuario || {}), ...userActualizado }
     localStorage.setItem('usuario', JSON.stringify(user))
     setUsuario(user)
     setPerfilCompleto(true)
+    setPreRegistro(null)
     // Mostrar tutorial despues del registro
     setMostrarTutorial(true)
   }
@@ -57,7 +59,8 @@ export default function App() {
     </div>
   )
 
-  if (!usuario) return <Login onLoginExitoso={handleLogin} />
+  if (!usuario && !preRegistro) return <Login onLoginExitoso={handleLogin} onPreRegistro={setPreRegistro} />
+  if (preRegistro) return <Registro preRegistro={preRegistro} onRegistroCompleto={handleRegistroCompleto} onVolver={() => setPreRegistro(null)} />
   if (!perfilCompleto) return <Registro usuario={usuario} onRegistroCompleto={handleRegistroCompleto} onVolver={handleCerrarSesion} />
 
   return (

@@ -8,8 +8,51 @@ import { ThemeToggle } from "../store/useTheme";
 
 const GOOGLE_CLIENT_ID = "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
 
-export default function Login({ onLoginExitoso }) {
-    const [modo, setModo] = useState("login"); // "login" | "registro" | "reset-email" | "reset-codigo"
+function evaluarPassword(pass) {
+    const reglas = [
+        { test: pass.length >= 8, label: "Mínimo 8 caracteres" },
+        { test: pass !== pass.toLowerCase(), label: "Una letra mayúscula" },
+        { test: pass !== pass.toUpperCase(), label: "Una letra minúscula" },
+        { test: /\d/.test(pass), label: "Un número" },
+        { test: /[^a-zA-Z0-9\s]/.test(pass), label: "Un carácter especial (!@#$...)" },
+    ];
+    const cumplidas = reglas.filter((r) => r.test).length;
+    const nivel = cumplidas <= 1 ? "Muy débil" : cumplidas === 2 ? "Débil" : cumplidas === 3 ? "Media" : cumplidas === 4 ? "Fuerte" : "Muy fuerte";
+    const color = cumplidas <= 1 ? "#ED1E28" : cumplidas === 2 ? "#FD7751" : cumplidas === 3 ? "#ECA82D" : cumplidas === 4 ? "#16C784" : "#059669";
+    return { reglas, cumplidas, total: reglas.length, nivel, color, esValida: cumplidas >= 4 };
+}
+
+function PasswordStrength({ password }) {
+    if (!password) return null;
+    const { reglas, cumplidas, total, nivel, color } = evaluarPassword(password);
+    return (
+        <div style={{ marginBottom: 12, marginTop: -4 }}>
+            <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
+                {Array.from({ length: total }).map((_, i) => (
+                    <div key={i} style={{
+                        flex: 1, height: 4, borderRadius: 2,
+                        background: i < cumplidas ? color : "#E5E3DF",
+                        transition: "background 0.3s",
+                    }} />
+                ))}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color }}>{nivel}</span>
+                <span style={{ fontSize: 11, color: "#999" }}>{cumplidas}/{total}</span>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginTop: 6 }}>
+                {reglas.map((r, i) => (
+                    <span key={i} style={{ fontSize: 11, color: r.test ? "#059669" : "#999", display: "flex", alignItems: "center", gap: 3 }}>
+                        {r.test ? "✓" : "○"} {r.label}
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default function Login({ onLoginExitoso, onPreRegistro }) {
+    const [modo, setModo] = useState("login"); 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [cargando, setCargando] = useState(false);
@@ -26,10 +69,10 @@ export default function Login({ onLoginExitoso }) {
     const googleBtnRef = useRef(null);
     const empresaSlugRef = useRef(empresaSlug);
 
-    // Mantener ref actualizado para el callback de Google
+    
     useEffect(() => { empresaSlugRef.current = empresaSlug; }, [empresaSlug]);
 
-    // Cargar empresas activas
+    
     useEffect(() => {
         client.get("/auth/empresas-activas")
             .then((res) => setEmpresas(res.data || []))
@@ -80,7 +123,7 @@ export default function Login({ onLoginExitoso }) {
         }
     }, []);
 
-    // Re-renderizar botón de Google al volver al modo login/registro
+    
     useEffect(() => {
         if (modo === "login" || modo === "registro") {
             setTimeout(() => initGoogle(), 50);
@@ -108,16 +151,19 @@ export default function Login({ onLoginExitoso }) {
 
     const manejarEmailPassword = async () => {
         if (!email || !password) { setError("Completa todos los campos"); return; }
-        if (modo === "registro" && password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
+        if (modo === "registro" && !evaluarPassword(password).esValida) { setError("La contraseña no cumple los requisitos mínimos de seguridad"); return; }
+
+        // Registro: no crear en DB, solo pasar credenciales al flujo de registro
+        if (modo === "registro") {
+            onPreRegistro({ email, password, empresa_slug: empresaSlug });
+            return;
+        }
+
         setCargando(true); setError("");
         try {
-            const endpoint = modo === "login" ? "/auth/login" : "/auth/registro";
-            const res = await client.post(endpoint, { email, password, empresa_slug: empresaSlug });
-
-            // Guardar token y datos del usuario
+            const res = await client.post("/auth/login", { email, password, empresa_slug: empresaSlug });
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
-
             onLoginExitoso(res.data.usuario);
         } catch (e) {
             const msg = e.response?.data?.message;
@@ -144,7 +190,7 @@ export default function Login({ onLoginExitoso }) {
 
     const resetearPassword = async () => {
         if (!codigoReset || !nuevaPassword) { setError("Completa todos los campos"); return; }
-        if (nuevaPassword.length < 6) { setError("La contraseña debe tener al menos 6 caracteres"); return; }
+        if (!evaluarPassword(nuevaPassword).esValida) { setError("La contraseña no cumple los requisitos mínimos de seguridad"); return; }
         setCargando(true); setError(""); setExito("");
         try {
             const res = await client.post("/auth/reset-password", {
@@ -256,6 +302,8 @@ export default function Login({ onLoginExitoso }) {
                                 {mostrarPass ? "🙈" : "👁️"}
                             </button>
                         </div>
+
+                        {modo === "registro" && <PasswordStrength password={password} />}
 
                         {/* Olvidaste tu contraseña */}
                         {modo === "login" && (
@@ -377,6 +425,8 @@ export default function Login({ onLoginExitoso }) {
                                 {mostrarPass ? "🙈" : "👁️"}
                             </button>
                         </div>
+
+                        <PasswordStrength password={nuevaPassword} />
 
                         <button
                             onClick={resetearPassword}

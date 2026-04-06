@@ -163,30 +163,53 @@ export default function TutorialDemo({ onTerminar }) {
     if (paso > 0) setPaso(paso - 1);
   };
 
-  // Tooltip siempre centrado horizontalmente, posicion vertical segun el elemento
+  // Posicion del tooltip: alineado horizontalmente con el elemento en desktop, centrado en mobile
   const getTooltipStyle = () => {
+    const isMobile = window.innerWidth <= 768;
+    const tooltipW = Math.min(340, window.innerWidth - 32);
     const base = {
       position: 'fixed', zIndex: 10001,
       background: 'linear-gradient(135deg, #1a1230 0%, #0d1a2e 100%)',
       borderRadius: 18, padding: '20px 18px', maxWidth: 340,
       width: 'calc(100% - 32px)',
-      left: '50%', transform: 'translateX(-50%)',
       boxShadow: '0 16px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1)',
     };
 
     // Sin target o sin rect: centrar
     if (!rect) {
-      return { ...base, top: '50%', transform: 'translate(-50%, -50%)' };
+      return { ...base, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
     }
 
-    // Si el elemento esta en la mitad superior, tooltip va abajo
+    // Horizontal: en mobile centrar, en desktop alinear con el elemento
+    let hStyle;
+    if (isMobile) {
+      hStyle = { left: '50%', transform: 'translateX(-50%)' };
+    } else {
+      const elCenterX = rect.left + rect.width / 2;
+      let tooltipLeft = elCenterX - tooltipW / 2;
+      tooltipLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipW - 16));
+      hStyle = { left: tooltipLeft, transform: 'none' };
+    }
+
+    // Vertical: abajo del elemento si esta arriba, arriba si esta abajo
     const elCenter = rect.top + rect.height / 2;
     if (elCenter < window.innerHeight / 2) {
-      return { ...base, top: Math.min(rect.top + rect.height + pad + 12, window.innerHeight - 280) };
+      return { ...base, ...hStyle, top: Math.min(rect.top + rect.height + pad + 20, window.innerHeight - 280) };
     }
+    return { ...base, ...hStyle, bottom: Math.min(window.innerHeight - rect.top + pad + 8, window.innerHeight - 100) };
+  };
 
-    // Si el elemento esta en la mitad inferior, tooltip va arriba
-    return { ...base, bottom: Math.min(window.innerHeight - rect.top + pad + 8, window.innerHeight - 100) };
+  // Calcular posicion de la flecha que apunta al elemento
+  const getArrowStyle = () => {
+    if (!rect || window.innerWidth <= 768) return null;
+    const tooltipW = Math.min(340, window.innerWidth - 32);
+    const elCenterX = rect.left + rect.width / 2;
+    let tooltipLeft = elCenterX - tooltipW / 2;
+    tooltipLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipW - 16));
+    const arrowLeft = elCenterX - tooltipLeft;
+    const elCenter = rect.top + rect.height / 2;
+    const apuntaArriba = elCenter < window.innerHeight / 2;
+    return { arrowLeft: Math.max(20, Math.min(arrowLeft, tooltipW - 20)), apuntaArriba };
   };
 
   return (
@@ -232,6 +255,24 @@ export default function TutorialDemo({ onTerminar }) {
 
       {/* Tooltip */}
       <div style={getTooltipStyle()}>
+        {/* Flecha apuntando al elemento (solo desktop) */}
+        {(() => {
+          const arrow = getArrowStyle();
+          if (!arrow) return null;
+          return (
+            <div style={{
+              position: 'absolute',
+              [arrow.apuntaArriba ? 'top' : 'bottom']: -8,
+              left: arrow.arrowLeft,
+              transform: 'translateX(-50%)',
+              width: 0, height: 0,
+              borderLeft: '8px solid transparent',
+              borderRight: '8px solid transparent',
+              [arrow.apuntaArriba ? 'borderBottom' : 'borderTop']: '8px solid #1a1230',
+              filter: 'drop-shadow(0 -2px 4px rgba(253,119,81,0.3))',
+            }} />
+          );
+        })()}
         {/* Progreso */}
         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 16 }}>
           {PASOS.map((_, i) => (
