@@ -224,7 +224,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                         alt={marcaActual?.nombre_app || "CLTiene Mundial"}
                         style={{ width: "200px", height: "auto", display: "block", margin: "0 auto" }}
                     />
-                    <div style={{ color: "var(--brand-accent)", fontWeight: 700, fontSize: "14px", marginTop: "6px" }}>
+                    <div style={{ color: marcaActual?.color_acento || "var(--brand-accent)", fontWeight: 700, fontSize: "14px", marginTop: "6px" }}>
                         {marcaActual?.subtitulo || "Mundial 2026"} ⚽
                     </div>
                 </div>
@@ -239,7 +239,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                 {/* Selector de empresa */}
                 {empresas.length > 1 && (
                     <div style={{ marginBottom: "16px" }}>
-                        <label style={{ display: "block", color: "#7D7765", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
+                        <label style={{ display: "block", color: "var(--texto-sec)", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
                             Selecciona tu organizacion
                         </label>
                         <select
@@ -247,13 +247,13 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                             onChange={(e) => setEmpresaSlug(e.target.value)}
                             style={{
                                 width: "100%", padding: "12px 14px",
-                                background: "#F8F7F5", border: "1.5px solid #E5E3DF",
-                                borderRadius: "12px", color: "#231F20", fontSize: "14px",
+                                background: "var(--input-bg)", border: "1.5px solid var(--input-border)",
+                                borderRadius: "12px", color: "var(--texto)", fontSize: "14px",
                                 outline: "none", cursor: "pointer", boxSizing: "border-box",
                             }}
                         >
                             {empresas.map((emp) => (
-                                <option key={emp.slug} value={emp.slug}>{emp.nombre}</option>
+                                <option key={emp.slug} value={emp.slug} style={{ background: "#fff", color: "#231F20" }}>{emp.nombre}</option>
                             ))}
                         </select>
                     </div>
@@ -470,24 +470,24 @@ const s = {
     },
     bgGradient: {
         position: "absolute", inset: 0,
-        background: "linear-gradient(135deg, #1a0a00 0%, #231F20 30%, #0d0820 60%, #0a1628 100%)",
+        background: "var(--bg-gradient)",
     },
     bgNoise: {
         position: "absolute", inset: 0, pointerEvents: "none",
         background: `
-      radial-gradient(ellipse at 15% 50%, #FD775130 0%, transparent 45%),
+      radial-gradient(ellipse at 15% 50%, rgba(var(--brand-primary-rgb),0.19) 0%, transparent 45%),
       radial-gradient(ellipse at 85% 20%, #822BD225 0%, transparent 45%),
       radial-gradient(ellipse at 60% 80%, #408DFF15 0%, transparent 40%)
     `,
     },
     card: {
         position: "relative", zIndex: 1,
-        background: "rgba(255,255,255,0.97)",
+        background: "var(--card)",
         borderRadius: "20px", width: "100%", maxWidth: "460px",
         padding: "36px 32px",
-        boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--card-border)",
     },
-    desc: { color: "#7D7765", fontSize: "14px", textAlign: "center", marginBottom: "24px", marginTop: "4px" },
+    desc: { color: "var(--texto-sec)", fontSize: "14px", textAlign: "center", marginBottom: "24px", marginTop: "4px" },
     errorBox: {
         background: "#FFF0EE", border: "1px solid #FD775150",
         borderRadius: "10px", padding: "10px 14px",
@@ -498,13 +498,14 @@ const s = {
     inputIcono: { position: "absolute", left: "14px", fontSize: "16px", pointerEvents: "none" },
     input: {
         width: "100%", padding: "13px 14px 13px 42px",
-        background: "#F8F7F5", border: "1.5px solid #E5E3DF",
-        borderRadius: "12px", color: "#231F20", fontSize: "14px",
+        background: "var(--input-bg)", border: "1.5px solid var(--input-border)",
+        borderRadius: "12px", color: "var(--texto)", fontSize: "14px",
         outline: "none", boxSizing: "border-box",
     },
     ojito: {
         position: "absolute", right: "12px",
         background: "none", border: "none", cursor: "pointer", fontSize: "16px", padding: "4px",
+        color: "var(--texto-ter)",
     },
     btnPrimario: {
         width: "100%", padding: "14px",
@@ -513,11 +514,11 @@ const s = {
         marginBottom: "16px",
     },
     divisor: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" },
-    linea: { flex: 1, height: "1px", background: "#E5E3DF" },
-    oText: { color: "#999999", fontSize: "13px" },
-    switchWrap: { borderTop: "1px solid #E5E3DF", paddingTop: "20px", textAlign: "center" },
-    switchText: { color: "#231F20", fontWeight: 700, fontSize: "15px" },
-    switchSub: { color: "#999999", fontSize: "13px", margin: "4px 0 12px" },
+    linea: { flex: 1, height: "1px", background: "var(--input-border)" },
+    oText: { color: "var(--texto-ter)", fontSize: "13px" },
+    switchWrap: { borderTop: "1px solid var(--input-border)", paddingTop: "20px", textAlign: "center" },
+    switchText: { color: "var(--texto)", fontWeight: 700, fontSize: "15px" },
+    switchSub: { color: "var(--texto-ter)", fontSize: "13px", margin: "4px 0 12px" },
     btnRegistro: {
         width: "100%", padding: "13px", background: "transparent",
         border: "2px solid #408DFF", borderRadius: "12px",
@@ -534,5 +535,5 @@ const s = {
         fontSize: "13px", cursor: "pointer", padding: 0,
         textDecoration: "underline",
     },
-    legal: { color: "#999999", fontSize: "12px", textAlign: "center", marginTop: "16px", lineHeight: 1.5 },
+    legal: { color: "var(--texto-ter)", fontSize: "12px", textAlign: "center", marginTop: "16px", lineHeight: 1.5 },
 };
