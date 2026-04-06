@@ -40,7 +40,7 @@ export const aplicarConfigMarca = (config) => {
 
   if (config.nombre_app) document.title = config.nombre_app;
 
-  // Favicon dinámico
+ 
   const logoUrl = resolverUrlLogo(config.logo_url) || logoDefault;
   const existente = document.querySelector("link[rel*='icon']");
   if (existente) existente.remove();
