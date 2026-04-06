@@ -53,7 +53,7 @@ export class PreguntasController {
     return this.preguntasService.crear(body);
   }
 
-  // Generar preguntas con Gemini
+  // Generar preguntas con OpenAI
   @Post('generar/:empresaId')
   generarConIA(@Request() req: any, @Param('empresaId') empresaId: string) {
     // Admin solo puede generar para su empresa

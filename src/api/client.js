@@ -1,7 +1,12 @@
 import axios from 'axios'
 
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+if (import.meta.env.MODE === 'production' && !import.meta.env.VITE_API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL es obligatorio en producción')
+}
+
 const client = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 })

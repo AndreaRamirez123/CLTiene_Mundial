@@ -52,7 +52,7 @@ function PasswordStrength({ password }) {
 }
 
 export default function Login({ onLoginExitoso, onPreRegistro }) {
-    const [modo, setModo] = useState("login"); 
+    const [modo, setModo] = useState("login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [cargando, setCargando] = useState(false);
@@ -69,14 +69,14 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
     const googleBtnRef = useRef(null);
     const empresaSlugRef = useRef(empresaSlug);
 
-    
+
     useEffect(() => { empresaSlugRef.current = empresaSlug; }, [empresaSlug]);
 
-    
+
     useEffect(() => {
         client.get("/auth/empresas-activas")
             .then((res) => setEmpresas(res.data || []))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     // Cuando cambia la empresa, cargar su config de marca
@@ -88,7 +88,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                     setMarcaActual(res.data);
                 }
             })
-            .catch(() => {});
+            .catch(() => { });
     }, [empresaSlug]);
 
     const initGoogle = () => {
@@ -123,7 +123,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
         }
     }, []);
 
-    
+
     useEffect(() => {
         if (modo === "login" || modo === "registro") {
             setTimeout(() => initGoogle(), 50);
@@ -220,7 +220,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                 {/* Logo */}
                 <div style={{ textAlign: "center", marginBottom: "16px" }}>
                     <img
-                        src={marcaActual?.logo_url ? (marcaActual.logo_url.startsWith("http") ? marcaActual.logo_url : `http://localhost:3000${marcaActual.logo_url}`) : logoDefault}
+                        src={marcaActual?.logo_url ? (marcaActual.logo_url.startsWith("http") ? marcaActual.logo_url : `${import.meta.env.VITE_API_BASE_URL || ''}${marcaActual.logo_url}`) : logoDefault}
                         alt={marcaActual?.nombre_app || "CLTiene Mundial"}
                         style={{ width: "200px", height: "auto", display: "block", margin: "0 auto" }}
                     />

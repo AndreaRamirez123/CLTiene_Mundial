@@ -74,7 +74,7 @@ export class UsersService {
       throw new BadRequestException('El jugador ya está registrado');
     }
 
-    // Verificar que el email de Firebase no esté registrado por otro jugador
+    // Verificar que el email no esté registrado por otro jugador
     const emailExiste = await this.jugadorRepo.findOne({ where: { email: datos.email } });
     if (emailExiste) {
       throw new BadRequestException('Este correo ya tiene una cuenta registrada. Inicia sesión con tu cuenta existente.');

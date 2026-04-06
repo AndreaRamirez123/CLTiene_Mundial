@@ -73,9 +73,9 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
   const getEstadoLabel = (estado) => {
     switch (estado) {
       case "acertada_especial":
-        return { texto: "Marcador exacto", color: "#ECA82D", bg: "rgba(236,168,45,0.15)", anim: "anim-trophy" };
+        return { texto: "Marcador exacto", color: "#ECA82D", bg: "rgba(236,168,45,0.15)", anim: "" };
       case "acertada_simple":
-        return { texto: "Resultado acertado", color: C.verde, bg: "rgba(22,199,132,0.1)", anim: "anim-success-ring" };
+        return { texto: "Resultado acertado", color: C.verde, bg: "rgba(22,199,132,0.1)", anim: "" };
       case "fallida":
         return { texto: "", color: C.naranja, bg: "rgba(253,119,81,0.08)", anim: "" };
       default:
@@ -356,11 +356,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
 
                   {pred.estado !== "pendiente" && (
                     <div style={{ marginTop: 8, padding: "8px 12px", borderRadius: 8, background: `${info.color}15` }}>
+                      <div style={{ color: "var(--texto-sec)", fontWeight: 700, fontSize: 12, marginBottom: 4 }}>
+                        Resultado real: {partido.goles_local} - {partido.goles_visitante}
+                      </div>
                       {pred.estado === "fallida" ? (
                         <div>
-                          <div style={{ color: info.color, fontWeight: 700, fontSize: 12 }}>
-                            Resultado real: {partido.goles_local} - {partido.goles_visitante}
-                          </div>
                           <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>{getMensajePositivo(idx)}</div>
                         </div>
                       ) : (

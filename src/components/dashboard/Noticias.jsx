@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { obtenerNoticiasMundial } from "../../api/gemini";
+import { obtenerNoticiasMundial } from "../../api/noticias";
 import { C } from "./constants";
 
 export default function Noticias() {

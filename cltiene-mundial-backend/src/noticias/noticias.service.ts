@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -11,29 +10,19 @@ type Noticia = {
   url: string;
 };
 
-type GroundingChunk = { web?: { uri?: string; title?: string } };
-
-type GeminiResponse = {
-  candidates?: {
-    content?: { parts?: { text?: string }[] };
-    groundingMetadata?: {
-      groundingChunks?: GroundingChunk[];
-    };
-  }[];
-};
-
 @Injectable()
 export class NoticiasService {
   private readonly logger = new Logger(NoticiasService.name);
-  private readonly geminiApiKey: string;
-  private readonly geminiUrl: string;
+  private readonly openaiApiKey: string;
+  private readonly openaiModel: string;
 
   private cache: { data: Noticia[]; timestamp: number } | null = null;
-  private readonly CACHE_TTL = 1000 * 60 * 15;
+  private readonly CACHE_TTL = 1000 * 60 * 5;
 
   constructor(private configService: ConfigService) {
-    this.geminiApiKey = this.configService.get<string>('GEMINI_API_KEY') || '';
-    this.geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.geminiApiKey}`;
+    this.openaiApiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
+    this.openaiModel =
+      this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
   }
 
   async obtenerNoticias(limit = 5, forzar = false): Promise<Noticia[]> {
@@ -48,13 +37,13 @@ export class NoticiasService {
       return this.cache.data.slice(0, cantidad);
     }
 
-    if (!this.geminiApiKey) {
-      this.logger.warn('GEMINI_API_KEY no configurada');
+    if (!this.openaiApiKey) {
+      this.logger.warn('OPENAI_API_KEY no configurada');
       return [];
     }
 
     try {
-      const noticias = await this.buscarConGemini(cantidad);
+      const noticias = await this.buscarConOpenAI(cantidad);
 
       if (noticias.length > 0) {
         this.cache = { data: noticias, timestamp: Date.now() };
@@ -67,36 +56,85 @@ export class NoticiasService {
     }
   }
 
-  private async buscarConGemini(cantidad: number): Promise<Noticia[]> {
+  private async buscarConOpenAI(cantidad: number): Promise<Noticia[]> {
     const hoy = new Date().toISOString().slice(0, 10);
 
     const prompt = `Busca ${cantidad} noticias recientes sobre el Mundial FIFA 2026 (USA, México, Canadá). Fecha: ${hoy}.
 
 Incluye noticias variadas: clasificatorias, sedes, selecciones, jugadores, reglas FIFA, calendario, entradas. No repitas temas.
 
-Responde SOLO JSON (sin markdown): [{"titulo":"...","resumen":"resumen 2-3 oraciones","categoria":"Selecciones|Sedes|Clasificación|Jugadores|FIFA","fecha":"YYYY-MM-DD","fuente":"nombre medio","url":"url articulo"}]`;
+Devuelve exactamente ${cantidad} noticias.`;
 
-    const res = await axios.post<GeminiResponse>(
-      this.geminiUrl,
-      {
-        contents: [{ parts: [{ text: prompt }] }],
-        tools: [{ google_search: {} }],
+    const res = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.openaiApiKey}`,
       },
-      { timeout: 45000 },
-    );
+      body: JSON.stringify({
+        model: this.openaiModel,
+        tools: [{ type: 'web_search' }],
+        tool_choice: 'required',
+        text: {
+          format: {
+            type: 'json_schema',
+            name: 'noticias_mundial',
+            strict: true,
+            schema: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                noticias: {
+                  type: 'array',
+                  minItems: cantidad,
+                  maxItems: cantidad,
+                  items: {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                      titulo: { type: 'string' },
+                      resumen: { type: 'string' },
+                      categoria: {
+                        type: 'string',
+                        enum: [
+                          'Selecciones',
+                          'Sedes',
+                          'Clasificación',
+                          'Jugadores',
+                          'FIFA',
+                        ],
+                      },
+                      fecha: { type: 'string' },
+                      fuente: { type: 'string' },
+                      url: { type: 'string' },
+                    },
+                    required: [
+                      'titulo',
+                      'resumen',
+                      'categoria',
+                      'fecha',
+                      'fuente',
+                      'url',
+                    ],
+                  },
+                },
+              },
+              required: ['noticias'],
+            },
+          },
+        },
+        input: prompt,
+      }),
+    });
 
-    const text =
-      res.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-    const grounding = res.data?.candidates?.[0]?.groundingMetadata;
-    const chunks = grounding?.groundingChunks || [];
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`OpenAI web_search error: ${res.status} ${err}`);
+    }
 
-    // Extraer URLs reales del grounding (pueden ser redirects de vertexaisearch)
-    const urlsReales = chunks
-      .filter((c) => c.web?.uri && c.web?.title)
-      .map((c) => ({
-        uri: c.web!.uri!,
-        fuente: c.web!.title || '',
-      }));
+    const data = await res.json();
+    const text = this.extraerTexto(data?.output || []);
+    const urlsReales = this.extraerUrls(data?.output || []);
 
     // Parsear JSON de la respuesta
     const clean = text
@@ -106,16 +144,15 @@ Responde SOLO JSON (sin markdown): [{"titulo":"...","resumen":"resumen 2-3 oraci
 
     let noticias: Noticia[];
     try {
-      noticias = JSON.parse(clean) as Noticia[];
-      if (!Array.isArray(noticias)) noticias = [];
+      const parsed = JSON.parse(clean) as { noticias?: Noticia[] };
+      noticias = Array.isArray(parsed?.noticias) ? parsed.noticias : [];
     } catch {
       const match = clean.match(/\[[\s\S]*\]/);
       noticias = match ? (JSON.parse(match[0]) as Noticia[]) : [];
     }
 
-    // Asignar URLs reales del grounding a cada noticia
+    // Asignar URLs reales a cada noticia
     noticias = noticias.slice(0, cantidad).map((noticia, i) => {
-      // Usar URL del grounding si existe para esta posición
       const groundingUrl = urlsReales[i]?.uri;
       const groundingFuente = urlsReales[i]?.fuente || '';
 
@@ -130,6 +167,32 @@ Responde SOLO JSON (sin markdown): [{"titulo":"...","resumen":"resumen 2-3 oraci
     });
 
     return noticias.filter((n) => n.titulo && n.resumen);
+  }
+
+  private extraerTexto(output: any[]): string {
+    for (const item of output) {
+      if (item?.type === 'message' && Array.isArray(item.content)) {
+        const chunk = item.content.find((c: any) => c.type === 'output_text');
+        if (chunk?.text) return String(chunk.text);
+      }
+    }
+    return '';
+  }
+
+  private extraerUrls(output: any[]): { uri: string; fuente: string }[] {
+    for (const item of output) {
+      if (item?.type === 'message' && Array.isArray(item.content)) {
+        const chunk = item.content.find((c: any) => c.type === 'output_text');
+        const annotations = chunk?.annotations || [];
+        return annotations
+          .filter((a: any) => a.type === 'url_citation' && a.url)
+          .map((a: any) => ({
+            uri: a.url,
+            fuente: a.title || '',
+          }));
+      }
+    }
+    return [];
   }
 
   private limpiarFuente(dominio: string): string {

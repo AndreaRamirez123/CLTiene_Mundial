@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { getLogoMarca, getNombreMarca } from "../utils/marca";
 import client from "../api/client";
-//import { useNotificaciones } from "../hooks/useNotificaciones";
 import { C } from "../components/dashboard/constants";
 import Inicio from "../components/dashboard/Inicio";
 import Polla from "../components/dashboard/Polla";
@@ -34,8 +33,6 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
     setToast({ mensaje, tipo });
     setTimeout(() => setToast(null), 3000);
   };
-
-  //useNotificaciones({ uid: usuario?.uid, client });
 
   const cargarPerfil = () =>
     client.get(`/jugadores/${usuario.uid}`).then((r) => setPerfil(r.data)).catch(() => { });

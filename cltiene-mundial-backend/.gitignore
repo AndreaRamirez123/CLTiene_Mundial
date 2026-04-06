@@ -27,4 +27,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment and secrets
+.env
+credentials.json
+
 cltiene-mundial-backend/

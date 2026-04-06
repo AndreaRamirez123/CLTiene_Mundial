@@ -9,6 +9,7 @@ import { Repository, IsNull, In } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Pregunta } from '../entities/pregunta.entity';
 import { Empresa } from '../entities/empresa.entity';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class PreguntasService implements OnModuleInit {
@@ -28,6 +29,37 @@ export class PreguntasService implements OnModuleInit {
     if (count === 0) {
       this.logger.log('Migrando BANCO_PREGUNTAS a la base de datos...');
       await this.seedPreguntasGlobales();
+    }
+  }
+
+  // Generar preguntas IA diarias por empresa (opcional)
+  @Cron('5 0 * * *')
+  async generarDiarias() {
+    const enabled =
+      (this.configService.get<string>('OPENAI_TRIVIA_DAILY') || 'false')
+        .toLowerCase() === 'true';
+    if (!enabled) return;
+
+    const empresas = await this.empresaRepo.find({ where: { estado: 'activa' } });
+    const hoy = new Date().toISOString().slice(0, 10);
+
+    for (const empresa of empresas) {
+      const countHoy = await this.preguntaRepo
+        .createQueryBuilder('p')
+        .where('p.empresa_id = :empresaId', { empresaId: empresa.id })
+        .andWhere('DATE(p.created_at) = :fecha', { fecha: hoy })
+        .getCount();
+
+      if (countHoy >= 6) continue;
+
+      try {
+        await this.generarConIA(empresa.id);
+      } catch (error) {
+        this.logger.error(
+          `Error generando preguntas diarias para empresa ${empresa.id}`,
+          error,
+        );
+      }
     }
   }
 
@@ -104,17 +136,19 @@ export class PreguntasService implements OnModuleInit {
     return this.preguntaRepo.save(pregunta);
   }
 
-  // Generar preguntas con Gemini
+  // Generar preguntas con OpenAI
   async generarConIA(empresaId: number) {
     const empresa = await this.empresaRepo.findOne({
       where: { id: empresaId },
     });
     if (!empresa) throw new BadRequestException('Empresa no encontrada.');
 
-    const apiKey = this.configService.get('GEMINI_API_KEY');
+    const apiKey = this.configService.get('OPENAI_API_KEY');
     if (!apiKey) {
-      throw new BadRequestException('GEMINI_API_KEY no configurada en el .env');
+      throw new BadRequestException('OPENAI_API_KEY no configurada en el .env');
     }
+    const model =
+      this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
 
     const prompt = `Genera exactamente 6 preguntas de trivia en formato JSON.
 
@@ -135,30 +169,36 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
 [{"pregunta":"...","opciones":["a","b","c","d"],"correcta":0,"tipo":"mundial"}]`;
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
         },
-      );
+        body: JSON.stringify({
+          model,
+          input: prompt,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`OpenAI error: ${response.status} ${err}`);
+      }
 
       const data = await response.json();
-      const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const texto = this.extraerTextoRespuesta(data?.output || '');
 
       // Extraer JSON del texto (puede venir envuelto en ```json ... ```)
       const jsonMatch = texto.match(/\[[\s\S]*\]/);
       if (!jsonMatch) {
-        throw new Error('No se pudo extraer JSON de la respuesta de Gemini');
+        throw new Error('No se pudo extraer JSON de la respuesta de OpenAI');
       }
 
       const preguntas = JSON.parse(jsonMatch[0]);
 
       if (!Array.isArray(preguntas) || preguntas.length === 0) {
-        throw new Error('Gemini no devolvio preguntas validas');
+        throw new Error('OpenAI no devolvio preguntas validas');
       }
 
       // Guardar en DB evitando duplicados
@@ -198,11 +238,22 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
         guardadas,
       };
     } catch (error) {
-      this.logger.error('Error generando preguntas con Gemini', error);
+      this.logger.error('Error generando preguntas con OpenAI', error);
       throw new BadRequestException(
         `Error generando preguntas: ${error.message}`,
       );
     }
+  }
+
+  private extraerTextoRespuesta(output: any): string {
+    if (!Array.isArray(output)) return '';
+    for (const item of output) {
+      if (item?.type === 'message' && Array.isArray(item.content)) {
+        const chunk = item.content.find((c: any) => c.type === 'output_text');
+        if (chunk?.text) return String(chunk.text);
+      }
+    }
+    return '';
   }
 
   // Seed: migrar BANCO_PREGUNTAS estatico a la DB como preguntas globales

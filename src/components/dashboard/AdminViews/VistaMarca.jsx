@@ -225,7 +225,7 @@ export default function VistaMarca({ client, usuario }) {
                 }}>
                   {form.logo_url ? (
                     <img
-                      src={form.logo_url.startsWith("http") ? form.logo_url : `http://localhost:3000${form.logo_url}`}
+                      src={form.logo_url.startsWith("http") ? form.logo_url : `${import.meta.env.VITE_API_BASE_URL || ''}${form.logo_url}`}
                       alt="logo"
                       style={{ maxHeight: 60, maxWidth: 60, objectFit: "contain" }}
                     />

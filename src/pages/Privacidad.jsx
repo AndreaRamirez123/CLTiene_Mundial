@@ -127,7 +127,7 @@ export default function Privacidad({ onVolver }) {
         <Section icono="🔐" titulo="7. Seguridad de los Datos" color={C.morado}>
           <Item>CLTiene implementa medidas técnicas, humanas y administrativas para proteger los datos personales.</Item>
           <Item>Los datos se almacenan en servidores seguros con cifrado y acceso restringido.</Item>
-          <Item>La autenticación se realiza mediante Firebase Authentication de Google.</Item>
+          <Item>La autenticación se realiza mediante JWT (JSON Web Tokens).</Item>
           <Item>Se realizan respaldos periódicos de la información.</Item>
           <Item>El acceso a los datos está limitado al personal autorizado.</Item>
         </Section>
@@ -135,7 +135,7 @@ export default function Privacidad({ onVolver }) {
         <Section icono="🤝" titulo="8. Compartición de Datos" color={C.azul}>
           CLTiene <b>no vende ni comparte</b> datos personales con terceros, excepto en los siguientes casos:
           <div style={{ marginTop: 10 }}>
-            <Item>Proveedores de servicios tecnológicos necesarios para el funcionamiento de la App (Firebase, servidores).</Item>
+            <Item>Proveedores de servicios tecnológicos necesarios para el funcionamiento de la App (servidores).</Item>
             <Item>Cuando sea requerido por autoridad judicial o administrativa competente.</Item>
             <Item>Para la gestión de beneficios canjeados (contacto con asesores CLTiene).</Item>
           </div>

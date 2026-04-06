@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { FirebaseModule } from './firebase/firebase.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PartidosModule } from './partidos/partidos.module';
@@ -35,11 +34,10 @@ import { AppService } from './app.service';
         password: config.get('DB_PASSWORD', ''),
         database: config.get('DB_NAME', 'cltiene_mundial'),
         autoLoadEntities: true,
-        synchronize: true, // Solo en desarrollo, desactivar en produccion
+        synchronize: config.get('NODE_ENV') !== 'production',
       }),
     }),
     ScheduleModule.forRoot(),
-    FirebaseModule,
     AuthModule,
     UsersModule,
     PartidosModule,

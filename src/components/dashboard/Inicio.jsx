@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { obtenerInicioMundial } from "../../api/gemini";
+import { obtenerInicioMundial } from "../../api/noticias";
 import { useCountdown } from "../../hooks/useCountdown";
 import { getLogoMarca, getNombreMarca, getPublicidadMarca } from "../../utils/marca";
 import { useTheme } from "../../store/useTheme";

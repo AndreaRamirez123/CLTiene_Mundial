@@ -25,10 +25,12 @@ const hexToRgb = (hex) => {
   return `${r}, ${g}, ${b}`;
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+
 const resolverUrlLogo = (url) => {
   if (!url) return null;
   if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads")) return `http://localhost:3000${url}`;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
   return url;
 };
 
