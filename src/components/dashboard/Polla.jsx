@@ -364,7 +364,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                           <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 4 }}>{getMensajePositivo(idx)}</div>
                         </div>
                       ) : (
-                        <div className={pred.estado === "acertada_especial" ? "anim-trophy" : "anim-goal-flash"} style={{ color: info.color, fontWeight: 700, fontSize: 13 }}>
+                        <div style={{ color: info.color, fontWeight: 700, fontSize: 13 }}>
                           {info.texto}
                           {pred.estado === "acertada_especial" && " Increible!"}
                         </div>
