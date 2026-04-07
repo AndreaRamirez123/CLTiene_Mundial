@@ -170,7 +170,7 @@ export default function VistaMarca({ client, usuario }) {
             🎨 Configuracion de Marca
           </h2>
           <p style={{ color: "var(--texto-sec)", fontSize: 13 }}>
-            Cambia logo, nombre y colores sin tocar el codigo.
+            Cambia logo, nombre y colores 
             {esSuperadmin && empresaSeleccionada && (
               <span style={{ color: C.naranja, fontWeight: 600 }}>
                 {" "}— Editando: {empresas.find((e) => e.id === empresaSeleccionada)?.nombre}
