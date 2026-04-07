@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   OneToMany,
   OneToOne,
-  Index,
 } from 'typeorm';
 import { Jugador } from './jugador.entity';
 import { Partido } from './partido.entity';
@@ -20,7 +19,6 @@ export class Empresa {
   @Column({ type: 'varchar', length: 150 })
   nombre: string;
 
-  @Index()
   @Column({ type: 'varchar', length: 100, unique: true })
   slug: string;
 
