@@ -26,16 +26,21 @@ import { AppService } from './app.service';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'mysql',
-        host: config.get('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 3306),
-        username: config.get('DB_USER', 'root'),
-        password: config.get('DB_PASSWORD', ''),
-        database: config.get('DB_NAME', 'cltiene_mundial'),
-        autoLoadEntities: true,
-        synchronize: config.get('NODE_ENV') !== 'production',
-      }),
+      useFactory: (config: ConfigService) => {
+        const socketPath = config.get('DB_SOCKET_PATH');
+        return {
+          type: 'mysql',
+          ...(socketPath
+            ? { extra: { socketPath } }
+            : { host: config.get('DB_HOST', 'localhost') }),
+          port: config.get<number>('DB_PORT', 3306),
+          username: config.get('DB_USER', 'root'),
+          password: config.get('DB_PASSWORD', ''),
+          database: config.get('DB_NAME', 'cltiene_mundial'),
+          autoLoadEntities: true,
+          synchronize: config.get('NODE_ENV') !== 'production',
+        };
+      },
     }),
     ScheduleModule.forRoot(),
     AuthModule,

@@ -1,0 +1,12 @@
+{
+  "appId": "com.cltiene_mundial.app",
+  "appName": "cltiene-mundial",
+  "webDir": "dist",
+  "server": {
+    "url": "http://10.3.16.69:5173",
+    "allowNavigation": [
+      "http://10.3.16.69:5173"
+    ],
+    "cleartext": true
+  }
+}

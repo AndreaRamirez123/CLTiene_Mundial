@@ -2,7 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(xargs ls:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\" -u root cltiene_mundial -e \"SELECT TABLE_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE INDEX_NAME = 'IDX_b358e930f7a4be79beb05c2cf8' AND TABLE_SCHEMA = 'cltiene_mundial';\")",
+      "Bash(\"/c/xampp/mysql/bin/mysql.exe\" -u root cltiene_mundial -e \"SELECT TABLE_NAME, INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE INDEX_NAME = 'IDX_b358e930f7a4be79beb05c2cf8' AND TABLE_SCHEMA = 'cltiene_mundial';\")",
+      "Bash(\"/c/xampp/mysql/bin/mysql.exe\" -u root cltiene_mundial -e \"SHOW INDEX FROM empresas;\")",
+      "Bash(\"/c/xampp/mysql/bin/mysql.exe\" -u root cltiene_mundial -e \"DROP INDEX \\\\`IDX_b358e930f7a4be79beb05c2cf8\\\\` ON empresas;\")",
+      "Bash(taskkill //F //PID 41168)",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(gcloud sql:*)",
+      "Bash(gcloud builds:*)",
+      "Bash(gcloud run:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(gcloud logging:*)",
+      "Bash(gcloud storage:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://cltiene-mundial-backend-293865702055.us-central1.run.app)"
     ]
   }
 }

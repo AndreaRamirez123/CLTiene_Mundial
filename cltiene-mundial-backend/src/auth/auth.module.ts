@@ -17,10 +17,14 @@ import { ConfigMarca } from '../entities/config-marca.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) => ({
-        secret: config.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '7d' },
-      }),
+      useFactory: async (config: ConfigService) => {
+        const secret = config.get('JWT_SECRET');
+        if (!secret) throw new Error('JWT_SECRET not found');
+        return {
+          secret,
+          signOptions: { expiresIn: '7d' },
+        };
+      },
     }),
   ],
   controllers: [AuthController],
