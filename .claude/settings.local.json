@@ -18,7 +18,15 @@
       "Bash(npm ci:*)",
       "Bash(gcloud logging:*)",
       "Bash(gcloud storage:*)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://cltiene-mundial-backend-293865702055.us-central1.run.app)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://cltiene-mundial-backend-293865702055.us-central1.run.app)",
+      "Bash(firebase deploy:*)",
+      "Bash(npm info:*)",
+      "Bash(npm search:*)",
+      "WebFetch(domain:capgo.app)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npx cap:*)",
+      "Bash(./gradlew signingReport)"
     ]
   }
 }

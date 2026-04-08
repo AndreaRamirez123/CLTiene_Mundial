@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
+import { SocialLogin } from "@capgo/capacitor-social-login";
 import client from "../api/client";
 import { guardarConfigMarca } from "../utils/marca";
 import logoDefault from "../assets/logo.png";
@@ -6,7 +8,10 @@ import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import { ThemeToggle } from "../store/useTheme";
 
-const GOOGLE_CLIENT_ID = "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
+const APP_MODE = import.meta.env.MODE;
+const GOOGLE_CLIENT_ID = APP_MODE === "production" ? "293865702055-jde0n0jb9c84s26q5eic8aq4fkafcng0.apps.googleusercontent.com" : "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
+const esNativo = Capacitor.isNativePlatform();
+
 
 function evaluarPassword(pass) {
     const reglas = [
@@ -75,7 +80,9 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
 
     useEffect(() => {
         client.get("/auth/empresas-activas")
-            .then((res) => setEmpresas(res.data || []))
+            .then((res) => {
+                setEmpresas(res.data || [])
+            })
             .catch(() => { });
     }, []);
 
@@ -91,25 +98,40 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             .catch(() => { });
     }, [empresaSlug]);
 
+    // Inicializar SocialLogin en nativo
+    useEffect(() => {
+        if (esNativo) {
+            SocialLogin.initialize({
+                google: { webClientId: GOOGLE_CLIENT_ID },
+            }).catch((e) => console.error("SocialLogin init error:", e));
+        }
+    }, []);
+
     const initGoogle = () => {
-        if (window.google?.accounts && googleBtnRef.current) {
-            window.google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: manejarGoogle,
-            });
-            const ancho = Math.min(googleBtnRef.current.offsetWidth || 396, 396);
-            window.google.accounts.id.renderButton(googleBtnRef.current, {
-                theme: "outline",
-                size: "large",
-                width: ancho,
-                text: "continue_with",
-                shape: "pill",
-                locale: "es",
-            });
+        if (esNativo) return; // En nativo usamos el botón custom
+        try {
+            if (window.google?.accounts && googleBtnRef.current) {
+                window.google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: manejarGoogle,
+                });
+                const ancho = Math.min(googleBtnRef.current.offsetWidth || 396, 396);
+                window.google.accounts.id.renderButton(googleBtnRef.current, {
+                    theme: "outline",
+                    size: "large",
+                    width: ancho,
+                    text: "continue_with",
+                    shape: "pill",
+                    locale: "es",
+                });
+            }
+        } catch (error) {
+            console.error(error);
         }
     };
 
     useEffect(() => {
+        if (esNativo) return;
         if (window.google?.accounts) {
             initGoogle();
         } else {
@@ -125,10 +147,31 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
 
 
     useEffect(() => {
+        if (esNativo) return;
         if (modo === "login" || modo === "registro") {
             setTimeout(() => initGoogle(), 50);
         }
     }, [modo]);
+
+    const loginGoogleNativo = async () => {
+        setCargando(true);
+        setError("");
+        try {
+            const result = await SocialLogin.login({
+                provider: "google",
+                options: { scopes: ["email", "profile"] },
+            });
+            const idToken = result?.result?.idToken;
+            if (!idToken) throw new Error("No se obtuvo el token de Google");
+            await manejarGoogle({ credential: idToken });
+        } catch (e) {
+            if (e?.message?.includes("canceled") || e?.message?.includes("cancelled")) return;
+            // setError(e?.message || "Error al iniciar con Google");
+            setError(typeof e === "string" ? e : JSON.stringify(e));
+        } finally {
+            setCargando(false);
+        }
+    };
 
     const manejarGoogle = async (response) => {
         setCargando(true);
@@ -141,7 +184,8 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             onLoginExitoso(usuario);
         } catch (e) {
             const msg = e.response?.data?.message;
-            setError(Array.isArray(msg) ? msg[0] : msg || "Error al iniciar con Google");
+            // setError(Array.isArray(msg) ? msg[0] : msg || "Error al iniciar con Google");
+            setError(typeof e === "string" ? e : JSON.stringify(e));
         } finally {
             setCargando(false);
         }
@@ -230,14 +274,14 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                 </div>
 
                 <p style={s.desc}>
-                    {modo === "login" && "Ingresa para gestionar tus apuestas y premios"}
+                    {modo === "login" && "Ingresa para gestionar tus apuestas y premios: "}
                     {modo === "registro" && "Regístrate y obtén un bono de bienvenida"}
                     {modo === "reset-email" && "Ingresa tu correo para recuperar tu contraseña"}
                     {modo === "reset-codigo" && "Ingresa el código que recibiste en tu correo"}
                 </p>
 
                 {/* Selector de empresa */}
-                {empresas.length > 1 && (
+                {empresas.length >= 1 && (
                     <div style={{ marginBottom: "16px" }}>
                         <label style={{ display: "block", color: "var(--texto-sec)", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
                             Selecciona tu organizacion
@@ -323,7 +367,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                             disabled={cargando}
                             style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
-                            {cargando ? "Cargando..." : modo === "login" ? "✓ Ingresar" : "✓ Crear cuenta"}
+                            {cargando ? "Cargando..." : modo === "login" ? "✓ Ingresar" : "✓ Crear cuenta"} { }
                         </button>
 
                         {/* Divisor */}
@@ -334,7 +378,23 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                         </div>
 
                         {/* Google */}
-                        <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }} />
+                        {esNativo ? (
+                            <button
+                                onClick={loginGoogleNativo}
+                                disabled={cargando}
+                                style={s.btnGoogle}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 48 48" style={{ marginRight: 8 }}>
+                                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                                </svg>
+                                Continuar con Google
+                            </button>
+                        ) : (
+                            <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }} />
+                        )}
 
                         {/* Switch login/registro */}
                         <div style={s.switchWrap}>
@@ -536,4 +596,11 @@ const s = {
         textDecoration: "underline",
     },
     legal: { color: "var(--texto-ter)", fontSize: "12px", textAlign: "center", marginTop: "16px", lineHeight: 1.5 },
+    btnGoogle: {
+        width: "100%", padding: "12px 14px",
+        background: "#fff", border: "1.5px solid #dadce0",
+        borderRadius: "24px", fontSize: "14px", fontWeight: 500,
+        color: "#3c4043", cursor: "pointer", marginBottom: "16px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+    },
 };

@@ -3,10 +3,23 @@
   "appName": "cltiene-mundial",
   "webDir": "dist",
   "server": {
-    "url": "http://10.3.16.69:5173",
+    "url": "https://cltiene-mundial.web.app/",
+    "local-url": "http://10.3.16.69:5173",
     "allowNavigation": [
-      "http://10.3.16.69:5173"
+      "cltiene-mundial.web",
+      "*.web.app"
     ],
-    "cleartext": true
+    "cleartext": false,
+    "local-cleartext": true
+  },
+  "plugins": {
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "facebook": false,
+        "apple": false,
+        "twitter": false
+      }
+    }
   }
 }
