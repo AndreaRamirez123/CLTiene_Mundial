@@ -23,3 +23,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variables de entorno de producción
+.env.production
+
+# Permitir configuracion en local
+!.env.local
+
+# Aplicacion
+android/
+ios/
