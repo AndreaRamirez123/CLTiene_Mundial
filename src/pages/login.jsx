@@ -8,9 +8,8 @@ import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import { ThemeToggle } from "../store/useTheme";
 
-const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const esNativo = Capacitor.isNativePlatform();
-
 
 function evaluarPassword(pass) {
     const reglas = [
