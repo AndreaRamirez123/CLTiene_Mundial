@@ -21,7 +21,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     const [aceptado, setAceptado] = useState(false);
     const [verTerminos, setVerTerminos] = useState(false);
 
-    
+
     const urlParams = new URLSearchParams(window.location.search);
     const codigoRefUrl = urlParams.get("ref") || "";
 
@@ -32,11 +32,13 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     });
     const [completado, setCompletado] = useState(false);
     const [errores, setErrores] = useState({});
+    const [errorGeneral, setErrorGeneral] = useState("");
     const [guardando, setGuardando] = useState(false);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
     const validar = () => {
+        setErrorGeneral("");
         const e = {};
         if (step === 1 && !form.tipojugador) e.tipojugador = "Selecciona una opción";
         if (step === 2 && !form.relacionCLTiene) e.relacionCLTiene = "Selecciona una opción";
@@ -63,6 +65,8 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     };
 
     const guardarPerfil = async (datos) => {
+        setErrorGeneral("");
+        setErrores({});
         setGuardando(true);
         try {
             let res;
@@ -105,7 +109,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
             return res.data.usuario || true;
         } catch (err) {
             const msg = err.response?.data?.message || "Error al registrar";
-            setErrores({ telefono: msg });
+            setErrorGeneral(msg);
             return false;
         } finally {
             setGuardando(false);
@@ -166,6 +170,11 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
 
                 {/* Contenido */}
                 <div style={s.body}>
+                    {errorGeneral && (
+                        <div style={s.errorBanner}>
+                            {errorGeneral}
+                        </div>
+                    )}
                     {step === 0 && <PantallaBienvenida aceptado={aceptado} setAceptado={setAceptado} setVerTerminos={setVerTerminos} />}
                     {step === 1 && (
                         <PantallaOpcion
@@ -579,6 +588,16 @@ const s = {
     },
     progresoText: { color: C.grisClaro, fontSize: "12px", whiteSpace: "nowrap" },
     body: { padding: "24px 24px" },
+    errorBanner: {
+        marginBottom: "18px",
+        padding: "14px 16px",
+        background: "rgba(255, 82, 82, 0.12)",
+        border: "1px solid rgba(255, 82, 82, 0.25)",
+        borderRadius: "14px",
+        color: "#B00020",
+        fontSize: "14px",
+        lineHeight: 1.5,
+    },
     footer: {
         padding: "16px 24px 24px", display: "flex", gap: "12px",
         borderTop: "1px solid rgba(255,255,255,0.06)",

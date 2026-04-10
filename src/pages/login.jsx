@@ -8,8 +8,7 @@ import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
 import { ThemeToggle } from "../store/useTheme";
 
-const APP_MODE = import.meta.env.MODE;
-const GOOGLE_CLIENT_ID = APP_MODE === "production" ? "293865702055-jde0n0jb9c84s26q5eic8aq4fkafcng0.apps.googleusercontent.com" : "293865702055-8emc40sl54glc8r4og3ur7sbi0eicu43.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID;
 const esNativo = Capacitor.isNativePlatform();
 
 
