@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "cltiene-mundial",
+    "site": "mundial-2",
     "public": "dist",
     "ignore": [
       "firebase.json",

@@ -29,7 +29,6 @@ dist-ssr
 *.sw?
 
 # Environment and secrets
-.env
 credentials.json
 
 cltiene-mundial-backend/
