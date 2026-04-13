@@ -24,7 +24,7 @@ export class AuthService {
     private configMarcaRepo: Repository<ConfigMarca>,
     private jwtService: JwtService,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   // Listar empresas activas (publico, para selector de login)
   async listarEmpresasActivas() {
@@ -63,8 +63,8 @@ export class AuthService {
       where: { slug: 'default' },
     });
     if (!empresa) {
+      // Ajustado para consultar la empresa marcada como default, desde base de datos "NOTA: Por defecto solo va a tomar el primer registro que encuentre con slug 'default', si hay varios, se recomienda mantener solo uno"
       empresa = this.empresaRepo.create({
-        nombre: 'CLTiene Mundial',
         slug: 'default',
         estado: 'activa',
       });
