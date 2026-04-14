@@ -3,7 +3,7 @@
   "appName": "cltiene-mundial",
   "webDir": "dist",
   "server": {
-    "url": "https://cltiene-mundial.web.app/",
+    "url": "https://mundial-2.web.app",
     "local-url": "http://10.3.16.69:5173",
     "allowNavigation": [
       "cltiene-mundial.web",
