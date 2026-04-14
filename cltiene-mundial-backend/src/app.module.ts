@@ -22,7 +22,7 @@ import { AppService } from './app.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env.local', '.env', '.env.production'] }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env.local', '.env.production'] }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

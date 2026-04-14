@@ -11,6 +11,15 @@ import { ThemeToggle } from "../store/useTheme";
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const esNativo = Capacitor.isNativePlatform();
 
+function obtenerMensajeError(err, fallback) {
+    const msg = err?.response?.data?.message;
+    if (Array.isArray(msg) && msg.length) return msg[0];
+    if (typeof msg === "string" && msg.trim()) return msg;
+    if (typeof err?.message === "string" && err.message.trim()) return err.message;
+    if (err?.code === "ERR_NETWORK") return "No fue posible conectar con el servidor. Revisa CORS o la URL del backend.";
+    return fallback;
+}
+
 function evaluarPassword(pass) {
     const reglas = [
         { test: pass.length >= 8, label: "Mínimo 8 caracteres" },
@@ -164,8 +173,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             await manejarGoogle({ credential: idToken });
         } catch (e) {
             if (e?.message?.includes("canceled") || e?.message?.includes("cancelled")) return;
-            // setError(e?.message || "Error al iniciar con Google");
-            setError(typeof e === "string" ? e : JSON.stringify(e));
+            setError(obtenerMensajeError(e, "Error al iniciar con Google"));
         } finally {
             setCargando(false);
         }
@@ -181,9 +189,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             localStorage.setItem("usuario", JSON.stringify(usuario));
             onLoginExitoso(usuario);
         } catch (e) {
-            const msg = e.response?.data?.message;
-            // setError(Array.isArray(msg) ? msg[0] : msg || "Error al iniciar con Google");
-            setError(typeof e === "string" ? e : JSON.stringify(e));
+            setError(obtenerMensajeError(e, "Error al iniciar con Google"));
         } finally {
             setCargando(false);
         }
@@ -208,8 +214,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
             onLoginExitoso(res.data.usuario);
         } catch (e) {
-            const msg = e.response?.data?.message;
-            setError(Array.isArray(msg) ? msg[0] : msg || "Ocurrió un error. Intenta de nuevo");
+            setError(obtenerMensajeError(e, "Ocurrió un error. Intenta de nuevo"));
         } finally {
             setCargando(false);
         }
@@ -223,8 +228,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             setExito(res.data.mensaje);
             setModo("reset-codigo");
         } catch (e) {
-            const msg = e.response?.data?.message;
-            setError(Array.isArray(msg) ? msg[0] : msg || "Error al enviar el código");
+            setError(obtenerMensajeError(e, "Error al enviar el código"));
         } finally {
             setCargando(false);
         }
@@ -242,8 +246,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
             setCodigoReset(""); setNuevaPassword("");
             setTimeout(() => { setModo("login"); setExito(""); }, 2000);
         } catch (e) {
-            const msg = e.response?.data?.message;
-            setError(Array.isArray(msg) ? msg[0] : msg || "Error al cambiar la contraseña");
+            setError(obtenerMensajeError(e, "Error al cambiar la contraseña"));
         } finally {
             setCargando(false);
         }
