@@ -6,6 +6,7 @@ import MisionCard from "./MisionCard";
 import TriviaModal from "./TriviaModal";
 import VideoModal from "./VideoModal";
 import CompartirModal from "./CompartirModal";
+import RunnerModal from "./RunnerModal";
 
 export default function Misiones({ usuario, cargarPerfil }) {
   const bordeSuave = "1px solid var(--input-border)";
@@ -23,6 +24,8 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const [mostrarVideo, setMostrarVideo] = useState(false);
   const [tiempoVideo, setTiempoVideo] = useState(0);
   const [videoVisto, setVideoVisto] = useState(false);
+  const [mostrarRunner, setMostrarRunner] = useState(false);
+  const [runnerJugadoHoy, setRunnerJugadoHoy] = useState(false);
   const [mostrarTrivia, setMostrarTrivia] = useState(false);
   const [triviaActual, setTriviaActual] = useState(0);
   const [triviaRespuestas, setTriviaRespuestas] = useState([]);
@@ -53,9 +56,14 @@ export default function Misiones({ usuario, cargarPerfil }) {
       const res = await client.get(`/misiones/${uid}`);
       // Override trivia: si es diaria y esta disponible hoy, marcar como pendiente
       const disponible = res.data.trivia_disponible ?? false;
+      const runnerDisponible = res.data.runner_disponible ?? true;
+      setRunnerJugadoHoy(!runnerDisponible);
       const misionesAjustadas = res.data.misiones.map((m) => {
         if (m.id === "trivia_mundial" && disponible && m.ok) {
           return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
+        }
+        if (m.id === "runner_mascotas") {
+          return { ...m, ok: false, botonLabel: runnerDisponible ? "Reclamar →" : "Jugar de nuevo" };
         }
         return m;
       });
@@ -93,6 +101,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
   }, [mostrarVideo, videoVisto]);
 
   const reclamar = async (misionId) => {
+    if (misionId === "runner_mascotas") return setMostrarRunner(true);
     if (misionId === "invita_amigo") return setMostrarCompartir(true);
     if (misionId === "ver_video") {
       setMostrarVideo(true);
@@ -233,6 +242,26 @@ export default function Misiones({ usuario, cargarPerfil }) {
           <MisionCard mision={m} reclamando={reclamando} onReclamar={reclamar} fondoSuave={fondoSuave} bordeSuave={bordeSuave} iconoFondo={iconoFondo} tituloPendiente={tituloPendiente} />
         </div>
       ))}
+
+      {mostrarRunner && (
+        <RunnerModal
+          onCerrar={() => setMostrarRunner(false)}
+          onCompletar={async () => {
+            setMostrarRunner(false);
+            setReclamando("runner_mascotas");
+            try {
+              const res = await client.post(`/misiones/${usuario.uid}/runner`);
+              alert(res.data.mensaje);
+              await cargarMisiones(usuario.uid);
+              if (!res.data.ya_jugado) await cargarPerfil();
+            } catch (err) {
+              alert(err.response?.data?.message || "No se pudo completar la misión");
+            } finally {
+              setReclamando(null);
+            }
+          }}
+        />
+      )}
 
       {mostrarCompartir && <CompartirModal onCompartir={compartir} onCerrar={() => setMostrarCompartir(false)} redesSociales={redesSociales} />}
 

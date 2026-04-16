@@ -65,6 +65,14 @@ const MISIONES: Mision[] = [
     goles: 7,
     tipo: 'auto',
   },
+  {
+    id: 'runner_mascotas',
+    icono: '🐾',
+    titulo: 'Runner de Mascotas',
+    desc: 'Juega el runner y completa la misión',
+    goles: 5,
+    tipo: 'manual',
+  },
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -402,6 +410,9 @@ const _LEGACY_PREGUNTAS = [
   ],
 ];
 
+const fechaColombia = () =>
+  new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+
 @Injectable()
 export class MisionesService {
   constructor(
@@ -442,19 +453,20 @@ export class MisionesService {
       jugador.goles = (jugador.goles || 0) + golesGanados;
       await this.jugadorRepo.save(jugador);
 
-      const lista = MISIONES.map((m) => ({
-        ...m,
-        ok: todasCompletadasArr.includes(m.id),
-      }));
+      const hoy1 = fechaColombia();
+      const lista = MISIONES.map((m) => {
+        if (m.id === 'runner_mascotas') return { ...m, ok: jugador.ultimo_runner === hoy1 };
+        return { ...m, ok: todasCompletadasArr.includes(m.id) };
+      });
       const totalCompletadas = lista.filter((m) => m.ok).length;
 
-      const hoyStr1 = new Date().toISOString().split('T')[0];
       return {
         misiones: lista,
         completadas: totalCompletadas,
         total: lista.length,
         goles_otorgados: golesGanados,
-        trivia_disponible: jugador.ultimo_trivia !== hoyStr1,
+        trivia_disponible: jugador.ultimo_trivia !== hoy1,
+        runner_disponible: jugador.ultimo_runner !== hoy1,
       };
     }
 
@@ -467,13 +479,23 @@ export class MisionesService {
     }));
 
     const totalCompletadas = lista.filter((m) => m.ok).length;
-    const hoyStr2 = new Date().toISOString().split('T')[0];
+    const hoy2 = fechaColombia();
+
+    const misionesConRunner = lista.map((m) => {
+      if (m.id === 'runner_mascotas') {
+        return { ...m, ok: jugador.ultimo_runner === hoy2 };
+      }
+      return m;
+    });
+
+    const totalCompletadasConRunner = misionesConRunner.filter((m) => m.ok).length;
 
     return {
-      misiones: lista,
-      completadas: totalCompletadas,
-      total: lista.length,
-      trivia_disponible: jugador.ultimo_trivia !== hoyStr2,
+      misiones: misionesConRunner,
+      completadas: totalCompletadasConRunner,
+      total: misionesConRunner.length,
+      trivia_disponible: jugador.ultimo_trivia !== hoy2,
+      runner_disponible: jugador.ultimo_runner !== hoy2,
     };
   }
 
@@ -590,6 +612,33 @@ export class MisionesService {
     };
   }
 
+  async jugarRunner(uid: string) {
+    const hoy = fechaColombia();
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) throw new BadRequestException('Jugador no encontrado');
+
+    if (jugador.ultimo_runner === hoy) {
+      return {
+        mensaje: '¡Ya jugaste el runner hoy! Vuelve mañana para ganar más goles.',
+        goles_ganados: 0,
+        ya_jugado: true,
+      };
+    }
+
+    const mision = MISIONES.find((m) => m.id === 'runner_mascotas')!;
+    jugador.goles = (jugador.goles || 0) + mision.goles;
+    jugador.ultimo_runner = hoy;
+    jugador.ultimo_acceso = new Date();
+    jugador.nivel = calcularNivelActividad(jugador);
+    await this.jugadorRepo.save(jugador);
+
+    return {
+      mensaje: `¡Runner completado! +${mision.goles} goles`,
+      goles_ganados: mision.goles,
+      ya_jugado: false,
+    };
+  }
+
   // Obtener preguntas desde la DB para una empresa
   async getPreguntasDelDia(empresaId: number) {
     const preguntas = await this.preguntasService.getPreguntasPorEmpresa(empresaId, 6);
@@ -667,6 +716,7 @@ export class MisionesService {
 
       case 'ver_video':
       case 'trivia_mundial':
+      case 'runner_mascotas':
         // Misión manual: se completa al hacer clic
         return true;
 

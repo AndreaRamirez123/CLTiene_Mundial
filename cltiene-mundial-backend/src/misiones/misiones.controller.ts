@@ -21,6 +21,11 @@ export class MisionesController {
     return this.misionesService.jugarTrivia(uid, correctas);
   }
 
+  @Post(':uid/runner')
+  jugarRunner(@Param('uid') uid: string) {
+    return this.misionesService.jugarRunner(uid);
+  }
+
   @Post(':uid/:misionId/completar')
   completarMision(
     @Param('uid') uid: string,

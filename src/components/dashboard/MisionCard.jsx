@@ -97,7 +97,7 @@ export default function MisionCard({ mision, reclamando, onReclamar, fondoSuave,
               }
             }}
           >
-            {reclamando === mision.id ? "⏳" : "Reclamar →"}
+            {reclamando === mision.id ? "⏳" : (mision.botonLabel || "Reclamar →")}
           </button>
         )}
       </div>

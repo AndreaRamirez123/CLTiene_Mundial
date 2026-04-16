@@ -134,6 +134,9 @@ export class Jugador {
 
   // Bonos
   @Column({ type: 'date', nullable: true })
+  ultimo_runner: string | null;
+
+  @Column({ type: 'date', nullable: true })
   ultimo_bono_diario: string | null;
 
   @Column({ type: 'int', unsigned: true, default: 0 })
