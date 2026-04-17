@@ -68,7 +68,7 @@ const MISIONES: Mision[] = [
   {
     id: 'runner_mascotas',
     icono: '🐾',
-    titulo: 'Runner de Mascotas',
+    titulo: 'Pet Running',
     desc: 'Juega el runner y completa la misión',
     goles: 5,
     tipo: 'manual',
