@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -29,6 +29,41 @@ export class AuthController {
   @Post('google')
   loginConGoogle(@Body() body: { credential: string; empresa_slug?: string }) {
     return this.authService.loginConGoogle(body.credential, body.empresa_slug);
+  }
+
+  // SSO CUN 360 - login automatico con correo institucional (version simple por URL)
+  @Post('sso-cun')
+  ssoCun(@Body() body: { email: string; empresa_slug?: string }) {
+    return this.authService.loginSsoCun(body.email, body.empresa_slug);
+  }
+
+  // SSO CUN 360 - server-to-server (Opcion C)
+  // CUN 360 llama desde su backend con API KEY y datos del usuario.
+  // Devuelve session_token temporal para redirigir al usuario.
+  @Post('sso-cun-api')
+  ssoCunApi(
+    @Headers('authorization') authHeader: string,
+    @Body()
+    body: {
+      email: string;
+      nombre?: string;
+      telefono?: string;
+      tipojugador?: string;
+      relacion_cltiene?: string;
+      departamento?: string;
+      ciudad?: string;
+    },
+  ) {
+    const apiKey = authHeader?.startsWith('Bearer ')
+      ? authHeader.substring(7)
+      : authHeader;
+    return this.authService.crearSsoCunSession(apiKey, body);
+  }
+
+  // Cliente consume el session_token y obtiene JWT real
+  @Post('sso-session')
+  ssoSession(@Body() body: { session_token: string }) {
+    return this.authService.consumirSsoSession(body.session_token);
   }
 
   @Post('solicitar-reset')

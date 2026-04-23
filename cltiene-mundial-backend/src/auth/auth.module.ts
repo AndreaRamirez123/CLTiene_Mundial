@@ -9,10 +9,11 @@ import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { Empresa } from '../entities/empresa.entity';
 import { ConfigMarca } from '../entities/config-marca.entity';
+import { SsoSession } from '../entities/sso-session.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Jugador, Transaccion, Empresa, ConfigMarca]),
+    TypeOrmModule.forFeature([Jugador, Transaccion, Empresa, ConfigMarca, SsoSession]),
     ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

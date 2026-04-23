@@ -12,6 +12,7 @@ import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { Empresa } from '../entities/empresa.entity';
 import { ConfigMarca } from '../entities/config-marca.entity';
+import { SsoSession } from '../entities/sso-session.entity';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,8 @@ export class AuthService {
     private empresaRepo: Repository<Empresa>,
     @InjectRepository(ConfigMarca)
     private configMarcaRepo: Repository<ConfigMarca>,
+    @InjectRepository(SsoSession)
+    private ssoSessionRepo: Repository<SsoSession>,
     private jwtService: JwtService,
     private dataSource: DataSource,
   ) { }
@@ -383,6 +386,288 @@ export class AuthService {
         usuario: this.limpiarUsuario(saved),
       };
     });
+  }
+
+  // === SSO CUN 360: server-to-server (Opcion C) ===
+  // CUN 360 envia datos completos del usuario + API KEY desde su servidor.
+  // Creamos/actualizamos el jugador y devolvemos un token temporal para redirigir.
+  async crearSsoCunSession(
+    apiKey: string,
+    datos: {
+      email: string;
+      nombre?: string;
+      telefono?: string;
+      tipojugador?: string;
+      relacion_cltiene?: string;
+      departamento?: string;
+      ciudad?: string;
+    },
+  ) {
+    // 1. Validar API KEY
+    const expectedKey = process.env.CUN_API_KEY;
+    if (!expectedKey || apiKey !== expectedKey) {
+      throw new UnauthorizedException('API Key invalida.');
+    }
+
+    // 2. Validar correo
+    if (!datos.email || typeof datos.email !== 'string') {
+      throw new BadRequestException('Email requerido.');
+    }
+    const emailLimpio = datos.email.trim().toLowerCase();
+    if (!emailLimpio.endsWith('@cun.edu.co')) {
+      throw new BadRequestException(
+        'Solo se permiten correos institucionales @cun.edu.co.',
+      );
+    }
+
+    // 3. Resolver empresa CUN (siempre empresa_id de la CUN)
+    const slugCun = process.env.CUN_EMPRESA_SLUG || 'cun';
+    const empresaCun = await this.empresaRepo.findOne({
+      where: { slug: slugCun, estado: 'activa' },
+    });
+    if (!empresaCun) {
+      throw new BadRequestException(
+        `Empresa CUN (slug='${slugCun}') no encontrada o inactiva.`,
+      );
+    }
+    const empresaId = empresaCun.id;
+
+    // 4. Buscar o crear jugador
+    let jugador = await this.jugadorRepo.findOne({
+      where: { email: emailLimpio, empresa_id: empresaId },
+    });
+
+    const telLimpio = (datos.telefono || '').replace(/\D/g, '');
+    const nombreFinal =
+      datos.nombre ||
+      emailLimpio
+        .split('@')[0]
+        .replace(/[._-]/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+
+    // Validar enums por si CUN envia algo distinto
+    const tiposValidos = ['natural', 'empresa', 'organizacion', 'explorar'];
+    const relacionesValidas = ['cliente', 'escuchado', 'explorando', 'nuevo'];
+    const tipojugador = tiposValidos.includes(datos.tipojugador || '')
+      ? datos.tipojugador
+      : 'natural';
+    const relacion_cltiene = relacionesValidas.includes(
+      datos.relacion_cltiene || '',
+    )
+      ? datos.relacion_cltiene
+      : 'nuevo';
+
+    if (!jugador) {
+      // Crear nuevo jugador con bono de bienvenida
+      const uid = this.generarUid();
+      const randomPass = await bcrypt.hash(this.generarUid(), 10);
+      const bonoRegistro = 100;
+
+      try {
+        const nuevo = this.jugadorRepo.create({
+          uid,
+          email: emailLimpio,
+          password: randomPass,
+          correo: emailLimpio,
+          nombre: nombreFinal,
+          telefono: telLimpio,
+          tipojugador,
+          relacion_cltiene,
+          departamento: datos.departamento || '',
+          ciudad: datos.ciudad || '',
+          monedas: bonoRegistro,
+          monedas_totales_ganadas: bonoRegistro,
+          codigo_referido: uid.substring(0, 8).toUpperCase(),
+          nivel: 'activo',
+          dias_consecutivos: 1,
+          ultimo_acceso: new Date(),
+          empresa_id: empresaId,
+          rol: 'jugador',
+        });
+
+        jugador = await this.jugadorRepo.save(nuevo);
+
+        await this.dataSource.getRepository(Transaccion).save({
+          jugador_id: jugador.id,
+          tipo: 'registro',
+          monto: bonoRegistro,
+          saldo_anterior: 0,
+          saldo_nuevo: bonoRegistro,
+          descripcion: 'Bono de bienvenida - acceso via CUN 360',
+        });
+      } catch (err: any) {
+        if (err?.code === 'ER_DUP_ENTRY') {
+          jugador = await this.jugadorRepo.findOne({
+            where: { email: emailLimpio, empresa_id: empresaId },
+          });
+          if (!jugador) throw err;
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      // Jugador existe: actualizar datos y ultimo acceso
+      jugador.ultimo_acceso = new Date();
+      if (datos.nombre) jugador.nombre = datos.nombre;
+      if (telLimpio) jugador.telefono = telLimpio;
+      if (datos.departamento) jugador.departamento = datos.departamento;
+      if (datos.ciudad) jugador.ciudad = datos.ciudad;
+      jugador = await this.jugadorRepo.save(jugador);
+    }
+
+    // 5. Generar token temporal de sesion (single-use, expira en 5 min)
+    const sessionToken = this.generarSessionToken();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.ssoSessionRepo.save({
+      token: sessionToken,
+      jugador_id: jugador.id,
+      expires_at: expiresAt,
+      used: 0,
+    });
+
+    return {
+      session_token: sessionToken,
+      expires_in: 300,
+      redirect_url_hint: `/?session=${sessionToken}`,
+    };
+  }
+
+  // Cliente consume el session_token y obtiene JWT real
+  async consumirSsoSession(sessionToken: string) {
+    if (!sessionToken) {
+      throw new BadRequestException('Token de sesion requerido.');
+    }
+
+    const session = await this.ssoSessionRepo.findOne({
+      where: { token: sessionToken },
+    });
+
+    if (!session) {
+      throw new UnauthorizedException('Token invalido.');
+    }
+
+    if (session.used === 1) {
+      throw new UnauthorizedException('Token ya fue usado.');
+    }
+
+    if (new Date() > session.expires_at) {
+      throw new UnauthorizedException('Token expirado.');
+    }
+
+    // Marcar como usado (single-use)
+    session.used = 1;
+    await this.ssoSessionRepo.save(session);
+
+    const jugador = await this.jugadorRepo.findOne({
+      where: { id: session.jugador_id },
+    });
+
+    if (!jugador) {
+      throw new UnauthorizedException('Jugador no encontrado.');
+    }
+
+    const token = this.generarToken(jugador);
+    return {
+      token,
+      usuario: this.limpiarUsuario(jugador),
+    };
+  }
+
+  private generarSessionToken(): string {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let token = '';
+    for (let i = 0; i < 48; i++) {
+      token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+  }
+
+  // SSO CUN 360: login automático por correo institucional
+  async loginSsoCun(email: string, empresaSlug?: string) {
+    if (!email || typeof email !== 'string') {
+      throw new BadRequestException('Correo no proporcionado.');
+    }
+
+    const emailLimpio = email.trim().toLowerCase();
+
+    if (!emailLimpio.endsWith('@cun.edu.co')) {
+      throw new UnauthorizedException(
+        'Solo se permite el acceso con correo institucional @cun.edu.co.',
+      );
+    }
+
+    const empresaId = await this.resolverEmpresa(empresaSlug);
+
+    let jugador = await this.jugadorRepo.findOne({
+      where: { email: emailLimpio, empresa_id: empresaId },
+    });
+
+    if (!jugador) {
+      const uid = this.generarUid();
+      const randomPass = await bcrypt.hash(this.generarUid(), 10);
+      const nombreDesdeCorreo = emailLimpio
+        .split('@')[0]
+        .replace(/[._-]/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+      const bonoRegistro = 100;
+
+      try {
+        const nuevo = this.jugadorRepo.create({
+          uid,
+          email: emailLimpio,
+          password: randomPass,
+          correo: emailLimpio,
+          nombre: nombreDesdeCorreo,
+          telefono: '',
+          departamento: '',
+          ciudad: '',
+          tipojugador: 'natural',
+          relacion_cltiene: 'nuevo',
+          monedas: bonoRegistro,
+          monedas_totales_ganadas: bonoRegistro,
+          codigo_referido: uid.substring(0, 8).toUpperCase(),
+          nivel: 'activo',
+          dias_consecutivos: 1,
+          ultimo_acceso: new Date(),
+          empresa_id: empresaId,
+          rol: 'jugador',
+        });
+
+        jugador = await this.jugadorRepo.save(nuevo);
+
+        await this.dataSource.getRepository(Transaccion).save({
+          jugador_id: jugador.id,
+          tipo: 'registro',
+          monto: bonoRegistro,
+          saldo_anterior: 0,
+          saldo_nuevo: bonoRegistro,
+          descripcion: 'Bono de bienvenida - acceso via CUN 360',
+        });
+      } catch (err: any) {
+        // Race condition: si otra request creo el usuario al mismo tiempo,
+        // recuperarlo en vez de fallar.
+        if (err?.code === 'ER_DUP_ENTRY') {
+          jugador = await this.jugadorRepo.findOne({
+            where: { email: emailLimpio, empresa_id: empresaId },
+          });
+          if (!jugador) throw err;
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      jugador.ultimo_acceso = new Date();
+      jugador = await this.jugadorRepo.save(jugador);
+    }
+
+    const token = this.generarToken(jugador);
+
+    return {
+      token,
+      usuario: this.limpiarUsuario(jugador),
+    };
   }
 
   async loginConGoogle(credential: string, empresaSlug?: string) {

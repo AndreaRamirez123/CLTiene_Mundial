@@ -288,6 +288,21 @@ FROM jugadores j
 ORDER BY j.empresa_id, j.monedas DESC;
 
 -- ============================================
+-- SSO SESSIONS (tokens temporales single-use para integracion CUN 360)
+-- ============================================
+CREATE TABLE IF NOT EXISTS sso_sessions (
+  token VARCHAR(64) PRIMARY KEY,
+  jugador_id INT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  used TINYINT NOT NULL DEFAULT 0,
+
+  INDEX idx_jugador (jugador_id),
+  INDEX idx_expires (expires_at),
+  FOREIGN KEY (jugador_id) REFERENCES jugadores(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ============================================
 -- VISTA: Elegibilidad de canje (filtrable por empresa_id)
 -- ============================================
 CREATE OR REPLACE VIEW elegibilidad_canje AS

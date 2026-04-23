@@ -58,18 +58,22 @@ export default function Misiones({ usuario, cargarPerfil }) {
       const disponible = res.data.trivia_disponible ?? false;
       const runnerDisponible = res.data.runner_disponible ?? true;
       setRunnerJugadoHoy(!runnerDisponible);
-      const misionesAjustadas = res.data.misiones.map((m) => {
-        if (m.id === "trivia_mundial" && disponible && m.ok) {
-          return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
-        }
-        if (m.id === "runner_mascotas") {
-          return { ...m, ok: false, botonLabel: runnerDisponible ? "Reclamar →" : "Jugar de nuevo" };
-        }
-        return m;
-      });
+      const misionesAjustadas = res.data.misiones
+        // Oculta temporalmente la mision "invitar amigo" (codigo conservado para reactivar luego)
+        .filter((m) => m.id !== "invita_amigo")
+        .map((m) => {
+          if (m.id === "trivia_mundial" && disponible && m.ok) {
+            return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
+          }
+          if (m.id === "runner_mascotas") {
+            return { ...m, ok: false, botonLabel: runnerDisponible ? "Reclamar →" : "Jugar de nuevo" };
+          }
+          return m;
+        });
       setMisiones(misionesAjustadas);
-      setCompletadas(res.data.completadas);
-      setTotal(res.data.total);
+      // Recalcular total y completadas desde la lista filtrada (en vez del backend)
+      setCompletadas(misionesAjustadas.filter((m) => m.ok).length);
+      setTotal(misionesAjustadas.length);
       setTriviaDisponible(res.data.trivia_disponible ?? false);
       if (res.data.goles_otorgados > 0) {
         await cargarPerfil();

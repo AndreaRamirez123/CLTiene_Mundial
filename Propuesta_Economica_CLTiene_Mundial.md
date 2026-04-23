@@ -149,6 +149,7 @@ La tabla a continuación presenta **precios sugeridos de venta al cliente**, cal
 
 ---
 
+
 ## 5. Costos adicionales opcionales para la operación
 
 | Concepto | Costo | Observación |
