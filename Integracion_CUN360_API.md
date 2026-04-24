@@ -63,7 +63,7 @@ El flujo es **server-to-server**: CUN 360 envía los datos del usuario desde su 
 ### Request
 
 **Método**: `POST`
-**URL (producción)**: `https://cltiene-mundial-backend-293865702055.us-central1.run.app/auth/sso-cun-api`
+**URL (producción)**: `https://cltiene-backend-293865702055.us-central1.run.app/auth/sso-cun-api`
 **URL (desarrollo)**: `http://localhost:3000/auth/sso-cun-api`
 
 ### Headers
@@ -90,7 +90,7 @@ El flujo es **server-to-server**: CUN 360 envía los datos del usuario desde su 
 ### Ejemplo de petición
 
 ```bash
-curl -X POST https://cltiene-mundial-backend-293865702055.us-central1.run.app/auth/sso-cun-api \
+curl -X POST https://cltiene-backend-293865702055.us-central1.run.app/auth/sso-cun-api \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer cun_sso_key_2026_a8f3d9e2b5c7h1k4m6n9p2q5r8t1v4w7y0" \
   -d '{
@@ -186,7 +186,7 @@ app.get('/mundial/entrar', async (req, res) => {
   try {
     // 1. Server-to-server: crear sesión en Mundial
     const { data } = await axios.post(
-      'https://cltiene-mundial-backend-293865702055.us-central1.run.app/auth/sso-cun-api',
+      'https://cltiene-backend-293865702055.us-central1.run.app/auth/sso-cun-api',
       {
         email: usuario.correo,
         nombre: usuario.nombre_completo,
