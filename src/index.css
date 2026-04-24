@@ -44,11 +44,8 @@
   50% { opacity: 0.5; }
 }
 
-/* Logo: en tema oscuro invertir para que se vea claro */
+/* Logo: mostrar tal cual (cada empresa sube su logo con los colores que quiera) */
 .logo-header {
-  filter: brightness(0) invert(1);
-}
-.tema-claro .logo-header {
   filter: none;
 }
 
