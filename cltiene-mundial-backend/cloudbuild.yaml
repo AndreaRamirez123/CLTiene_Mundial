@@ -1,0 +1,47 @@
+steps:
+  # Build imagen Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+      - '.'
+
+  # Push imagen a Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+
+  # Deploy a Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'cltiene-backend'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+
+  # Redirigir trafico a la revision mas reciente
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'services'
+      - 'update-traffic'
+      - 'cltiene-backend'
+      - '--to-latest'
+      - '--region'
+      - 'us-central1'
+
+images:
+  - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
