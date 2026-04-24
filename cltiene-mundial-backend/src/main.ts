@@ -39,9 +39,9 @@ async function bootstrap() {
     prefix: '/uploads',
   });
 
-  const port = configService.get<number>('PORT') || 3000;
-  console.log(`Backend arrancando en http://localhost:${port}`);
+  const port = Number(process.env.PORT) || configService.get<number>('PORT') || 3000;
+  console.log(`Backend arrancando en puerto ${port}`);
   console.log(`CORS permitido para: ${allowedOrigins.join(', ')}`);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();
