@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { aplicarConfigMarca } from './utils/marca'
+import { aplicarConfigMarca, guardarConfigMarca } from './utils/marca'
 import client from './api/client'
 import Login from './pages/login'
 import Registro from './pages/Registro'
@@ -45,6 +45,10 @@ export default function App() {
             setUsuario(data.usuario)
             setPerfilCompleto(true)
             window.history.replaceState({}, document.title, window.location.pathname)
+            return client.get('/auth/config-publica/cun')
+          })
+          .then((res) => {
+            if (res?.data) guardarConfigMarca(res.data)
           })
           .catch((err) => {
             console.error('Error SSO session:', err)
@@ -72,6 +76,10 @@ export default function App() {
             setUsuario(data.usuario)
             setPerfilCompleto(true)
             window.history.replaceState({}, document.title, window.location.pathname)
+            return client.get('/auth/config-publica/cun')
+          })
+          .then((res) => {
+            if (res?.data) guardarConfigMarca(res.data)
           })
           .catch((err) => {
             console.error('Error SSO CUN 360:', err)
