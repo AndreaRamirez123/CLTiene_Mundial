@@ -62,7 +62,7 @@ export default function App() {
         localStorage.removeItem('token')
         localStorage.removeItem('usuario')
         localStorage.removeItem('config_marca')
-        client.post('/auth/sso-cun', { email: ssoUser })
+        client.post('/auth/sso-cun', { email: ssoUser, empresa_slug: 'cun' })
           .then(({ data }) => {
             localStorage.setItem('token', data.token)
             localStorage.setItem('usuario', JSON.stringify(data.usuario))

@@ -598,7 +598,9 @@ export class AuthService {
       );
     }
 
-    const empresaId = await this.resolverEmpresa(empresaSlug);
+    // Este endpoint es exclusivo de CUN 360: siempre asociar a la empresa CUN
+    const slugFinal = empresaSlug || process.env.CUN_EMPRESA_SLUG || 'cun';
+    const empresaId = await this.resolverEmpresa(slugFinal);
 
     let jugador = await this.jugadorRepo.findOne({
       where: { email: emailLimpio, empresa_id: empresaId },
