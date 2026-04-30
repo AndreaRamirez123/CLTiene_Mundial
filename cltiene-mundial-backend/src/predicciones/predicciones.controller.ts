@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body } from '@nestjs/common';
+import { Controller, Post, Put, Get, Param, Body } from '@nestjs/common';
 import { PrediccionesService } from './predicciones.service';
 
 @Controller('predicciones')
@@ -14,10 +14,28 @@ export class PrediccionesController {
       resultado: string;
       goles_local: number;
       goles_visitante: number;
-      monedas_apostadas: number;
     },
   ) {
     return this.prediccionesService.crearPrediccion(uid, body);
+  }
+
+  // Editar una predicción existente (solo si faltan más de 5 min para el partido)
+  @Put(':uid/:partidoId')
+  editarPrediccion(
+    @Param('uid') uid: string,
+    @Param('partidoId') partidoId: string,
+    @Body()
+    body: {
+      resultado: string;
+      goles_local: number;
+      goles_visitante: number;
+    },
+  ) {
+    return this.prediccionesService.editarPrediccion(
+      uid,
+      parseInt(partidoId, 10),
+      body,
+    );
   }
 
   @Get(':uid')

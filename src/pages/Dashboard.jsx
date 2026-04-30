@@ -56,8 +56,10 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
         r.data.map((j) => ({
           pos: j.posicion,
           nombre: j.nombre || j.email?.split("@")[0] || "Jugador",
+          goles: j.goles || 0,
           monedas: j.monedas || 0,
-          predicciones: j.predicciones_count || 0,
+          predicciones: j.predicciones || 0,
+          predicciones_acertadas: j.predicciones_acertadas || 0,
           esYo: j.uid === usuario.uid,
         })),
       ),
@@ -132,7 +134,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           <div id="tutorial-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
             {[
               { label: "Monedas", valor: monedas, icono: "🪙", color: C.dorado, anim: "anim-coin" },
-              { label: "Predicciones", valor: perfil?.predicciones_count || 0, icono: "⚽", color: C.azul, anim: "anim-goal-flash" },
+              { label: "Goles", valor: perfil?.goles || 0, icono: "⚽", color: C.verde, anim: "anim-goal-flash" },
               { label: "Posición", valor: `#${posicion}`, icono: "🏆", color: C.naranja, anim: "anim-trophy" },
             ].map((s, i) => (
               <div key={i} className="anim-slide-up micro-card anim-stadium-glow" style={{ background: "var(--card)", border: `1px solid ${s.color}30`, borderRadius: 14, padding: "14px 10px", textAlign: "center", animationDelay: `${i * 0.1}s`, animationFillMode: "both" }}>

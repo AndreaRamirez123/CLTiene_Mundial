@@ -41,7 +41,7 @@ export class Prediccion {
   estado: string;
 
   @Column({ type: 'int', unsigned: true, default: 0 })
-  monedas_ganadas: number;
+  goles_ganados: number;
 
   @CreateDateColumn()
   created_at: Date;

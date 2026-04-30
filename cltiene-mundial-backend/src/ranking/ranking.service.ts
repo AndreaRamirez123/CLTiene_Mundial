@@ -11,9 +11,15 @@ export class RankingService {
   ) {}
 
   async getRanking(empresaId: number, limit = 10) {
+    // El ranking del Mundial se ordena por GOLES (acumulados al acertar predicciones).
+    // Desempate: predicciones acertadas DESC, luego monedas DESC.
     const jugadores = await this.jugadorRepo.find({
       where: { empresa_id: empresaId },
-      order: { monedas: 'DESC' },
+      order: {
+        goles: 'DESC',
+        predicciones_acertadas: 'DESC',
+        monedas: 'DESC',
+      },
       take: limit,
       select: [
         'id',
@@ -32,11 +38,11 @@ export class RankingService {
       id: j.id,
       uid: j.uid,
       nombre: j.nombre || 'Jugador anónimo',
+      goles: j.goles,
       monedas: j.monedas,
       nivel: j.nivel,
       predicciones: j.predicciones_count,
       predicciones_acertadas: j.predicciones_acertadas,
-      goles: j.goles,
     }));
   }
 }

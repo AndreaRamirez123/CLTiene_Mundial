@@ -6,7 +6,13 @@ export default function Ranking({ ranking }) {
       <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.15), rgba(253,119,81,0.1))", border: "1px solid rgba(236,168,45,0.3)", borderRadius: 14, padding: "14px 16px", marginBottom: 16, textAlign: "center" }}>
         <div style={{ color: "var(--texto-sec)", fontSize: 12 }}>Tu posición actual</div>
         <div style={{ color: "#ECA82D", fontSize: 36, fontWeight: 900 }}>#{yo?.pos || "—"}</div>
-        <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>¡Sigue prediciendo para subir!</div>
+        <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>¡Acierta predicciones para subir!</div>
+      </div>
+      <div style={{ background: "rgba(22,199,132,0.08)", border: "1px solid rgba(22,199,132,0.25)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 18 }}>🏆</span>
+        <span style={{ color: "var(--texto-sec)", fontSize: 12, lineHeight: 1.4 }}>
+          El ranking se ordena por <b style={{ color: "#16C784" }}>⚽ goles</b> ganados al acertar predicciones. Top 3 reciben premios al finalizar el Mundial.
+        </span>
       </div>
       {ranking.length === 0 ? (
         <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>Cargando ranking...</div>
@@ -19,9 +25,11 @@ export default function Ranking({ ranking }) {
             <div style={{ color: j.esYo ? "#FD7751" : "var(--texto)", fontWeight: 800, fontSize: 15 }}>
               {j.nombre} {j.esYo ? "👈 Tú" : ""}
             </div>
-            <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>{j.predicciones} predicciones</div>
+            <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>
+              {j.predicciones_acertadas || 0} aciertos · 🪙 {j.monedas}
+            </div>
           </div>
-          <div style={{ color: "#ECA82D", fontWeight: 900, fontSize: 16 }}>🪙 {j.monedas}</div>
+          <div style={{ color: "#16C784", fontWeight: 900, fontSize: 18 }}>⚽ {j.goles || 0}</div>
         </div>
       ))}
     </div>

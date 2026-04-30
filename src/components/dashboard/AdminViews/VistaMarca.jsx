@@ -18,6 +18,7 @@ export default function VistaMarca({ client, usuario }) {
     beneficios_json: "",
     terminos_condiciones: "",
     politica_privacidad: "",
+    videos_json: "",
   });
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -54,6 +55,7 @@ export default function VistaMarca({ client, usuario }) {
     beneficios_json: "",
     terminos_condiciones: "",
     politica_privacidad: "",
+    videos_json: "",
   };
 
   useEffect(() => {
@@ -106,12 +108,19 @@ export default function VistaMarca({ client, usuario }) {
         beneficios_json: form.beneficios_json,
         terminos_condiciones: form.terminos_condiciones,
         politica_privacidad: form.politica_privacidad,
+        videos_json: form.videos_json,
         ...(esSuperadmin && empresaSeleccionada ? { empresa_id: empresaSeleccionada } : {}),
       };
       const res = await client.put("/admin/config-marca", payload);
       const data = res?.data || form;
       setForm((f) => ({ ...f, ...data }));
-      if (!esSuperadmin) guardarConfigMarca(data);
+      // Refrescar config local si el usuario es admin O si el superadmin
+      // está editando su propia empresa (para ver los cambios sin recargar)
+      const editandoMiEmpresa =
+        !esSuperadmin ||
+        !empresaSeleccionada ||
+        empresaSeleccionada === usuario?.empresa_id;
+      if (editandoMiEmpresa) guardarConfigMarca(data);
       setMensaje({ tipo: "exito", texto: "Marca actualizada correctamente" });
       alert("Cambios guardados correctamente");
     } catch (e) {
@@ -334,6 +343,16 @@ export default function VistaMarca({ client, usuario }) {
                 </div>
               </div>
             </div>
+
+            {/* Videos de la marca (misión "Video del día") */}
+            <EditorVideos
+              key={`vid-${empresaSeleccionada || "default"}`}
+              value={form.videos_json}
+              onChange={(json) => set("videos_json", json)}
+              client={client}
+              esSuperadmin={esSuperadmin}
+              empresaSeleccionada={empresaSeleccionada}
+            />
 
             {/* Publicidad / Carrusel */}
             <EditorCarrusel
@@ -1051,6 +1070,160 @@ function EditorBeneficios({ value, onChange }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function EditorVideos({ value, onChange, client, esSuperadmin, empresaSeleccionada }) {
+  const [videos, setVideos] = useState(() => {
+    try {
+      const arr = JSON.parse(value);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  });
+  const [subiendo, setSubiendo] = useState(false);
+
+  const sincronizar = (nuevos) => {
+    setVideos(nuevos);
+    onChange(nuevos.length > 0 ? JSON.stringify(nuevos) : "");
+  };
+
+  const subirVideo = async (file) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      alert("El video no debe superar 50 MB");
+      return;
+    }
+    setSubiendo(true);
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+      if (esSuperadmin && empresaSeleccionada) {
+        formData.append("empresa_id", empresaSeleccionada);
+      }
+      const res = await client.post("/admin/config-marca/upload-video", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const nuevo = {
+        id: `video_${Date.now()}_${Math.round(Math.random() * 1e6)}`,
+        url: res.data.video_url,
+        nombre: file.name,
+      };
+      sincronizar([...videos, nuevo]);
+    } catch (err) {
+      alert(err.response?.data?.message || "Error al subir el video");
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
+  const eliminar = (idx) => {
+    sincronizar(videos.filter((_, i) => i !== idx));
+  };
+
+  const resolverUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    if (url.startsWith("/uploads")) return `${import.meta.env.VITE_API_BASE_URL || ""}${url}`;
+    return url;
+  };
+
+  return (
+    <div style={{ marginTop: 22 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700 }}>
+            Videos de la marca (misión "Video del día")
+          </div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>
+            {videos.length === 0
+              ? "Sin videos. Agrega uno para activar la misión."
+              : `${videos.length} video${videos.length > 1 ? "s" : ""} — rotan diariamente`}
+          </div>
+        </div>
+        <label style={{
+          padding: "8px 14px", borderRadius: 10, border: "none",
+          background: subiendo ? "rgba(255,255,255,0.05)" : "rgba(22,199,132,0.15)",
+          color: subiendo ? "var(--texto-ter)" : "#16C784",
+          fontWeight: 700, fontSize: 12, cursor: subiendo ? "wait" : "pointer", textAlign: "center",
+        }}>
+          {subiendo ? "Subiendo..." : "+ Agregar video"}
+          <input
+            type="file"
+            accept="video/*"
+            disabled={subiendo}
+            style={{ display: "none" }}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              await subirVideo(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </div>
+
+      <div style={{ background: "rgba(64,141,255,0.08)", border: "1px solid rgba(64,141,255,0.2)", borderRadius: 12, padding: "10px 12px", marginBottom: 12, color: "var(--texto-sec)", fontSize: 11, lineHeight: 1.5 }}>
+        💡 Cada día se muestra un video distinto. La rotación se calcula automáticamente. Si esta empresa no tiene videos, la misión no aparece. Formatos: <code>.mp4</code>, <code>.webm</code>, <code>.mov</code>. Máx <b>50 MB</b> por video.
+      </div>
+
+      {videos.length === 0 ? (
+        <div style={{ textAlign: "center", padding: 24, color: "var(--texto-ter)", fontSize: 12, border: "1px dashed var(--card-border)", borderRadius: 12 }}>
+          Aún no hay videos. Sube el primero con "+ Agregar video".
+        </div>
+      ) : (
+        <div style={{
+          maxHeight: 480,
+          overflowY: "auto",
+          padding: 8,
+          border: "1px solid var(--card-border)",
+          borderRadius: 12,
+          background: "rgba(0,0,0,0.15)",
+        }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+            {videos.map((v, idx) => (
+            <div
+              key={v.id || idx}
+              style={{
+                border: "1px solid var(--card-border)", borderRadius: 12,
+                background: "rgba(255,255,255,0.03)", overflow: "hidden",
+                display: "flex", flexDirection: "column",
+              }}
+            >
+              <div style={{ background: "#000", aspectRatio: "16/9" }}>
+                <video
+                  src={resolverUrl(v.url)}
+                  controls
+                  width="100%"
+                  height="100%"
+                  style={{ display: "block", width: "100%", height: "100%", objectFit: "contain" }}
+                />
+              </div>
+              <div style={{ padding: "8px 10px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: "var(--texto)", fontSize: 11, fontWeight: 700 }}>Día rotación: #{idx + 1}</div>
+                  <div style={{ color: "var(--texto-ter)", fontSize: 10, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {v.nombre || v.url}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => eliminar(idx)}
+                  style={{
+                    padding: "5px 10px", borderRadius: 8, border: "none",
+                    background: "rgba(231,76,60,0.15)", color: "#e74c3c",
+                    fontSize: 11, cursor: "pointer", fontWeight: 600, flexShrink: 0,
+                  }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

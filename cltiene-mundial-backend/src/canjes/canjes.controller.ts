@@ -22,20 +22,22 @@ export class CanjesController {
   }
 
   // Solicitar un canje
-  @Post(':uid/solicitar')
+  @Post(':uid')
   solicitarCanje(
     @Param('uid') uid: string,
     @Body()
     datos: {
-      beneficio: string;
+      beneficio_id: string;
+      beneficio_nombre: string;
+      monedas_costo: number;
       categoria: string;
       canal_contacto: string;
-      monedas_a_canjear: number;
-      businessUnitId: string;
-      businessUnitName: string;
-      serviceTypeName: string;
-      formId: string;
-      companyFormId: string;
+      // Datos WIP opcionales (si la marca tiene integración configurada)
+      businessUnitId?: string;
+      businessUnitName?: string;
+      serviceTypeName?: string;
+      formId?: string;
+      companyFormId?: string;
     },
   ) {
     return this.canjesService.solicitarCanje(uid, datos);

@@ -16,17 +16,16 @@ export default function VideoModal({ tiempoVideo, videoVisto, SEGUNDOS_MINIMO, o
           </button>
         </div>
 
-        <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", marginBottom: 18, boxShadow: "0 10px 40px rgba(0,0,0,0.3)" }}>
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(253,119,81,0.2) 0%, rgba(130,43,210,0.2) 100%)", zIndex: 1, pointerEvents: "none" }} />
-          <iframe
+        <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", marginBottom: 18, boxShadow: "0 10px 40px rgba(0,0,0,0.3)", background: "#000" }}>
+          <video
+            key={VIDEO_URL}
+            src={VIDEO_URL}
+            controls
+            autoPlay
+            playsInline
             width="100%"
-            height="280"
-            src={`${VIDEO_URL.replace("youtu.be/", "youtube.com/embed/").split("?")[0]}?autoplay=1&rel=0`}
-            title="Video {empresa}"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            style={{ borderRadius: 14, display: "block" }}
+            style={{ display: "block", maxHeight: 320, background: "#000" }}
+            title={`Video ${empresa}`}
           />
         </div>
 

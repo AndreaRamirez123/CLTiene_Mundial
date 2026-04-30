@@ -21,6 +21,9 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
   const [misPredicciones, setMisPredicciones] = useState([]);
   const [verTab, setVerTab] = useState("predecir");
   const [fechaSeleccionada, setFechaSeleccionada] = useState("");
+  const [editando, setEditando] = useState(null); // { pred, partido, resultado, gl, gv }
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+  const [mensajeOk, setMensajeOk] = useState("");
 
   const set = (id, k, v) => setPreds((p) => ({ ...p, [id]: { ...p[id], [k]: v } }));
 
@@ -34,6 +37,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
   useEffect(() => {
     if (usuario?.uid) cargarMisPredicciones();
   }, [usuario?.uid]);
+
+  const mostrarOk = (msg) => {
+    setMensajeOk(msg);
+    setTimeout(() => setMensajeOk(""), 4500);
+  };
 
   const confirmar = async (partido) => {
     const pred = preds[partido.id];
@@ -49,15 +57,49 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
         resultado: pred.resultado,
         goles_local: Number(pred.gl) || 0,
         goles_visitante: Number(pred.gv) || 0,
-        monedas_apostadas: 0,
       });
-      alert(res.data.mensaje);
+      mostrarOk(res.data.mensaje);
       await cargarPerfil();
       await cargarMisPredicciones();
     } catch (e) {
       alert(e.response?.data?.message || "Error al guardar prediccion");
     } finally {
       setEnviando((e) => ({ ...e, [partido.id]: false }));
+    }
+  };
+
+  const abrirEdicion = (pred) => {
+    setEditando({
+      partido_id: pred.partido_id,
+      partido: pred.partido,
+      resultado: pred.resultado,
+      gl: String(pred.goles_local ?? 0),
+      gv: String(pred.goles_visitante ?? 0),
+    });
+  };
+
+  const guardarEdicion = async () => {
+    if (!editando?.resultado) {
+      alert("Selecciona un resultado");
+      return;
+    }
+    setGuardandoEdicion(true);
+    try {
+      const res = await client.put(
+        `/predicciones/${usuario.uid}/${editando.partido_id}`,
+        {
+          resultado: editando.resultado,
+          goles_local: Number(editando.gl) || 0,
+          goles_visitante: Number(editando.gv) || 0,
+        },
+      );
+      setEditando(null);
+      mostrarOk(res.data.mensaje);
+      await cargarMisPredicciones();
+    } catch (e) {
+      alert(e.response?.data?.message || "Error al editar predicción");
+    } finally {
+      setGuardandoEdicion(false);
     }
   };
 
@@ -85,6 +127,27 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
 
   return (
     <div>
+      {mensajeOk && (
+        <div
+          className="anim-slide-up"
+          style={{
+            background: "linear-gradient(135deg, rgba(22,199,132,0.18), rgba(22,199,132,0.06))",
+            border: "1.5px solid rgba(22,199,132,0.45)",
+            borderRadius: 12,
+            padding: "12px 14px",
+            marginBottom: 14,
+            color: "#16C784",
+            fontSize: 13,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <span style={{ fontSize: 18 }}>✅</span>
+          <span style={{ flex: 1, lineHeight: 1.4 }}>{mensajeOk}</span>
+        </div>
+      )}
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         {[
           { id: "predecir", label: "Predecir", icono: "⚽" },
@@ -130,7 +193,8 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
             </span>
             <div>
               <div style={{ color: "var(--texto)", fontWeight: 700, fontSize: 13 }}>Predicciones gratuitas</div>
-              <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>Si aciertas ganas +50 🪙. Marcador exacto: +100 🪙</div>
+              <div style={{ color: "var(--texto-ter)", fontSize: 12 }}>Si aciertas ganas +1 ⚽. Marcador exacto: +3 ⚽</div>
+              <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 4, opacity: 0.85 }}>💡 Puedes editar tu predicción hasta 5 minutos antes del inicio del partido.</div>
             </div>
           </div>
 
@@ -252,7 +316,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                 </div>
 
                 <div style={{ marginBottom: 14 }}>
-                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 6, fontWeight: 700 }}>Marcador exacto opcional (+100 🪙)</div>
+                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 6, fontWeight: 700 }}>Marcador exacto opcional (+3 ⚽)</div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <input
                       type="number"
@@ -329,9 +393,9 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                     <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>
                       Grupo {partido.grupo} · {formatearFecha(partido.fecha)}
                     </span>
-                    {pred.monedas_ganadas > 0 && (
-                      <span className="anim-coin" style={{ color: C.dorado, fontWeight: 900, fontSize: 14 }}>
-                        +{pred.monedas_ganadas} 🪙
+                    {pred.goles_ganados > 0 && (
+                      <span className="anim-goal-flash" style={{ color: C.verde, fontWeight: 900, fontSize: 14 }}>
+                        +{pred.goles_ganados} ⚽
                       </span>
                     )}
                   </div>
@@ -373,12 +437,162 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                   )}
 
                   {pred.estado === "pendiente" && (
-                    <div style={{ marginTop: 6, color: "var(--texto-ter)", fontSize: 11 }}>⏳ Esperando resultado del partido</div>
+                    <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                      <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>⏳ Esperando resultado del partido</div>
+                      <button
+                        onClick={() => abrirEdicion(pred)}
+                        style={{
+                          background: "rgba(64,141,255,0.15)",
+                          border: "1px solid rgba(64,141,255,0.4)",
+                          color: "#408DFF",
+                          borderRadius: 8,
+                          padding: "5px 12px",
+                          fontWeight: 700,
+                          fontSize: 11,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ✏️ Editar
+                      </button>
+                    </div>
                   )}
                 </div>
               );
             })
           )}
+        </div>
+      )}
+
+      {editando && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            zIndex: 200,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            backdropFilter: "blur(4px)",
+          }}
+          onClick={() => !guardandoEdicion && setEditando(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "var(--card)",
+              borderRadius: 18,
+              padding: 22,
+              maxWidth: 420,
+              width: "100%",
+              border: "1px solid var(--card-border)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 17 }}>✏️ Editar predicción</div>
+              <button
+                onClick={() => !guardandoEdicion && setEditando(null)}
+                disabled={guardandoEdicion}
+                style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "var(--texto-ter)", width: 30, height: 30, borderRadius: 8, cursor: "pointer", fontSize: 16 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <div style={{ textAlign: "center" }}>
+                <Bandera codigo={editando.partido?.bandera_local} nombre={editando.partido?.local_equipo} size={32} />
+                <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 13, marginTop: 4 }}>{editando.partido?.local_equipo}</div>
+              </div>
+              <div style={{ background: "var(--input-bg)", borderRadius: 8, padding: "8px 14px", color: "var(--texto-ter)", fontWeight: 700, fontSize: 12 }}>VS</div>
+              <div style={{ textAlign: "center" }}>
+                <Bandera codigo={editando.partido?.bandera_visitante} nombre={editando.partido?.visitante_equipo} size={32} />
+                <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 13, marginTop: 4 }}>{editando.partido?.visitante_equipo}</div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8, fontWeight: 700 }}>¿Quién gana?</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+                {[
+                  { val: "local", label: editando.partido?.local_equipo, codigo: editando.partido?.bandera_local },
+                  { val: "empate", label: "Empate", codigo: null },
+                  { val: "visitante", label: editando.partido?.visitante_equipo, codigo: editando.partido?.bandera_visitante },
+                ].map((op) => {
+                  const activa = editando.resultado === op.val;
+                  return (
+                    <button
+                      key={op.val}
+                      onClick={() => setEditando((e) => ({ ...e, resultado: op.val }))}
+                      style={{
+                        padding: "9px 4px",
+                        borderRadius: 9,
+                        cursor: "pointer",
+                        border: activa ? "2px solid #FD7751" : bordeSuave,
+                        background: activa ? "rgba(253,119,81,0.2)" : fondoSuave,
+                        color: activa ? "#FD7751" : textoSuave,
+                        fontWeight: activa ? 800 : 600,
+                        fontSize: 11,
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ marginBottom: 3, display: "flex", justifyContent: "center" }}>
+                        {op.codigo ? <Bandera codigo={op.codigo} nombre={op.label} size={20} /> : <span style={{ fontSize: 16 }}>🤝</span>}
+                      </div>
+                      {op.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 6, fontWeight: 700 }}>Marcador exacto opcional (+3 ⚽)</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={editando.gl}
+                  onChange={(e) => setEditando((s) => ({ ...s, gl: e.target.value }))}
+                  style={{ width: 56, padding: "8px", textAlign: "center", background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: 8, color: "var(--texto)", fontSize: 16 }}
+                />
+                <span style={{ color: "var(--texto-ter)", fontSize: 18, fontWeight: 700 }}>-</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={editando.gv}
+                  onChange={(e) => setEditando((s) => ({ ...s, gv: e.target.value }))}
+                  style={{ width: 56, padding: "8px", textAlign: "center", background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: 8, color: "var(--texto)", fontSize: 16 }}
+                />
+              </div>
+            </div>
+
+            <div style={{ background: "rgba(236,168,45,0.1)", border: "1px solid rgba(236,168,45,0.3)", borderRadius: 10, padding: "10px 12px", marginBottom: 14, color: "#ECA82D", fontSize: 11, lineHeight: 1.4 }}>
+              ⏰ Recuerda: las predicciones se cierran 5 minutos antes del inicio del partido.
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setEditando(null)}
+                disabled={guardandoEdicion}
+                style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: "1px solid var(--input-border)", background: "none", color: "var(--texto-sec)", fontWeight: 700, fontSize: 13, cursor: guardandoEdicion ? "not-allowed" : "pointer" }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={guardarEdicion}
+                disabled={guardandoEdicion}
+                style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: "none", background: guardandoEdicion ? "rgba(253,119,81,0.5)" : "linear-gradient(135deg, #FD7751, #e5622a)", color: "#FFFFFF", fontWeight: 800, fontSize: 13, cursor: guardandoEdicion ? "not-allowed" : "pointer" }}
+              >
+                {guardandoEdicion ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

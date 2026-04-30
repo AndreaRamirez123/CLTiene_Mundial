@@ -59,8 +59,8 @@ export default function MisionCard({ mision, reclamando, onReclamar, fondoSuave,
       </div>
 
       <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-        <div style={{ background: mision.ok ? "rgba(22,199,132,0.2)" : "rgba(253,119,81,0.15)", color: mision.ok ? "#16C784" : C.verde, fontWeight: 900, fontSize: 15, padding: "6px 12px", borderRadius: 12 }}>
-          +{mision.goles} ⚽
+        <div style={{ background: mision.ok ? "rgba(236,168,45,0.2)" : "rgba(236,168,45,0.15)", color: mision.ok ? "#ECA82D" : C.dorado, fontWeight: 900, fontSize: 15, padding: "6px 12px", borderRadius: 12 }}>
+          +{mision.monedas} 🪙
         </div>
         {mision.ok ? (
           <div style={{ color: "#16C784", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>

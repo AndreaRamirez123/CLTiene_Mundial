@@ -58,6 +58,11 @@ export class ConfigMarca {
   @Column({ type: 'longtext', nullable: true })
   beneficios_json: string;
 
+  // Lista de videos de la marca (JSON array de objetos { id, url }).
+  // Se muestra uno distinto cada día con rotación: dayOfYear % length.
+  @Column({ type: 'longtext', nullable: true })
+  videos_json: string;
+
   @UpdateDateColumn()
   updated_at: Date;
 }

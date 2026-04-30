@@ -22,9 +22,9 @@ export default function TriviaModal({ preguntaSiguiente, triviaActual, PREGUNTAS
             ))}
           </div>
 
-          <div style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.15) 0%, rgba(22,199,132,0.05) 100%)", border: "1.5px solid rgba(22,199,132,0.3)", borderRadius: 14, padding: 16, marginBottom: 18 }}>
-            <div style={{ color: "var(--texto-sec)", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 6 }}>GOLES GANADOS</div>
-            <div style={{ color: "#16C784", fontWeight: 900, fontSize: 32 }}>+{triviaResultado.goles} ⚽</div>
+          <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.15) 0%, rgba(236,168,45,0.05) 100%)", border: "1.5px solid rgba(236,168,45,0.3)", borderRadius: 14, padding: 16, marginBottom: 18 }}>
+            <div style={{ color: "var(--texto-sec)", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 6 }}>MONEDAS GANADAS</div>
+            <div style={{ color: "#ECA82D", fontWeight: 900, fontSize: 32 }}>+{triviaResultado.monedas} 🪙</div>
           </div>
 
           <button
@@ -32,20 +32,20 @@ export default function TriviaModal({ preguntaSiguiente, triviaActual, PREGUNTAS
             style={{
               width: "100%",
               padding: "14px",
-              background: "linear-gradient(135deg, #16C784, #0fa968)",
+              background: "linear-gradient(135deg, #ECA82D, #c9891a)",
               border: "none",
               borderRadius: 12,
               color: "white",
               fontWeight: 800,
               fontSize: 15,
               cursor: "pointer",
-              boxShadow: "0 6px 20px rgba(22,199,132,0.3)",
+              boxShadow: "0 6px 20px rgba(236,168,45,0.3)",
               transition: "all 0.3s",
             }}
-            onMouseEnter={(e) => { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = "0 8px 24px rgba(22,199,132,0.4)" }}
-            onMouseLeave={(e) => { e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "0 6px 20px rgba(22,199,132,0.3)" }}
+            onMouseEnter={(e) => { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = "0 8px 24px rgba(236,168,45,0.4)" }}
+            onMouseLeave={(e) => { e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "0 6px 20px rgba(236,168,45,0.3)" }}
           >
-            ✓ Reclamar +{triviaResultado.goles} ⚽
+            ✓ Reclamar +{triviaResultado.monedas} 🪙
           </button>
         </div>
       </div>

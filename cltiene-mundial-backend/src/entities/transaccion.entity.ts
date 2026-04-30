@@ -23,16 +23,19 @@ export class Transaccion {
     enum: [
       'registro',
       'bono_diario',
+      'bono_referido',
+      'trivia',
+      'mision',
+      'canje',
+      // Tipos legacy (no se usan, se conservan por compatibilidad histórica)
       'bono_apuesta',
       'prediccion_simple',
       'prediccion_especial',
-      'bono_referido',
-      'trivia',
     ],
   })
   tipo: string;
 
-  @Column({ type: 'int', unsigned: true })
+  @Column({ type: 'int' })
   monto: number;
 
   @Column({ type: 'int', unsigned: true })

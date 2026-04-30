@@ -12,7 +12,7 @@ interface Mision {
   icono: string;
   titulo: string;
   desc: string;
-  goles: number;
+  monedas: number;
   tipo: 'auto' | 'manual';
 }
 
@@ -22,7 +22,7 @@ const MISIONES: Mision[] = [
     icono: '✅',
     titulo: 'Perfil creado',
     desc: 'Completaste tu registro',
-    goles: 10,
+    monedas: 50,
     tipo: 'auto',
   },
   {
@@ -30,7 +30,7 @@ const MISIONES: Mision[] = [
     icono: '⚽',
     titulo: 'Primera predicción',
     desc: 'Predice tu primer partido',
-    goles: 5,
+    monedas: 30,
     tipo: 'auto',
   },
   {
@@ -38,15 +38,15 @@ const MISIONES: Mision[] = [
     icono: '🤝',
     titulo: 'Invita un amigo',
     desc: 'Un amigo se registró con tu código',
-    goles: 5,
+    monedas: 50,
     tipo: 'auto',
   },
   {
     id: 'ver_video',
     icono: '▶️',
-    titulo: 'Ver video de la marca',
-    desc: 'Mira un video de tu empresa',
-    goles: 3,
+    titulo: 'Video del día',
+    desc: 'Mira el video del día de tu empresa',
+    monedas: 20,
     tipo: 'manual',
   },
   {
@@ -54,7 +54,7 @@ const MISIONES: Mision[] = [
     icono: '🧠',
     titulo: 'Trivia del Mundial',
     desc: 'Juega la trivia diaria de fútbol',
-    goles: 4,
+    monedas: 25,
     tipo: 'auto',
   },
   {
@@ -62,7 +62,7 @@ const MISIONES: Mision[] = [
     icono: '🔥',
     titulo: '7 días seguidos',
     desc: 'Ingresa 7 días consecutivos',
-    goles: 7,
+    monedas: 70,
     tipo: 'auto',
   },
   {
@@ -70,7 +70,7 @@ const MISIONES: Mision[] = [
     icono: '🐾',
     titulo: 'Pet Running',
     desc: 'Juega el runner y completa la misión',
-    goles: 5,
+    monedas: 30,
     tipo: 'manual',
   },
 ];
@@ -440,22 +440,47 @@ export class MisionesService {
     // Encontrar misiones auto-detectadas que aún no fueron registradas
     const nuevas = autoCompletadas.filter((id) => !completadas.includes(id));
 
-    // Si hay nuevas misiones auto-completadas, otorgar goles y registrarlas
+    // Si hay nuevas misiones auto-completadas, otorgar monedas y registrarlas
     if (nuevas.length > 0) {
-      const golesGanados = nuevas.reduce((sum, id) => {
-        const mision = MISIONES.find((m) => m.id === id);
-        return sum + (mision?.goles || 0);
-      }, 0);
-
       const todasCompletadasArr = [...completadas, ...nuevas];
+      let monedasOtorgadas = 0;
 
-      jugador.misiones_completadas = todasCompletadasArr;
-      jugador.goles = (jugador.goles || 0) + golesGanados;
-      await this.jugadorRepo.save(jugador);
+      await this.dataSource.transaction(async (manager) => {
+        const jug = await manager.findOne(Jugador, { where: { uid } });
+        if (!jug) return;
+
+        for (const misionId of nuevas) {
+          const mision = MISIONES.find((m) => m.id === misionId);
+          if (!mision) continue;
+
+          const saldoAnterior = jug.monedas;
+          const saldoNuevo = saldoAnterior + mision.monedas;
+
+          await manager.save(Transaccion, {
+            jugador_id: jug.id,
+            tipo: 'mision',
+            monto: mision.monedas,
+            saldo_anterior: saldoAnterior,
+            saldo_nuevo: saldoNuevo,
+            descripcion: `Misión completada: ${mision.titulo}`,
+          });
+
+          jug.monedas = saldoNuevo;
+          jug.monedas_totales_ganadas =
+            (jug.monedas_totales_ganadas || 0) + mision.monedas;
+          monedasOtorgadas += mision.monedas;
+        }
+
+        jug.misiones_completadas = todasCompletadasArr;
+        jug.ultimo_acceso = new Date();
+        jug.nivel = calcularNivelActividad(jug);
+        await manager.save(Jugador, jug);
+      });
 
       const hoy1 = fechaColombia();
       const lista = MISIONES.map((m) => {
         if (m.id === 'runner_mascotas') return { ...m, ok: jugador.ultimo_runner === hoy1 };
+        if (m.id === 'ver_video') return { ...m, ok: jugador.ultimo_video === hoy1 };
         return { ...m, ok: todasCompletadasArr.includes(m.id) };
       });
       const totalCompletadas = lista.filter((m) => m.ok).length;
@@ -464,9 +489,10 @@ export class MisionesService {
         misiones: lista,
         completadas: totalCompletadas,
         total: lista.length,
-        goles_otorgados: golesGanados,
+        monedas_otorgadas: monedasOtorgadas,
         trivia_disponible: jugador.ultimo_trivia !== hoy1,
         runner_disponible: jugador.ultimo_runner !== hoy1,
+        video_disponible: jugador.ultimo_video !== hoy1,
       };
     }
 
@@ -485,6 +511,9 @@ export class MisionesService {
       if (m.id === 'runner_mascotas') {
         return { ...m, ok: jugador.ultimo_runner === hoy2 };
       }
+      if (m.id === 'ver_video') {
+        return { ...m, ok: jugador.ultimo_video === hoy2 };
+      }
       return m;
     });
 
@@ -496,6 +525,7 @@ export class MisionesService {
       total: misionesConRunner.length,
       trivia_disponible: jugador.ultimo_trivia !== hoy2,
       runner_disponible: jugador.ultimo_runner !== hoy2,
+      video_disponible: jugador.ultimo_video !== hoy2,
     };
   }
 
@@ -524,19 +554,40 @@ export class MisionesService {
       );
     }
 
-    // Otorgar goles y registrar misión completada
-    const golesActuales = jugador.goles || 0;
+    // Otorgar monedas y registrar misión completada
+    let monedasNuevas = 0;
 
-    jugador.misiones_completadas = [...completadas, misionId];
-    jugador.goles = golesActuales + mision.goles;
-    jugador.ultimo_acceso = new Date();
-    jugador.nivel = calcularNivelActividad(jugador);
-    await this.jugadorRepo.save(jugador);
+    await this.dataSource.transaction(async (manager) => {
+      const jug = await manager.findOne(Jugador, { where: { uid } });
+      if (!jug) return;
+
+      const saldoAnterior = jug.monedas;
+      const saldoNuevo = saldoAnterior + mision.monedas;
+
+      await manager.save(Transaccion, {
+        jugador_id: jug.id,
+        tipo: 'mision',
+        monto: mision.monedas,
+        saldo_anterior: saldoAnterior,
+        saldo_nuevo: saldoNuevo,
+        descripcion: `Misión completada: ${mision.titulo}`,
+      });
+
+      jug.misiones_completadas = [...completadas, misionId];
+      jug.monedas = saldoNuevo;
+      jug.monedas_totales_ganadas =
+        (jug.monedas_totales_ganadas || 0) + mision.monedas;
+      jug.ultimo_acceso = new Date();
+      jug.nivel = calcularNivelActividad(jug);
+      await manager.save(Jugador, jug);
+
+      monedasNuevas = saldoNuevo;
+    });
 
     return {
-      mensaje: `¡Misión "${mision.titulo}" completada! +${mision.goles} goles`,
-      goles_ganados: mision.goles,
-      goles_total: golesActuales + mision.goles,
+      mensaje: `¡Misión "${mision.titulo}" completada! +${mision.monedas} 🪙`,
+      monedas_ganadas: mision.monedas,
+      monedas_total: monedasNuevas,
     };
   }
 
@@ -551,12 +602,12 @@ export class MisionesService {
     // Verificar si ya jugó hoy
     if (jugador.ultimo_trivia === hoy) {
       throw new BadRequestException(
-        'Ya jugaste la trivia hoy. ¡Vuelve mañana para ganar más goles!',
+        'Ya jugaste la trivia hoy. ¡Vuelve mañana para ganar más monedas!',
       );
     }
 
-    const golesGanados = Math.max(1, correctas);
-    const golesActuales = jugador.goles || 0;
+    // Cada respuesta correcta = 5 monedas (mínimo 5)
+    const monedasPorCorrectas = Math.max(5, correctas * 5);
     const totalTrivias = (jugador.trivias_jugadas || 0) + 1;
 
     // Completar la misión en la primera vez
@@ -567,15 +618,29 @@ export class MisionesService {
       const jug = await manager.findOne(Jugador, { where: { uid } });
       if (!jug) return;
 
-      let golesFinales = golesGanados;
+      let monedasFinales = monedasPorCorrectas;
 
       if (esPrimeraVez) {
         const mision = MISIONES.find((m) => m.id === 'trivia_mundial')!;
-        golesFinales = golesGanados + mision.goles;
+        monedasFinales = monedasPorCorrectas + mision.monedas;
         jug.misiones_completadas = [...completadas, 'trivia_mundial'];
       }
 
-      jug.goles = golesActuales + golesFinales;
+      const saldoAnterior = jug.monedas;
+      const saldoNuevo = saldoAnterior + monedasFinales;
+
+      await manager.save(Transaccion, {
+        jugador_id: jug.id,
+        tipo: 'trivia',
+        monto: monedasFinales,
+        saldo_anterior: saldoAnterior,
+        saldo_nuevo: saldoNuevo,
+        descripcion: `Trivia diaria - ${correctas}/6 correctas${esPrimeraVez ? ' (+ bono primera vez)' : ''}`,
+      });
+
+      jug.monedas = saldoNuevo;
+      jug.monedas_totales_ganadas =
+        (jug.monedas_totales_ganadas || 0) + monedasFinales;
       jug.ultimo_trivia = hoy;
       jug.trivias_jugadas = totalTrivias;
       jug.ultimo_acceso = new Date();
@@ -587,7 +652,7 @@ export class MisionesService {
         jugador_id: jug.id,
         correctas,
         total_preguntas: 6,
-        goles_ganados: golesFinales,
+        monedas_ganadas: monedasFinales,
         primera_vez: esPrimeraVez ? 1 : 0,
         fecha: hoy,
       });
@@ -595,18 +660,18 @@ export class MisionesService {
 
     if (esPrimeraVez) {
       const mision = MISIONES.find((m) => m.id === 'trivia_mundial')!;
-      const golesConMision = golesGanados + mision.goles;
+      const monedasConMision = monedasPorCorrectas + mision.monedas;
       return {
-        mensaje: `¡Trivia completada! +${golesConMision} goles (${correctas}/6 correctas + bono primera vez)`,
-        goles_ganados: golesConMision,
+        mensaje: `¡Trivia completada! +${monedasConMision} 🪙 (${correctas}/6 correctas + bono primera vez)`,
+        monedas_ganadas: monedasConMision,
         correctas,
         primera_vez: true,
       };
     }
 
     return {
-      mensaje: `¡Trivia completada! +${golesGanados} goles (${correctas}/6 correctas)`,
-      goles_ganados: golesGanados,
+      mensaje: `¡Trivia completada! +${monedasPorCorrectas} 🪙 (${correctas}/6 correctas)`,
+      monedas_ganadas: monedasPorCorrectas,
       correctas,
       primera_vez: false,
     };
@@ -619,23 +684,90 @@ export class MisionesService {
 
     if (jugador.ultimo_runner === hoy) {
       return {
-        mensaje: '¡Ya jugaste el runner hoy! Vuelve mañana para ganar más goles.',
-        goles_ganados: 0,
+        mensaje: '¡Ya jugaste el runner hoy! Vuelve mañana para ganar más monedas.',
+        monedas_ganadas: 0,
         ya_jugado: true,
       };
     }
 
     const mision = MISIONES.find((m) => m.id === 'runner_mascotas')!;
-    jugador.goles = (jugador.goles || 0) + mision.goles;
-    jugador.ultimo_runner = hoy;
-    jugador.ultimo_acceso = new Date();
-    jugador.nivel = calcularNivelActividad(jugador);
-    await this.jugadorRepo.save(jugador);
+
+    await this.dataSource.transaction(async (manager) => {
+      const jug = await manager.findOne(Jugador, { where: { uid } });
+      if (!jug) return;
+
+      const saldoAnterior = jug.monedas;
+      const saldoNuevo = saldoAnterior + mision.monedas;
+
+      await manager.save(Transaccion, {
+        jugador_id: jug.id,
+        tipo: 'mision',
+        monto: mision.monedas,
+        saldo_anterior: saldoAnterior,
+        saldo_nuevo: saldoNuevo,
+        descripcion: `Runner Pet Mascotas - ${hoy}`,
+      });
+
+      jug.monedas = saldoNuevo;
+      jug.monedas_totales_ganadas =
+        (jug.monedas_totales_ganadas || 0) + mision.monedas;
+      jug.ultimo_runner = hoy;
+      jug.ultimo_acceso = new Date();
+      jug.nivel = calcularNivelActividad(jug);
+      await manager.save(Jugador, jug);
+    });
 
     return {
-      mensaje: `¡Runner completado! +${mision.goles} goles`,
-      goles_ganados: mision.goles,
+      mensaje: `¡Runner completado! +${mision.monedas} 🪙`,
+      monedas_ganadas: mision.monedas,
       ya_jugado: false,
+    };
+  }
+
+  async verVideo(uid: string) {
+    const hoy = fechaColombia();
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) throw new BadRequestException('Jugador no encontrado');
+
+    if (jugador.ultimo_video === hoy) {
+      return {
+        mensaje: '¡Ya viste el video del día! Vuelve mañana para ganar más monedas.',
+        monedas_ganadas: 0,
+        ya_visto: true,
+      };
+    }
+
+    const mision = MISIONES.find((m) => m.id === 'ver_video')!;
+
+    await this.dataSource.transaction(async (manager) => {
+      const jug = await manager.findOne(Jugador, { where: { uid } });
+      if (!jug) return;
+
+      const saldoAnterior = jug.monedas;
+      const saldoNuevo = saldoAnterior + mision.monedas;
+
+      await manager.save(Transaccion, {
+        jugador_id: jug.id,
+        tipo: 'mision',
+        monto: mision.monedas,
+        saldo_anterior: saldoAnterior,
+        saldo_nuevo: saldoNuevo,
+        descripcion: `Video del día - ${hoy}`,
+      });
+
+      jug.monedas = saldoNuevo;
+      jug.monedas_totales_ganadas =
+        (jug.monedas_totales_ganadas || 0) + mision.monedas;
+      jug.ultimo_video = hoy;
+      jug.ultimo_acceso = new Date();
+      jug.nivel = calcularNivelActividad(jug);
+      await manager.save(Jugador, jug);
+    });
+
+    return {
+      mensaje: `¡Video visto! +${mision.monedas} 🪙`,
+      monedas_ganadas: mision.monedas,
+      ya_visto: false,
     };
   }
 
@@ -714,11 +846,14 @@ export class MisionesService {
         return !!referido;
       }
 
-      case 'ver_video':
       case 'trivia_mundial':
       case 'runner_mascotas':
         // Misión manual: se completa al hacer clic
         return true;
+
+      case 'ver_video':
+        // Tiene su propio endpoint diario (/misiones/:uid/video) — no se completa por aquí
+        return false;
 
       case 'siete_dias':
         return (jugador.dias_consecutivos || 0) >= 7;

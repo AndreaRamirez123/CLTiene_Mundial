@@ -1,8 +1,9 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Canje } from '../entities/canje.entity';
 import { Jugador } from '../entities/jugador.entity';
+import { Transaccion } from '../entities/transaccion.entity';
 import { WipService } from '../wip/wip.service';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class CanjesService {
     @InjectRepository(Jugador)
     private jugadorRepo: Repository<Jugador>,
     private wip: WipService,
+    private dataSource: DataSource,
   ) {}
 
   // Obtener business units de WIP (para mostrar opciones de canje)
@@ -39,26 +41,27 @@ export class CanjesService {
     };
   }
 
-  // Solicitar canje: crea registro local + servicio en WIP
+  // Solicitar canje: descuenta monedas + crea registro local + (opcional) servicio WIP
   async solicitarCanje(
     uid: string,
     datos: {
-      beneficio: string;
+      beneficio_id: string;
+      beneficio_nombre: string;
+      monedas_costo: number;
       categoria: string;
       canal_contacto: string;
-      monedas_a_canjear: number;
-      // Datos WIP
-      businessUnitId: string;
-      businessUnitName: string;
-      serviceTypeName: string;
-      formId: string;
-      companyFormId: string;
+      // Datos WIP opcionales
+      businessUnitId?: string;
+      businessUnitName?: string;
+      serviceTypeName?: string;
+      formId?: string;
+      companyFormId?: string;
     },
   ) {
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
     if (!jugador) throw new BadRequestException('Jugador no encontrado');
 
-    // Verificar elegibilidad
+    // Verificar elegibilidad (por predicciones, regla de negocio existente)
     if (jugador.predicciones_count < 11) {
       throw new BadRequestException(
         'No cumples los requisitos minimos para canjear. Necesitas al menos 11 predicciones.',
@@ -66,70 +69,99 @@ export class CanjesService {
     }
 
     // Verificar que tiene suficientes monedas
-    if (jugador.monedas < datos.monedas_a_canjear) {
+    if (jugador.monedas < datos.monedas_costo) {
       throw new BadRequestException(
         'No tienes suficientes monedas para este canje',
       );
     }
 
-    // Crear servicio en WIP
+    // Crear servicio en WIP (opcional, solo si la marca envió los datos)
     let wipServicio: any = null;
-    try {
-      wipServicio = await this.wip.crearServicio({
-        businessUnitId: datos.businessUnitId,
-        businessUnitName: datos.businessUnitName,
-        serviceTypeName: datos.serviceTypeName,
-        formId: datos.formId,
-        companyFormId: datos.companyFormId,
-        finalClientName: jugador.nombre,
-        customerDocument: jugador.uid,
-        userClientePhone: jugador.telefono,
-        note: `Canje Polla CLTiene Mundial 2026 - ${datos.monedas_a_canjear} monedas - ${datos.beneficio}`,
-        fields: {
-          'Nombre jugador': jugador.nombre,
-          Email: jugador.email,
-          'Monedas canjeadas': String(datos.monedas_a_canjear),
-          Beneficio: datos.beneficio,
-          'Canal de contacto': datos.canal_contacto,
-          'Ranking monedas': String(jugador.monedas),
-          'Predicciones realizadas': String(jugador.predicciones_count),
-          Nivel: jugador.nivel,
-        },
-      });
-      this.logger.log(`Servicio WIP creado para jugador ${uid}`);
-    } catch (err) {
-      this.logger.error(
-        `Error creando servicio WIP para jugador ${uid}`,
-        err.message,
-      );
-      // Continuar aunque WIP falle - el canje se registra localmente
+    if (datos.businessUnitId && datos.formId) {
+      try {
+        wipServicio = await this.wip.crearServicio({
+          businessUnitId: datos.businessUnitId,
+          businessUnitName: datos.businessUnitName || '',
+          serviceTypeName: datos.serviceTypeName || '',
+          formId: datos.formId,
+          companyFormId: datos.companyFormId || '',
+          finalClientName: jugador.nombre,
+          customerDocument: jugador.uid,
+          userClientePhone: jugador.telefono,
+          note: `Canje Polla CLTiene Mundial 2026 - ${datos.monedas_costo} monedas - ${datos.beneficio_nombre}`,
+          fields: {
+            'Nombre jugador': jugador.nombre,
+            Email: jugador.email,
+            'Monedas canjeadas': String(datos.monedas_costo),
+            Beneficio: datos.beneficio_nombre,
+            'Canal de contacto': datos.canal_contacto,
+            'Ranking monedas': String(jugador.monedas),
+            'Predicciones realizadas': String(jugador.predicciones_count),
+            Nivel: jugador.nivel,
+          },
+        });
+        this.logger.log(`Servicio WIP creado para jugador ${uid}`);
+      } catch (err: any) {
+        this.logger.error(
+          `Error creando servicio WIP para jugador ${uid}`,
+          err?.message,
+        );
+        // Continuar aunque WIP falle - el canje se registra localmente
+      }
     }
 
-    // Guardar canje en MySQL
-    const canje = this.canjeRepo.create({
-      jugador_id: jugador.id,
-      monedas_canjeadas: datos.monedas_a_canjear,
-      beneficio: datos.beneficio,
-      categoria: datos.categoria as any,
-      canal_contacto: datos.canal_contacto as any,
-      estado: 'solicitado',
-      notas_asesor: wipServicio?.id
-        ? `WIP Service ID: ${wipServicio.id}`
-        : 'Pendiente creacion en WIP',
-    });
+    // Transacción atómica: descontar monedas + registrar transacción + crear canje
+    let canjeId = 0;
+    await this.dataSource.transaction(async (manager) => {
+      const jug = await manager.findOne(Jugador, { where: { uid } });
+      if (!jug) throw new BadRequestException('Jugador no encontrado');
 
-    await this.canjeRepo.save(canje);
+      // Re-verificar saldo dentro de la transacción (race condition)
+      if (jug.monedas < datos.monedas_costo) {
+        throw new BadRequestException(
+          'No tienes suficientes monedas para este canje',
+        );
+      }
 
-    // Actualizar canal de contacto del jugador
-    await this.jugadorRepo.update(jugador.id, {
-      canal_contacto: datos.canal_contacto as any,
-      elegible_canje: 1,
+      const saldoAnterior = jug.monedas;
+      const saldoNuevo = saldoAnterior - datos.monedas_costo;
+
+      // Registrar transacción de descuento (monto negativo)
+      await manager.save(Transaccion, {
+        jugador_id: jug.id,
+        tipo: 'canje',
+        monto: -datos.monedas_costo,
+        saldo_anterior: saldoAnterior,
+        saldo_nuevo: saldoNuevo,
+        descripcion: `Canje: ${datos.beneficio_nombre}`,
+      });
+
+      // Descontar monedas
+      jug.monedas = saldoNuevo;
+      jug.canal_contacto = datos.canal_contacto as any;
+      jug.elegible_canje = 1;
+      await manager.save(Jugador, jug);
+
+      // Guardar canje
+      const canje = manager.create(Canje, {
+        jugador_id: jug.id,
+        monedas_canjeadas: datos.monedas_costo,
+        beneficio: datos.beneficio_nombre,
+        categoria: datos.categoria as any,
+        canal_contacto: datos.canal_contacto as any,
+        estado: 'solicitado',
+        notas_asesor: wipServicio?.id
+          ? `WIP Service ID: ${wipServicio.id}`
+          : 'Pendiente creacion en WIP',
+      });
+      const canjeSaved = await manager.save(canje);
+      canjeId = canjeSaved.id;
     });
 
     return {
       mensaje:
-        'Solicitud de canje registrada. Un asesor CLTiene se pondra en contacto contigo.',
-      canje_id: canje.id,
+        'Solicitud de canje registrada. Un asesor se pondra en contacto contigo.',
+      canje_id: canjeId,
       wip_service_id: wipServicio?.id || null,
     };
   }

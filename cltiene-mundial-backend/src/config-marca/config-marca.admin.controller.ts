@@ -34,6 +34,9 @@ export class ConfigMarcaAdminController {
       color_fondo?: string;
       publicidad_json?: string;
       beneficios_json?: string;
+      terminos_condiciones?: string;
+      politica_privacidad?: string;
+      videos_json?: string;
     },
   ) {
     let empresaId = req.jugador.empresa_id;
@@ -68,5 +71,30 @@ export class ConfigMarcaAdminController {
   uploadLogo(@UploadedFile() file: Express.Multer.File) {
     const url = `/uploads/logos/${file.filename}`;
     return { logo_url: url };
+  }
+
+  @Post('upload-video')
+  @UseInterceptors(
+    FileInterceptor('video', {
+      storage: diskStorage({
+        destination: './uploads/videos',
+        filename: (_req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.startsWith('video/')) {
+          return cb(new Error('Solo se permiten videos'), false);
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+    }),
+  )
+  uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    const url = `/uploads/videos/${file.filename}`;
+    return { video_url: url };
   }
 }

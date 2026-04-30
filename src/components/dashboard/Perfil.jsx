@@ -118,13 +118,13 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
           <div style={{ fontSize: 32, marginBottom: 8 }}>🪙</div>
           <div style={{ color: C.dorado, fontSize: 32, fontWeight: 900 }}>{monedas}</div>
           <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 6, fontWeight: 600 }}>Monedas</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 3, opacity: 0.8 }}>Ganas en la Polla</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 3, opacity: 0.8 }}>Por interacción y misiones</div>
         </div>
         <div style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.15) 0%, rgba(22,199,132,0.05) 100%)", border: "2px solid rgba(22,199,132,0.4)", borderRadius: 16, padding: "20px 16px", textAlign: "center", boxShadow: "0 8px 24px rgba(22,199,132,0.15)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(22,199,132,0.25)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(22,199,132,0.15)" }}>
           <div style={{ fontSize: 32, marginBottom: 8 }}>⚽</div>
           <div style={{ color: C.verde, fontSize: 32, fontWeight: 900 }}>{goles}</div>
           <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 6, fontWeight: 600 }}>Goles</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 3, opacity: 0.8 }}>Ganas en Misiones</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 3, opacity: 0.8 }}>Acertando predicciones</div>
         </div>
       </div>
 
@@ -178,7 +178,7 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
                   {j.nombre} {j.esYo ? "👈" : ""}
                 </span>
               </div>
-              <span style={{ color: C.dorado, fontWeight: 900, fontSize: 15 }}>🪙 {j.monedas}</span>
+              <span style={{ color: C.verde, fontWeight: 900, fontSize: 15 }}>⚽ {j.goles || 0}</span>
             </div>
           );
         })}

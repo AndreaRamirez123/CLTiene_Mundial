@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import client from "../../api/client";
 import { C } from "./constants";
-import { getNombreMarca } from "../../utils/marca";
+import { getNombreMarca, getVideoDelDia } from "../../utils/marca";
 import MisionCard from "./MisionCard";
 import TriviaModal from "./TriviaModal";
 import VideoModal from "./VideoModal";
@@ -33,8 +33,10 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const [triviaResultado, setTriviaResultado] = useState(null);
   const [PREGUNTAS_TRIVIA, setPREGUNTAS_TRIVIA] = useState([]);
 
-  const VIDEO_URL = "https://youtu.be/QtKq3ugMouI?si=g45EzWN9S3b4em3G";
+  // Video del día (rota entre los videos configurados por la empresa)
+  const VIDEO_URL = getVideoDelDia();
   const SEGUNDOS_MINIMO = 30;
+  const [videoDisponible, setVideoDisponible] = useState(true);
 
   const codigoReferido = usuario?.uid?.substring(0, 8).toUpperCase() || "";
   const urlInvitacion = `${window.location.origin}?ref=${codigoReferido}`;
@@ -58,15 +60,29 @@ export default function Misiones({ usuario, cargarPerfil }) {
       const disponible = res.data.trivia_disponible ?? false;
       const runnerDisponible = res.data.runner_disponible ?? true;
       setRunnerJugadoHoy(!runnerDisponible);
+      const videoDispBackend = res.data.video_disponible ?? true;
+      setVideoDisponible(videoDispBackend);
       const misionesAjustadas = res.data.misiones
         // Oculta temporalmente la mision "invitar amigo" (codigo conservado para reactivar luego)
         .filter((m) => m.id !== "invita_amigo")
+        // Oculta "ver_video" si la marca no configuró videos
+        .filter((m) => m.id !== "ver_video" || !!VIDEO_URL)
         .map((m) => {
           if (m.id === "trivia_mundial" && disponible && m.ok) {
             return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
           }
           if (m.id === "runner_mascotas") {
             return { ...m, ok: false, botonLabel: runnerDisponible ? "Reclamar →" : "Jugar de nuevo" };
+          }
+          if (m.id === "ver_video") {
+            return {
+              ...m,
+              ok: !videoDispBackend,
+              desc: videoDispBackend
+                ? "Video del día disponible. ¡Mira el de hoy!"
+                : "Ya viste el video de hoy. Vuelve mañana.",
+              botonLabel: videoDispBackend ? "Ver video →" : "Ver de nuevo",
+            };
           }
           return m;
         });
@@ -75,7 +91,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
       setCompletadas(misionesAjustadas.filter((m) => m.ok).length);
       setTotal(misionesAjustadas.length);
       setTriviaDisponible(res.data.trivia_disponible ?? false);
-      if (res.data.goles_otorgados > 0) {
+      if (res.data.monedas_otorgadas > 0) {
         await cargarPerfil();
       }
     } catch {
@@ -108,6 +124,10 @@ export default function Misiones({ usuario, cargarPerfil }) {
     if (misionId === "runner_mascotas") return setMostrarRunner(true);
     if (misionId === "invita_amigo") return setMostrarCompartir(true);
     if (misionId === "ver_video") {
+      if (!videoDisponible) {
+        alert("Ya viste el video de hoy. Vuelve mañana para ganar más monedas.");
+        return;
+      }
       setMostrarVideo(true);
       setTiempoVideo(0);
       setVideoVisto(false);
@@ -139,10 +159,10 @@ export default function Misiones({ usuario, cargarPerfil }) {
     setMostrarVideo(false);
     setReclamando("ver_video");
     try {
-      const res = await client.post(`/misiones/${usuario.uid}/ver_video/completar`);
+      const res = await client.post(`/misiones/${usuario.uid}/video`);
       alert(res.data.mensaje);
       await cargarMisiones(usuario.uid);
-      await cargarPerfil();
+      if (!res.data.ya_visto) await cargarPerfil();
     } catch (err) {
       alert(err.response?.data?.message || "No se pudo completar la mision");
     } finally {
@@ -162,8 +182,9 @@ export default function Misiones({ usuario, cargarPerfil }) {
         setTriviaActual(triviaActual + 1);
       } else {
         const correctas = nuevasRespuestas.filter(Boolean).length;
-        const golesGanados = Math.max(1, correctas);
-        setTriviaResultado({ correctas, total: PREGUNTAS_TRIVIA.length, goles: golesGanados });
+        // Cada acierto = 5 monedas, mínimo 5 monedas (debe coincidir con backend)
+        const monedasGanadas = Math.max(5, correctas * 5);
+        setTriviaResultado({ correctas, total: PREGUNTAS_TRIVIA.length, monedas: monedasGanadas });
       }
     }, 1000);
   };
@@ -214,7 +235,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
             <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: 24, marginBottom: 4 }}>🎯 Tus Misiones</div>
-            <div style={{ color: "var(--texto-sec)", fontSize: 13 }}>Completa retos y gana ⚽ goles</div>
+            <div style={{ color: "var(--texto-sec)", fontSize: 13 }}>Completa retos y gana 🪙 monedas</div>
           </div>
           <div style={{ background: "linear-gradient(135deg, #FD7751, #FF9066)", color: "#FFFFFF", fontSize: 11, fontWeight: 900, padding: "8px 14px", borderRadius: 50, boxShadow: "0 4px 12px rgba(253,119,81,0.3)", textAlign: "center" }}>
             <div>{completadas}/{total}</div>
@@ -222,11 +243,11 @@ export default function Misiones({ usuario, cargarPerfil }) {
           </div>
         </div>
 
-        <div style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.15) 0%, rgba(22,199,132,0.05) 100%)", border: "2px solid rgba(22,199,132,0.4)", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 16px rgba(22,199,132,0.1)" }}>
-          <div style={{ fontSize: 32 }}>⚽</div>
+        <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.15) 0%, rgba(236,168,45,0.05) 100%)", border: "2px solid rgba(236,168,45,0.4)", borderRadius: 14, padding: "16px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 16px rgba(236,168,45,0.1)" }}>
+          <div style={{ fontSize: 32 }}>🪙</div>
           <div>
-            <div style={{ color: "#16C784", fontWeight: 800, fontSize: 14 }}>Sistema de Goles</div>
-            <div style={{ color: "rgba(22,199,132,0.8)", fontSize: 12, marginTop: 2 }}>Acumula goles completando retos sin límite diario</div>
+            <div style={{ color: "#ECA82D", fontWeight: 800, fontSize: 14 }}>Sistema de Monedas</div>
+            <div style={{ color: "rgba(236,168,45,0.9)", fontSize: 12, marginTop: 2 }}>Acumula monedas completando retos y canjéalas por beneficios</div>
           </div>
         </div>
 

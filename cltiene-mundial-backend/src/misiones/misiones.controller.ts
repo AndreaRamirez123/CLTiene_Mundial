@@ -26,6 +26,11 @@ export class MisionesController {
     return this.misionesService.jugarRunner(uid);
   }
 
+  @Post(':uid/video')
+  verVideo(@Param('uid') uid: string) {
+    return this.misionesService.verVideo(uid);
+  }
+
   @Post(':uid/:misionId/completar')
   completarMision(
     @Param('uid') uid: string,

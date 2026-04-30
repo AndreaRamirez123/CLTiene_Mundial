@@ -97,3 +97,39 @@ export const getPublicidadMarca = () => {
     return [];
   }
 };
+
+// Lista de videos de la marca configurados en el admin (cada uno: { id, url }).
+export const getVideosMarca = () => {
+  const config = leerConfigMarca();
+  if (!config?.videos_json) return [];
+  try {
+    const arr = JSON.parse(config.videos_json);
+    return Array.isArray(arr) ? arr.filter((v) => v?.url) : [];
+  } catch {
+    return [];
+  }
+};
+
+const resolverUrlVideo = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/uploads")) return `${API_BASE}${url}`;
+  return url;
+};
+
+// Calcula el día del año actual (1-366) en zona Colombia.
+const diaDelAnio = () => {
+  const ahora = new Date();
+  const inicio = new Date(ahora.getFullYear(), 0, 0);
+  const diffMs = ahora.getTime() - inicio.getTime();
+  return Math.floor(diffMs / 86400000);
+};
+
+// Devuelve la URL del video que toca hoy (rotación día_del_año % length).
+// Si no hay videos configurados, retorna "" y la misión no debe mostrarse.
+export const getVideoDelDia = () => {
+  const videos = getVideosMarca();
+  if (videos.length === 0) return "";
+  const indice = (diaDelAnio() - 1 + videos.length) % videos.length;
+  return resolverUrlVideo(videos[indice]?.url);
+};

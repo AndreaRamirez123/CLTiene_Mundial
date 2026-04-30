@@ -27,7 +27,7 @@ export class TriviaHistorial {
   total_preguntas: number;
 
   @Column({ type: 'tinyint', unsigned: true, default: 0 })
-  goles_ganados: number;
+  monedas_ganadas: number;
 
   @Column({ type: 'tinyint', default: 0 })
   primera_vez: number;

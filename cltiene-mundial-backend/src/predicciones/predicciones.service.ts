@@ -4,8 +4,14 @@ import { Repository, DataSource } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Partido } from '../entities/partido.entity';
-import { Transaccion } from '../entities/transaccion.entity';
 import { calcularNivelActividad } from '../users/nivel-actividad.util';
+
+// Goles otorgados por tipo de acierto (sistema del Mundial → ranking)
+const GOLES_POR_RESULTADO_SIMPLE = 1;
+const GOLES_POR_MARCADOR_EXACTO = 3;
+
+// Cierre de predicciones: minutos antes del inicio del partido
+const MINUTOS_CIERRE_PREDICCION = 5;
 
 @Injectable()
 export class PrediccionesService {
@@ -21,6 +27,25 @@ export class PrediccionesService {
     private readonly dataSource: DataSource,
   ) {}
 
+  // Convierte fecha (YYYY-MM-DD) + hora (HH:MM) en zona Colombia (UTC-5) a Date UTC
+  private getInicioPartido(partido: Partido): Date {
+    const [year, month, day] = partido.fecha.split('-').map(Number);
+    const [hour, minute] = (partido.hora || '00:00').split(':').map(Number);
+    // Colombia es UTC-5 sin DST → para convertir hora local a UTC, sumamos 5h
+    return new Date(Date.UTC(year, month - 1, day, hour + 5, minute));
+  }
+
+  // Lanza BadRequestException si faltan menos de MINUTOS_CIERRE_PREDICCION para el inicio
+  private validarTiempoPrediccion(partido: Partido): void {
+    const inicio = this.getInicioPartido(partido);
+    const minutosFaltantes = (inicio.getTime() - Date.now()) / 60000;
+    if (minutosFaltantes < MINUTOS_CIERRE_PREDICCION) {
+      throw new BadRequestException(
+        `Predicciones cerradas para este partido. Faltan menos de ${MINUTOS_CIERRE_PREDICCION} minutos para el inicio.`,
+      );
+    }
+  }
+
   async crearPrediccion(
     uid: string,
     datos: {
@@ -28,7 +53,6 @@ export class PrediccionesService {
       resultado: string;
       goles_local: number;
       goles_visitante: number;
-      monedas_apostadas: number;
     },
   ) {
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
@@ -44,13 +68,16 @@ export class PrediccionesService {
       throw new BadRequestException('Partido no encontrado');
     }
 
+    // Bloquear si faltan menos de 5 minutos para el inicio
+    this.validarTiempoPrediccion(partido);
+
     const existente = await this.prediccionRepo.findOne({
       where: { jugador_id: jugador.id, partido_id: partidoId },
     });
 
     if (existente) {
       throw new BadRequestException(
-        'Ya tienes una predicción para este partido',
+        'Ya tienes una predicción para este partido. Puedes editarla desde "Mis predicciones".',
       );
     }
 
@@ -75,6 +102,57 @@ export class PrediccionesService {
     return {
       mensaje: 'Predicción guardada. Buena suerte.',
       id: prediccion!.id,
+    };
+  }
+
+  async editarPrediccion(
+    uid: string,
+    partidoId: number,
+    datos: {
+      resultado: string;
+      goles_local: number;
+      goles_visitante: number;
+    },
+  ) {
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) {
+      throw new BadRequestException('Jugador no encontrado');
+    }
+
+    const partido = await this.partidoRepo.findOne({
+      where: { id: partidoId },
+    });
+    if (!partido) {
+      throw new BadRequestException('Partido no encontrado');
+    }
+
+    const prediccion = await this.prediccionRepo.findOne({
+      where: { jugador_id: jugador.id, partido_id: partidoId },
+    });
+    if (!prediccion) {
+      throw new BadRequestException(
+        'No tienes una predicción para este partido',
+      );
+    }
+
+    if (prediccion.estado !== 'pendiente') {
+      throw new BadRequestException(
+        'No puedes editar una predicción ya resuelta',
+      );
+    }
+
+    // Bloquear si faltan menos de 5 minutos para el inicio
+    this.validarTiempoPrediccion(partido);
+
+    prediccion.resultado = datos.resultado;
+    prediccion.goles_local = datos.goles_local;
+    prediccion.goles_visitante = datos.goles_visitante;
+    await this.prediccionRepo.save(prediccion);
+
+    return {
+      mensaje:
+        'Predicción actualizada. Recuerda que no podrás modificarla 5 minutos antes del partido.',
+      id: prediccion.id,
     };
   }
 
@@ -127,52 +205,33 @@ export class PrediccionesService {
           pred.goles_local === partido.goles_local &&
           pred.goles_visitante === partido.goles_visitante;
 
-        let monedasGanadas = 0;
+        let golesGanados = 0;
         let estado: string;
-        let tipo: string;
 
         if (aciertoEspecial) {
-          monedasGanadas = 100;
+          golesGanados = GOLES_POR_MARCADOR_EXACTO;
           estado = 'acertada_especial';
-          tipo = 'prediccion_especial';
           acertadasEspecial++;
         } else if (aciertoSimple) {
-          monedasGanadas = 50;
+          golesGanados = GOLES_POR_RESULTADO_SIMPLE;
           estado = 'acertada_simple';
-          tipo = 'prediccion_simple';
           acertadasSimple++;
         } else {
           estado = 'fallida';
-          tipo = '';
           fallidas++;
         }
 
         pred.estado = estado;
-        pred.monedas_ganadas = monedasGanadas;
+        pred.goles_ganados = golesGanados;
         await manager.save(Prediccion, pred);
 
-        if (monedasGanadas > 0) {
-          const saldoAnterior = jugador.monedas;
-          const saldoNuevo = saldoAnterior + monedasGanadas;
-
-          jugador.monedas = saldoNuevo;
-          jugador.monedas_totales_ganadas =
-            (jugador.monedas_totales_ganadas || 0) + monedasGanadas;
+        if (golesGanados > 0) {
+          jugador.goles = (jugador.goles || 0) + golesGanados;
           jugador.predicciones_acertadas =
             (jugador.predicciones_acertadas || 0) + 1;
           jugador.ultimo_acceso = new Date();
           jugador.nivel = calcularNivelActividad(jugador);
           await manager.save(Jugador, jugador);
-
-          await manager.save(Transaccion, {
-            jugador_id: jugador.id,
-            tipo,
-            monto: monedasGanadas,
-            saldo_anterior: saldoAnterior,
-            saldo_nuevo: saldoNuevo,
-            descripcion: `${aciertoEspecial ? 'Marcador exacto' : 'Resultado acertado'}: ${partido.local_equipo} vs ${partido.visitante_equipo}`,
-            referencia_id: partido.id,
-          });
         }
       });
     }
