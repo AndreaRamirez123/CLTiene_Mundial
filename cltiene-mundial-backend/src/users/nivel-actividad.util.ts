@@ -5,8 +5,25 @@ type JugadorActividad = {
   dias_consecutivos?: number | null;
 };
 
-function inicioDelDia(fecha: Date) {
-  return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+const ZONA_COLOMBIA = 'America/Bogota';
+const formateadorFechaColombia = new Intl.DateTimeFormat('en-CA', {
+  timeZone: ZONA_COLOMBIA,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+export function fechaColombiaISO(fecha = new Date()) {
+  const partes = formateadorFechaColombia.formatToParts(fecha);
+  const valores = Object.fromEntries(
+    partes.map((parte) => [parte.type, parte.value]),
+  );
+  return `${valores.year}-${valores.month}-${valores.day}`;
+}
+
+function fechaISOADiaUTC(fechaISO: string) {
+  const [year, month, day] = fechaISO.split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
 }
 
 function convertirFecha(valor?: Date | string | null) {
@@ -17,7 +34,11 @@ function convertirFecha(valor?: Date | string | null) {
 
 function diferenciaEnDias(desde: Date, hasta: Date) {
   const msPorDia = 1000 * 60 * 60 * 24;
-  return Math.floor((inicioDelDia(hasta).getTime() - inicioDelDia(desde).getTime()) / msPorDia);
+  return Math.floor(
+    (fechaISOADiaUTC(fechaColombiaISO(hasta)) -
+      fechaISOADiaUTC(fechaColombiaISO(desde))) /
+      msPorDia,
+  );
 }
 
 export function actualizarRachaDeAcceso<T extends JugadorActividad>(

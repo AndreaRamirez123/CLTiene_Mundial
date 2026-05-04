@@ -5,21 +5,27 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull, In } from 'typeorm';
+import { Repository, IsNull, In, Brackets } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Pregunta } from '../entities/pregunta.entity';
 import { Empresa } from '../entities/empresa.entity';
+import { TriviaDiaria } from '../entities/trivia-diaria.entity';
+import { fechaColombiaISO } from '../users/nivel-actividad.util';
 import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class PreguntasService implements OnModuleInit {
   private readonly logger = new Logger(PreguntasService.name);
+  private readonly preguntasMundialPorDia = 3;
+  private readonly preguntasEmpresaPorDia = 3;
 
   constructor(
     @InjectRepository(Pregunta)
     private preguntaRepo: Repository<Pregunta>,
     @InjectRepository(Empresa)
     private empresaRepo: Repository<Empresa>,
+    @InjectRepository(TriviaDiaria)
+    private triviaDiariaRepo: Repository<TriviaDiaria>,
     private configService: ConfigService,
   ) {}
 
@@ -40,42 +46,59 @@ export class PreguntasService implements OnModuleInit {
         .toLowerCase() === 'true';
     if (!enabled) return;
 
-    const empresas = await this.empresaRepo.find({ where: { estado: 'activa' } });
-    const hoy = new Date().toISOString().slice(0, 10);
+    const empresas = await this.empresaRepo.find({
+      where: { estado: 'activa' },
+    });
 
     for (const empresa of empresas) {
-      const countHoy = await this.preguntaRepo
-        .createQueryBuilder('p')
-        .where('p.empresa_id = :empresaId', { empresaId: empresa.id })
-        .andWhere('DATE(p.created_at) = :fecha', { fecha: hoy })
-        .getCount();
-
-      if (countHoy >= 6) continue;
+      const disponibles = await this.contarPoolMundial(empresa.id);
+      if (disponibles >= 30) continue;
 
       try {
-        await this.generarConIA(empresa.id);
+        await this.generarConIA(empresa.id, 12);
       } catch (error) {
         this.logger.error(
-          `Error generando preguntas diarias para empresa ${empresa.id}`,
+          `Error reforzando banco mundial para empresa ${empresa.id}`,
           error,
         );
       }
     }
   }
 
-  // Obtener preguntas para una empresa (globales + de la empresa)
+  // Obtener la trivia diaria: 3 preguntas del Mundial + 3 de la empresa.
   async getPreguntasPorEmpresa(empresaId: number, limite = 6) {
-    const preguntas = await this.preguntaRepo.find({
-      where: [
-        { empresa_id: IsNull(), activa: 1 },
-        { empresa_id: empresaId, activa: 1 },
-      ],
-      order: { created_at: 'DESC' },
+    const fecha = fechaColombiaISO();
+    let trivia = await this.triviaDiariaRepo.findOne({
+      where: { empresa_id: empresaId, fecha },
     });
 
-    // Mezclar y tomar el limite
-    const mezcladas = this.mezclar(preguntas);
-    return mezcladas.slice(0, limite).map((p) => ({
+    if (!trivia) {
+      const preguntaIds = await this.seleccionarPreguntasDelDia(
+        empresaId,
+        limite,
+        fecha,
+      );
+
+      try {
+        trivia = await this.triviaDiariaRepo.save(
+          this.triviaDiariaRepo.create({
+            empresa_id: empresaId,
+            fecha,
+            pregunta_ids: preguntaIds,
+          }),
+        );
+      } catch {
+        trivia = await this.triviaDiariaRepo.findOne({
+          where: { empresa_id: empresaId, fecha },
+        });
+      }
+    }
+
+    const preguntas = await this.cargarPreguntasPorIds(
+      (trivia?.pregunta_ids || []).slice(0, limite),
+    );
+
+    return preguntas.map((p) => ({
       id: p.id,
       pregunta: p.pregunta,
       opciones: p.opciones,
@@ -91,7 +114,7 @@ export class PreguntasService implements OnModuleInit {
       : {};
     return this.preguntaRepo.find({
       where,
-      order: { created_at: 'DESC' },
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -103,41 +126,96 @@ export class PreguntasService implements OnModuleInit {
     empresa_id?: number;
     tipo?: string;
   }) {
-    if (!datos.opciones || datos.opciones.length !== 4) {
+    const tipo = datos.tipo === 'empresa' ? 'empresa' : 'mundial';
+    const empresaId = datos.empresa_id || null;
+
+    if (!datos.opciones || datos.opciones.length === 0 || datos.opciones.some((op) => !op)) {
+      throw new BadRequestException('Debe tener opciones válidas.');
+    }
+
+    if (datos.opciones.length === 2) {
+      const normales = datos.opciones.map((op) => String(op).trim().toLowerCase());
+      const esVF = normales.includes('verdadero') && normales.includes('falso');
+      if (!esVF) {
+        throw new BadRequestException('Las preguntas de 2 opciones deben ser Verdadero/Falso.');
+      }
+    } else if (datos.opciones.length !== 4) {
       throw new BadRequestException('Debe tener exactamente 4 opciones.');
     }
-    if (datos.correcta < 0 || datos.correcta > 3) {
+
+    if (datos.correcta < 0 || datos.correcta >= datos.opciones.length) {
       throw new BadRequestException(
-        'El indice de respuesta correcta debe ser 0-3.',
+        'El indice de respuesta correcta debe ser válido.',
+      );
+    }
+    if (tipo === 'empresa' && !empresaId) {
+      throw new BadRequestException(
+        'Las preguntas de empresa deben estar asociadas a una empresa.',
       );
     }
 
     const pregunta = this.preguntaRepo.create({
-      pregunta: datos.pregunta,
+      pregunta: datos.pregunta.trim(),
       opciones: datos.opciones,
       correcta: datos.correcta,
-      empresa_id: datos.empresa_id || null,
-      tipo: datos.tipo || 'mundial',
+      empresa_id: empresaId,
+      tipo,
       activa: 1,
     });
     return this.preguntaRepo.save(pregunta);
   }
 
+  async crearVarias(
+    preguntas: {
+      pregunta: string;
+      opciones: string[];
+      correcta: number;
+      empresa_id?: number;
+      tipo?: string;
+    }[],
+  ) {
+    if (!Array.isArray(preguntas) || preguntas.length === 0) {
+      throw new BadRequestException('No hay preguntas para guardar.');
+    }
+
+    let guardadas = 0;
+    const errores: { indice: number; mensaje: string }[] = [];
+
+    for (const [index, pregunta] of preguntas.entries()) {
+      try {
+        await this.crear(pregunta);
+        guardadas++;
+      } catch (error) {
+        errores.push({
+          indice: index + 1,
+          mensaje:
+            error instanceof Error ? error.message : 'Pregunta invalida.',
+        });
+      }
+    }
+
+    return {
+      mensaje: `${guardadas} preguntas guardadas`,
+      guardadas,
+      errores,
+    };
+  }
+
   // CRUD: Eliminar
-  async eliminar(id: number) {
+  async eliminar(id: number, empresaId?: number) {
+    await this.validarEdicionPregunta(id, empresaId);
     return this.preguntaRepo.delete(id);
   }
 
   // CRUD: Toggle activa/inactiva
-  async toggleActiva(id: number) {
-    const pregunta = await this.preguntaRepo.findOne({ where: { id } });
-    if (!pregunta) throw new BadRequestException('Pregunta no encontrada.');
+  async toggleActiva(id: number, empresaId?: number) {
+    const pregunta = await this.validarEdicionPregunta(id, empresaId);
     pregunta.activa = pregunta.activa === 1 ? 0 : 1;
     return this.preguntaRepo.save(pregunta);
   }
 
   // Generar preguntas con OpenAI
-  async generarConIA(empresaId: number) {
+  async generarConIA(empresaId: number, cantidad = 12) {
     const empresa = await this.empresaRepo.findOne({
       where: { id: empresaId },
     });
@@ -150,17 +228,28 @@ export class PreguntasService implements OnModuleInit {
     const model =
       this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
 
-    const prompt = `Genera exactamente 6 preguntas de trivia en formato JSON.
+    const limite = Math.min(Math.max(Number(cantidad) || 12, 3), 30);
+    const existentes = await this.obtenerPreguntasMundialExistentes(empresaId);
+    const listaExistentes = existentes
+      .slice(0, 80)
+      .map((p) => `- ${p.pregunta}`)
+      .join('\n');
 
-3 preguntas sobre el Mundial de Futbol FIFA 2026 (sedes: USA, Mexico, Canada).
-3 preguntas sobre la empresa "${empresa.nombre}" (inventa datos coherentes si no los conoces: servicios, valores, beneficios).
+    const prompt = `Genera exactamente ${limite} preguntas nuevas de trivia en formato JSON.
+
+Tema unico: Mundial de Futbol FIFA 2026, historia de los mundiales, sedes, formato, selecciones, records y curiosidades futboleras.
+
+No generes preguntas sobre la empresa "${empresa.nombre}".
+No inventes servicios, beneficios ni datos corporativos.
+Evita repetir estas preguntas ya existentes:
+${listaExistentes || '- No hay preguntas previas.'}
 
 Cada pregunta debe tener este formato exacto:
 {
   "pregunta": "texto de la pregunta",
   "opciones": ["opcion1", "opcion2", "opcion3", "opcion4"],
   "correcta": 0,
-  "tipo": "mundial" o "empresa"
+  "tipo": "mundial"
 }
 
 "correcta" es el indice (0-3) de la opcion correcta.
@@ -183,7 +272,18 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
 
       if (!response.ok) {
         const err = await response.text();
-        throw new Error(`OpenAI error: ${response.status} ${err}`);
+        this.logger.warn(`OpenAI trivia error ${response.status}: ${err}`);
+        if (response.status === 401) {
+          throw new Error(
+            'OPENAI_API_KEY invalida o revocada. Crea una key nueva y reinicia el backend.',
+          );
+        }
+        if (response.status === 429) {
+          throw new Error(
+            'OpenAI no tiene cuota disponible o alcanzo el limite de uso.',
+          );
+        }
+        throw new Error(`OpenAI respondio con estado ${response.status}.`);
       }
 
       const data = await response.json();
@@ -214,18 +314,28 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
         }
 
         // Verificar duplicado
-        const existe = await this.preguntaRepo.findOne({
-          where: { pregunta: p.pregunta, empresa_id: empresaId },
-        });
+        const existe = await this.preguntaRepo
+          .createQueryBuilder('pregunta')
+          .where('pregunta.pregunta = :texto', { texto: p.pregunta })
+          .andWhere('pregunta.tipo = :tipo', { tipo: 'mundial' })
+          .andWhere(
+            new Brackets((qb) => {
+              qb.where('pregunta.empresa_id IS NULL').orWhere(
+                'pregunta.empresa_id = :empresaId',
+                { empresaId },
+              );
+            }),
+          )
+          .getOne();
         if (existe) continue;
 
         await this.preguntaRepo.save(
           this.preguntaRepo.create({
-            pregunta: p.pregunta,
+            pregunta: String(p.pregunta).trim(),
             opciones: p.opciones,
             correcta: p.correcta,
             empresa_id: empresaId,
-            tipo: p.tipo || 'mundial',
+            tipo: 'mundial',
             activa: 1,
           }),
         );
@@ -233,14 +343,14 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
       }
 
       return {
-        mensaje: `${guardadas} preguntas generadas y guardadas para ${empresa.nombre}`,
+        mensaje: `${guardadas} preguntas del Mundial generadas para ${empresa.nombre}`,
         total_generadas: preguntas.length,
         guardadas,
       };
     } catch (error) {
       this.logger.error('Error generando preguntas con OpenAI', error);
       throw new BadRequestException(
-        `Error generando preguntas: ${error.message}`,
+        error instanceof Error ? error.message : 'Error generando preguntas con IA.',
       );
     }
   }
@@ -254,6 +364,156 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
       }
     }
     return '';
+  }
+
+  private async seleccionarPreguntasDelDia(
+    empresaId: number,
+    limite: number,
+    fecha: string,
+  ) {
+    const objetivoMundial = Math.min(this.preguntasMundialPorDia, limite);
+    const objetivoEmpresa = Math.min(
+      this.preguntasEmpresaPorDia,
+      Math.max(limite - objetivoMundial, 0),
+    );
+
+    const mundial = await this.seleccionarPool(
+      empresaId,
+      'mundial',
+      objetivoMundial,
+    );
+    const empresa = await this.seleccionarPool(
+      empresaId,
+      'empresa',
+      objetivoEmpresa,
+      mundial.map((p) => p.id),
+    );
+
+    const seleccionadas = [...mundial, ...empresa];
+
+    if (seleccionadas.length < limite) {
+      const fallback = await this.seleccionarPool(
+        empresaId,
+        null,
+        limite - seleccionadas.length,
+        seleccionadas.map((p) => p.id),
+      );
+      seleccionadas.push(...fallback);
+    }
+
+    const ids = seleccionadas.slice(0, limite).map((p) => p.id);
+    await this.marcarPreguntasUsadas(ids, fecha);
+    return ids;
+  }
+
+  private async seleccionarPool(
+    empresaId: number,
+    tipo: 'mundial' | 'empresa' | null,
+    cantidad: number,
+    excluirIds: number[] = [],
+  ) {
+    if (cantidad <= 0) return [];
+
+    const qb = this.preguntaRepo
+      .createQueryBuilder('p')
+      .where('p.activa = :activa', { activa: 1 });
+
+    if (tipo) {
+      qb.andWhere('p.tipo = :tipo', { tipo });
+    }
+
+    if (tipo === 'empresa') {
+      qb.andWhere('p.empresa_id = :empresaId', { empresaId });
+    } else {
+      qb.andWhere(
+        new Brackets((sub) => {
+          sub
+            .where('p.empresa_id IS NULL')
+            .orWhere('p.empresa_id = :empresaId', { empresaId });
+        }),
+      );
+    }
+
+    if (excluirIds.length > 0) {
+      qb.andWhere('p.id NOT IN (:...excluirIds)', { excluirIds });
+    }
+
+    return qb
+      .orderBy('CASE WHEN p.ultima_usada IS NULL THEN 0 ELSE 1 END', 'ASC')
+      .addOrderBy('p.ultima_usada', 'ASC')
+      .addOrderBy('p.veces_usada', 'ASC')
+      .addOrderBy('RAND()')
+      .limit(cantidad)
+      .getMany();
+  }
+
+  private async marcarPreguntasUsadas(ids: number[], fecha: string) {
+    if (ids.length === 0) return;
+
+    await this.preguntaRepo
+      .createQueryBuilder()
+      .update(Pregunta)
+      .set({
+        ultima_usada: fecha,
+        veces_usada: () => 'veces_usada + 1',
+      })
+      .where('id IN (:...ids)', { ids })
+      .execute();
+  }
+
+  private async cargarPreguntasPorIds(ids: number[]) {
+    if (ids.length === 0) return [];
+    const preguntas = await this.preguntaRepo.find({
+      where: { id: In(ids) },
+    });
+    const porId = new Map(preguntas.map((p) => [p.id, p]));
+    return ids.map((id) => porId.get(id)).filter(Boolean) as Pregunta[];
+  }
+
+  private async contarPoolMundial(empresaId: number) {
+    return this.preguntaRepo
+      .createQueryBuilder('p')
+      .where('p.activa = :activa', { activa: 1 })
+      .andWhere('p.tipo = :tipo', { tipo: 'mundial' })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('p.empresa_id IS NULL').orWhere(
+            'p.empresa_id = :empresaId',
+            { empresaId },
+          );
+        }),
+      )
+      .getCount();
+  }
+
+  private async obtenerPreguntasMundialExistentes(empresaId: number) {
+    return this.preguntaRepo
+      .createQueryBuilder('p')
+      .where('p.tipo = :tipo', { tipo: 'mundial' })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('p.empresa_id IS NULL').orWhere(
+            'p.empresa_id = :empresaId',
+            { empresaId },
+          );
+        }),
+      )
+      .orderBy('p.created_at', 'DESC')
+      .limit(120)
+      .getMany();
+  }
+
+  private async validarEdicionPregunta(id: number, empresaId?: number) {
+    const pregunta = await this.preguntaRepo.findOne({ where: { id } });
+    if (!pregunta) throw new BadRequestException('Pregunta no encontrada.');
+
+    if (empresaId && pregunta.empresa_id !== empresaId) {
+      throw new BadRequestException(
+        'No tienes permiso para modificar esta pregunta.',
+      );
+    }
+
+    return pregunta;
   }
 
   // Seed: migrar BANCO_PREGUNTAS estatico a la DB como preguntas globales
@@ -357,14 +617,5 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
     );
     await this.preguntaRepo.save(entities);
     this.logger.log(`${entities.length} preguntas globales migradas a la DB`);
-  }
-
-  private mezclar<T>(arr: T[]): T[] {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
   }
 }

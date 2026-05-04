@@ -262,11 +262,29 @@ CREATE TABLE preguntas (
   tipo ENUM('mundial','empresa') NOT NULL DEFAULT 'mundial',
   dia_semana TINYINT UNSIGNED DEFAULT NULL COMMENT '0=dom, 1=lun, ..., 6=sab, NULL=cualquier dia',
   activa TINYINT(1) NOT NULL DEFAULT 1,
+  ultima_usada DATE DEFAULT NULL,
+  veces_usada INT UNSIGNED NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE,
   INDEX idx_empresa_tipo (empresa_id, tipo),
-  INDEX idx_activa (activa)
+  INDEX idx_activa (activa),
+  INDEX idx_rotacion (tipo, activa, ultima_usada, veces_usada)
+) ENGINE=InnoDB;
+
+-- ============================================
+-- 8.1 TRIVIA DIARIA POR EMPRESA
+-- ============================================
+CREATE TABLE trivias_diarias (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  empresa_id INT NOT NULL,
+  fecha DATE NOT NULL,
+  pregunta_ids JSON NOT NULL COMMENT 'IDs de las 6 preguntas asignadas a la empresa para ese dia',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uk_empresa_fecha (empresa_id, fecha),
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id) ON DELETE CASCADE,
+  INDEX idx_fecha (fecha)
 ) ENGINE=InnoDB;
 
 -- ============================================

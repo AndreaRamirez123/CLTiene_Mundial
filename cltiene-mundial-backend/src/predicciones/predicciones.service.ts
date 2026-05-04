@@ -4,7 +4,10 @@ import { Repository, DataSource } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Partido } from '../entities/partido.entity';
-import { calcularNivelActividad } from '../users/nivel-actividad.util';
+import {
+  actualizarRachaDeAcceso,
+  calcularNivelActividad,
+} from '../users/nivel-actividad.util';
 
 // Goles otorgados por tipo de acierto (sistema del Mundial → ranking)
 const GOLES_POR_RESULTADO_SIMPLE = 1;
@@ -94,7 +97,7 @@ export class PrediccionesService {
       });
 
       jugador.predicciones_count = (jugador.predicciones_count || 0) + 1;
-      jugador.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jugador);
       jugador.nivel = calcularNivelActividad(jugador);
       await manager.save(Jugador, jugador);
     });
@@ -229,7 +232,6 @@ export class PrediccionesService {
           jugador.goles = (jugador.goles || 0) + golesGanados;
           jugador.predicciones_acertadas =
             (jugador.predicciones_acertadas || 0) + 1;
-          jugador.ultimo_acceso = new Date();
           jugador.nivel = calcularNivelActividad(jugador);
           await manager.save(Jugador, jugador);
         }

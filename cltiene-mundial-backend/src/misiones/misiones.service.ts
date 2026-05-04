@@ -4,7 +4,10 @@ import { Repository, DataSource } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
 import { TriviaHistorial } from '../entities/trivia-historial.entity';
-import { calcularNivelActividad } from '../users/nivel-actividad.util';
+import {
+  actualizarRachaDeAcceso,
+  calcularNivelActividad,
+} from '../users/nivel-actividad.util';
 import { PreguntasService } from '../preguntas/preguntas.service';
 
 interface Mision {
@@ -432,6 +435,9 @@ export class MisionesService {
       throw new BadRequestException('Jugador no encontrado');
     }
 
+    actualizarRachaDeAcceso(jugador);
+    jugador.nivel = calcularNivelActividad(jugador);
+
     const completadas: string[] = jugador.misiones_completadas || [];
 
     // Auto-detectar misiones completables
@@ -448,6 +454,8 @@ export class MisionesService {
       await this.dataSource.transaction(async (manager) => {
         const jug = await manager.findOne(Jugador, { where: { uid } });
         if (!jug) return;
+
+        actualizarRachaDeAcceso(jug);
 
         for (const misionId of nuevas) {
           const mision = MISIONES.find((m) => m.id === misionId);
@@ -472,7 +480,6 @@ export class MisionesService {
         }
 
         jug.misiones_completadas = todasCompletadasArr;
-        jug.ultimo_acceso = new Date();
         jug.nivel = calcularNivelActividad(jug);
         await manager.save(Jugador, jug);
       });
@@ -519,6 +526,8 @@ export class MisionesService {
 
     const totalCompletadasConRunner = misionesConRunner.filter((m) => m.ok).length;
 
+    await this.jugadorRepo.save(jugador);
+
     return {
       misiones: misionesConRunner,
       completadas: totalCompletadasConRunner,
@@ -539,6 +548,9 @@ export class MisionesService {
     if (!jugador) {
       throw new BadRequestException('Jugador no encontrado');
     }
+
+    actualizarRachaDeAcceso(jugador);
+    jugador.nivel = calcularNivelActividad(jugador);
 
     const completadas: string[] = jugador.misiones_completadas || [];
 
@@ -561,6 +573,8 @@ export class MisionesService {
       const jug = await manager.findOne(Jugador, { where: { uid } });
       if (!jug) return;
 
+      actualizarRachaDeAcceso(jug);
+
       const saldoAnterior = jug.monedas;
       const saldoNuevo = saldoAnterior + mision.monedas;
 
@@ -577,7 +591,6 @@ export class MisionesService {
       jug.monedas = saldoNuevo;
       jug.monedas_totales_ganadas =
         (jug.monedas_totales_ganadas || 0) + mision.monedas;
-      jug.ultimo_acceso = new Date();
       jug.nivel = calcularNivelActividad(jug);
       await manager.save(Jugador, jug);
 
@@ -592,7 +605,7 @@ export class MisionesService {
   }
 
   async jugarTrivia(uid: string, correctas: number) {
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = fechaColombia();
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
 
     if (!jugador) {
@@ -643,7 +656,7 @@ export class MisionesService {
         (jug.monedas_totales_ganadas || 0) + monedasFinales;
       jug.ultimo_trivia = hoy;
       jug.trivias_jugadas = totalTrivias;
-      jug.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jug);
       jug.nivel = calcularNivelActividad(jug);
       await manager.save(Jugador, jug);
 
@@ -712,7 +725,7 @@ export class MisionesService {
       jug.monedas_totales_ganadas =
         (jug.monedas_totales_ganadas || 0) + mision.monedas;
       jug.ultimo_runner = hoy;
-      jug.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jug);
       jug.nivel = calcularNivelActividad(jug);
       await manager.save(Jugador, jug);
     });
@@ -759,7 +772,7 @@ export class MisionesService {
       jug.monedas_totales_ganadas =
         (jug.monedas_totales_ganadas || 0) + mision.monedas;
       jug.ultimo_video = hoy;
-      jug.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jug);
       jug.nivel = calcularNivelActividad(jug);
       await manager.save(Jugador, jug);
     });

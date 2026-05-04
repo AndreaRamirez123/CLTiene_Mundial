@@ -6,3 +6,4 @@ export { TriviaHistorial } from './trivia-historial.entity';
 export { Canje } from './canje.entity';
 export { NotificacionLog } from './notificacion-log.entity';
 export { SsoSession } from './sso-session.entity';
+export { TriviaDiaria } from './trivia-diaria.entity';

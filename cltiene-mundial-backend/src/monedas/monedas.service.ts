@@ -3,7 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Transaccion } from '../entities/transaccion.entity';
-import { calcularNivelActividad } from '../users/nivel-actividad.util';
+import {
+  actualizarRachaDeAcceso,
+  calcularNivelActividad,
+  fechaColombiaISO,
+} from '../users/nivel-actividad.util';
 
 @Injectable()
 export class MonedasService {
@@ -47,7 +51,7 @@ export class MonedasService {
       jugador.monedas = saldoNuevo;
       jugador.monedas_totales_ganadas =
         (jugador.monedas_totales_ganadas || 0) + Math.max(0, monto);
-      jugador.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jugador);
       jugador.nivel = calcularNivelActividad(jugador);
 
       await manager.save(Jugador, jugador);
@@ -57,7 +61,7 @@ export class MonedasService {
   async reclamarBonoDiario(
     uid: string,
   ): Promise<{ monedas: number; mensaje: string }> {
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = fechaColombiaISO();
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
 
     if (!jugador) {
@@ -93,7 +97,7 @@ export class MonedasService {
       jug.monedas_totales_ganadas =
         (jug.monedas_totales_ganadas || 0) + bonoPorFase;
       jug.ultimo_bono_diario = hoy;
-      jug.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jug);
       jug.nivel = calcularNivelActividad(jug);
 
       await manager.save(Jugador, jug);
@@ -127,7 +131,7 @@ export class MonedasService {
       jugador.monedas = saldoNuevo1;
       jugador.monedas_totales_ganadas =
         (jugador.monedas_totales_ganadas || 0) + 50;
-      jugador.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jugador);
       jugador.nivel = calcularNivelActividad(jugador);
       await manager.save(Jugador, jugador);
 
@@ -153,7 +157,6 @@ export class MonedasService {
       referidor.monedas = saldoNuevo2;
       referidor.monedas_totales_ganadas =
         (referidor.monedas_totales_ganadas || 0) + 50;
-      referidor.ultimo_acceso = new Date();
       referidor.nivel = calcularNivelActividad(referidor);
       await manager.save(Jugador, referidor);
     });
@@ -171,8 +174,7 @@ export class MonedasService {
   }
 
   getBonoPorFecha(): number {
-    const hoy = new Date();
-    const fecha = hoy.toISOString().split('T')[0];
+    const fecha = fechaColombiaISO();
 
     if (fecha >= '2026-06-11' && fecha <= '2026-06-23') return 10;
     if (fecha >= '2026-06-24' && fecha <= '2026-06-27') return 60;

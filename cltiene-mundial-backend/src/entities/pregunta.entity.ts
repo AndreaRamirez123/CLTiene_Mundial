@@ -49,6 +49,12 @@ export class Pregunta {
   @Column({ type: 'tinyint', default: 1 })
   activa: number;
 
+  @Column({ type: 'date', nullable: true })
+  ultima_usada: string | null;
+
+  @Column({ type: 'int', unsigned: true, default: 0 })
+  veces_usada: number;
+
   @CreateDateColumn()
   created_at: Date;
 }

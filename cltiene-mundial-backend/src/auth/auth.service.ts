@@ -13,6 +13,10 @@ import { Transaccion } from '../entities/transaccion.entity';
 import { Empresa } from '../entities/empresa.entity';
 import { ConfigMarca } from '../entities/config-marca.entity';
 import { SsoSession } from '../entities/sso-session.entity';
+import {
+  actualizarRachaDeAcceso,
+  calcularNivelActividad,
+} from '../users/nivel-actividad.util';
 
 @Injectable()
 export class AuthService {
@@ -243,6 +247,11 @@ export class AuthService {
         'monedas',
         'telefono',
         'empresa_id',
+        'ultimo_acceso',
+        'dias_consecutivos',
+        'predicciones_count',
+        'trivias_jugadas',
+        'nivel',
       ],
     });
 
@@ -308,6 +317,10 @@ export class AuthService {
     if (!passValida) {
       throw new UnauthorizedException('Correo o contrasena incorrectos.');
     }
+
+    actualizarRachaDeAcceso(jugador);
+    jugador.nivel = calcularNivelActividad(jugador);
+    jugador = await this.jugadorRepo.save(jugador);
 
     const token = this.generarToken(jugador);
 
@@ -506,12 +519,13 @@ export class AuthService {
         }
       }
     } else {
-      // Jugador existe: actualizar datos y ultimo acceso
-      jugador.ultimo_acceso = new Date();
+      // Jugador existe: actualizar datos y racha de acceso
+      actualizarRachaDeAcceso(jugador);
       if (datos.nombre) jugador.nombre = datos.nombre;
       if (telLimpio) jugador.telefono = telLimpio;
       if (datos.departamento) jugador.departamento = datos.departamento;
       if (datos.ciudad) jugador.ciudad = datos.ciudad;
+      jugador.nivel = calcularNivelActividad(jugador);
       jugador = await this.jugadorRepo.save(jugador);
     }
 
@@ -567,10 +581,14 @@ export class AuthService {
       throw new UnauthorizedException('Jugador no encontrado.');
     }
 
-    const token = this.generarToken(jugador);
+    actualizarRachaDeAcceso(jugador);
+    jugador.nivel = calcularNivelActividad(jugador);
+    const jugadorActualizado = await this.jugadorRepo.save(jugador);
+
+    const token = this.generarToken(jugadorActualizado);
     return {
       token,
-      usuario: this.limpiarUsuario(jugador),
+      usuario: this.limpiarUsuario(jugadorActualizado),
     };
   }
 
@@ -660,7 +678,8 @@ export class AuthService {
         }
       }
     } else {
-      jugador.ultimo_acceso = new Date();
+      actualizarRachaDeAcceso(jugador);
+      jugador.nivel = calcularNivelActividad(jugador);
       jugador = await this.jugadorRepo.save(jugador);
     }
 
@@ -722,6 +741,10 @@ export class AuthService {
         rol: esSuperadmin ? 'superadmin' : 'jugador',
       });
 
+      jugador = await this.jugadorRepo.save(jugador);
+    } else {
+      actualizarRachaDeAcceso(jugador);
+      jugador.nivel = calcularNivelActividad(jugador);
       jugador = await this.jugadorRepo.save(jugador);
     }
 

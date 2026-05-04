@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { C } from "../constants";
 import { aplicarConfigMarca, guardarConfigMarca } from "../../../utils/marca";
+import VistaTrivia from "./VistaTrivia";
 
 export default function VistaMarca({ client, usuario }) {
   const esSuperadmin = usuario?.rol === "superadmin";
@@ -352,6 +353,13 @@ export default function VistaMarca({ client, usuario }) {
               client={client}
               esSuperadmin={esSuperadmin}
               empresaSeleccionada={empresaSeleccionada}
+            />
+
+            <VistaTrivia
+              client={client}
+              usuario={usuario}
+              embedded
+              empresaIdFijo={empresaSeleccionada || usuario?.empresa_id}
             />
 
             {/* Publicidad / Carrusel */}
