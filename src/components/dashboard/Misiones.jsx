@@ -75,6 +75,17 @@ export default function Misiones({ usuario, cargarPerfil }) {
             return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
           }
           if (m.id === "runner_mascotas") {
+            return {
+              ...m,
+              ok: !runnerDisponible,
+              desc: runnerDisponible
+                ? "Juega el runner y completa la mision"
+                : "Ya jugaste hoy. Puedes jugar de nuevo sin ganar mas monedas.",
+              botonLabel: runnerDisponible ? "Jugar ->" : undefined,
+              botonOkLabel: runnerDisponible ? undefined : "Jugar de nuevo",
+            };
+          }
+          if (m.id === "runner_mascotas_legacy") {
             return { ...m, ok: false, botonLabel: runnerDisponible ? "Reclamar →" : "Jugar de nuevo" };
           }
           if (m.id === "ver_video") {
