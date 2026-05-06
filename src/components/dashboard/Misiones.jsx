@@ -24,6 +24,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const [mostrarVideo, setMostrarVideo] = useState(false);
   const [tiempoVideo, setTiempoVideo] = useState(0);
   const [videoVisto, setVideoVisto] = useState(false);
+  const [videoReproduciendo, setVideoReproduciendo] = useState(false);
   const [mostrarRunner, setMostrarRunner] = useState(false);
   const [runnerJugadoHoy, setRunnerJugadoHoy] = useState(false);
   const [mostrarTrivia, setMostrarTrivia] = useState(false);
@@ -35,7 +36,9 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
   // Video del día (rota entre los videos configurados por la empresa)
   const VIDEO_URL = getVideoDelDia();
-  const SEGUNDOS_MINIMO = 30;
+  const SEGUNDOS_MINIMO = 20;
+  const MONEDAS_VIDEO = 20;
+  const [segundosObjetivo, setSegundosObjetivo] = useState(SEGUNDOS_MINIMO);
   const [videoDisponible, setVideoDisponible] = useState(true);
 
   const codigoReferido = usuario?.uid?.substring(0, 8).toUpperCase() || "";
@@ -107,18 +110,20 @@ export default function Misiones({ usuario, cargarPerfil }) {
   }, [usuario?.uid]);
 
   useEffect(() => {
-    if (!mostrarVideo || videoVisto) return;
+    if (!mostrarVideo || videoVisto || !videoReproduciendo) return;
     const interval = setInterval(() => {
       setTiempoVideo((t) => {
-        if (t + 1 >= SEGUNDOS_MINIMO) {
+        if (t + 1 >= segundosObjetivo) {
           setVideoVisto(true);
+          setVideoReproduciendo(false);
           clearInterval(interval);
+          return segundosObjetivo;
         }
         return t + 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [mostrarVideo, videoVisto]);
+  }, [mostrarVideo, videoVisto, videoReproduciendo, segundosObjetivo]);
 
   const reclamar = async (misionId) => {
     if (misionId === "runner_mascotas") return setMostrarRunner(true);
@@ -128,9 +133,11 @@ export default function Misiones({ usuario, cargarPerfil }) {
         alert("Ya viste el video de hoy. Vuelve mañana para ganar más monedas.");
         return;
       }
+      setSegundosObjetivo(SEGUNDOS_MINIMO);
       setMostrarVideo(true);
       setTiempoVideo(0);
       setVideoVisto(false);
+      setVideoReproduciendo(false);
       return;
     }
     if (misionId === "trivia_mundial") {
@@ -156,6 +163,11 @@ export default function Misiones({ usuario, cargarPerfil }) {
   };
 
   const reclamarVideo = async () => {
+    if (!videoVisto || tiempoVideo < segundosObjetivo) {
+      alert("Debes ver el video el tiempo requerido antes de reclamar las monedas.");
+      return;
+    }
+
     setMostrarVideo(false);
     setReclamando("ver_video");
     try {
@@ -228,6 +240,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
   ];
 
   const preguntaActual = PREGUNTAS_TRIVIA[triviaActual];
+  const monedasVideo = misiones.find((m) => m.id === "ver_video")?.monedas || MONEDAS_VIDEO;
 
   return (
     <div style={{ background: "linear-gradient(135deg, rgba(130,43,210,0.05) 0%, rgba(253,119,81,0.05) 100%)", borderRadius: 16, padding: "20px 0", minHeight: "60vh" }}>
@@ -290,7 +303,26 @@ export default function Misiones({ usuario, cargarPerfil }) {
 
       {mostrarCompartir && <CompartirModal onCompartir={compartir} onCerrar={() => setMostrarCompartir(false)} redesSociales={redesSociales} />}
 
-      {mostrarVideo && <VideoModal tiempoVideo={tiempoVideo} videoVisto={videoVisto} SEGUNDOS_MINIMO={SEGUNDOS_MINIMO} onReclamarVideo={reclamarVideo} onCerrar={() => setMostrarVideo(false)} VIDEO_URL={VIDEO_URL} />}
+      {mostrarVideo && (
+        <VideoModal
+          tiempoVideo={tiempoVideo}
+          videoVisto={videoVisto}
+          segundosObjetivo={segundosObjetivo}
+          MONEDAS_VIDEO={monedasVideo}
+          onVideoMetadata={(duration) => {
+            if (!duration || Number.isNaN(duration)) return;
+            const target = Math.min(Math.ceil(duration), SEGUNDOS_MINIMO);
+            setSegundosObjetivo(target > 0 ? target : SEGUNDOS_MINIMO);
+          }}
+          onReclamarVideo={reclamarVideo}
+          onCerrar={() => {
+            setVideoReproduciendo(false);
+            setMostrarVideo(false);
+          }}
+          onReproduciendoChange={setVideoReproduciendo}
+          VIDEO_URL={VIDEO_URL}
+        />
+      )}
 
       {mostrarTrivia && <TriviaModal preguntaSiguiente={preguntaActual} triviaActual={triviaActual} PREGUNTAS_TRIVIA={PREGUNTAS_TRIVIA} triviaSeleccion={triviaSeleccion} triviaResultado={triviaResultado} onResponder={responderTrivia} onReclamarTrivia={reclamarTrivia} onCerrar={() => setMostrarTrivia(false)} />}
     </div>

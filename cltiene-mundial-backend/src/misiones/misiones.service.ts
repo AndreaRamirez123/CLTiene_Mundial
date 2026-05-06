@@ -19,6 +19,8 @@ interface Mision {
   tipo: 'auto' | 'manual';
 }
 
+const RUNNER_APP_URL = 'https://cl-tiene-mascotas-runner-recursos-v.vercel.app/';
+
 const MISIONES: Mision[] = [
   {
     id: 'perfil_creado',
@@ -735,6 +737,70 @@ export class MisionesService {
       monedas_ganadas: mision.monedas,
       ya_jugado: false,
     };
+  }
+
+  async getRunnerEmbed() {
+    const response = await fetch(RUNNER_APP_URL);
+    if (!response.ok) {
+      throw new BadRequestException('No se pudo cargar el runner remoto');
+    }
+
+    let html = await response.text();
+    const runnerBase = RUNNER_APP_URL.replace(/\/$/, '');
+    html = html
+      .replace(/(src|href)="\/(?!\/)/g, `$1="${runnerBase}/`)
+      .replace(/(src|href)='\/(?!\/)/g, `$1='${runnerBase}/`);
+
+    if (html.includes('<head>')) {
+      html = html.replace(
+        '<head>',
+        `<head><base href="${RUNNER_APP_URL}">`,
+      );
+    }
+
+    const injection = `
+      <script>
+        (function() {
+          const successRegex = /Juego Terminado|¡Juego Terminado!|Game Over|Game ended|finished|complete|terminado|completado/i;
+          let emitted = false;
+          function checkComplete() {
+            if (emitted) return;
+            const text = document.body ? document.body.innerText : '';
+            if (successRegex.test(text)) {
+              emitted = true;
+              window.parent.postMessage({ runnerComplete: true, source: 'runner_embed' }, '*');
+            }
+          }
+          function isTopRightCloseClick(event) {
+            const x = event.clientX || 0;
+            const y = event.clientY || 0;
+            const distanceRight = window.innerWidth - x;
+            return y <= 90 && distanceRight <= 70;
+          }
+          document.addEventListener('click', function(event) {
+            if (!isTopRightCloseClick(event)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            window.parent.postMessage({ runnerClose: true, source: 'runner_embed' }, '*');
+          }, true);
+          const observer = new MutationObserver(checkComplete);
+          observer.observe(document.documentElement || document, { childList: true, subtree: true, characterData: true });
+          document.addEventListener('DOMContentLoaded', checkComplete);
+          window.addEventListener('load', checkComplete);
+          setTimeout(checkComplete, 500);
+        })();
+      <\/script>
+    </body>`;
+
+    if (html.includes('</body>')) {
+      return html.replace('</body>', injection);
+    }
+
+    if (html.includes('</html>')) {
+      return html.replace('</html>', injection.replace('</body>', ''));
+    }
+
+    return html + injection.replace('</body>', '');
   }
 
   async verVideo(uid: string) {

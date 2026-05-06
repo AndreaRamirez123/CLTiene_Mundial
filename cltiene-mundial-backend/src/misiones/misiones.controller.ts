@@ -1,9 +1,15 @@
-import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Header } from '@nestjs/common';
 import { MisionesService } from './misiones.service';
 
 @Controller('misiones')
 export class MisionesController {
   constructor(private readonly misionesService: MisionesService) {}
+
+  @Get('runner/embed')
+  @Header('Content-Type', 'text/html')
+  getRunnerEmbed() {
+    return this.misionesService.getRunnerEmbed();
+  }
 
   @Get(':uid')
   getMisiones(@Param('uid') uid: string) {

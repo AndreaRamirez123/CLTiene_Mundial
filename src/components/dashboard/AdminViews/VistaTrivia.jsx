@@ -369,6 +369,221 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
     return { preguntasParseadas, errores };
   };
 
+  const parsearCargaRapidaFlexible = () => {
+    const preguntasParseadas = [];
+    const errores = [];
+    const lineas = textoCargaRapida
+      .split(/\r?\n/)
+      .map((linea) => linea.trim())
+      .filter(Boolean);
+
+    const limpiar = (valor) => String(valor || "").trim().replace(/^\uFEFF/g, "").replace(/^"|"$/g, "");
+    const limpiarMarcas = (valor) =>
+      String(valor || "")
+        .replace(/[\u2705\u274c\u274C]/g, "")
+        .replace(/(?:âœ…|âŒ|â)/g, "")
+        .replace(/^\s*\?\s*(?=(?:respuesta|correcta|[A-Da-d]|[1-4]|verdadero|falso|v|f)\b)/i, "")
+        .trim();
+    const tieneMarca = (valor) => {
+      const texto = String(valor || "");
+      return (
+        /[\u2705\u274c\u274C]/.test(texto) ||
+        /(?:âœ…|âŒ|â)/.test(texto) ||
+        /^\s*\?\s*(?=(?:respuesta|correcta|[A-Da-d]|[1-4]|verdadero|falso|v|f)\b)/i.test(texto)
+      );
+    };
+    const esNumero = (valor) => /^[0-9]+[\.)]?$/.test(String(valor || "").trim());
+    const numeroConTexto = (valor) => /^[0-9]+[\.)]?\s+\S+/.test(String(valor || "").trim());
+    const quitarNumero = (valor) => String(valor || "").trim().replace(/^[0-9]+[\.)]?\s*/g, "");
+    const esEncabezado = (valor) => {
+      const original = String(valor || "").trim();
+      const plano = normalizar(original);
+      return (
+        !plano ||
+        original.startsWith("\u26bd") ||
+        plano.includes("verdadero o falso") ||
+        plano.includes("mundial + situaciones") ||
+        plano.includes("seleccion multiple") ||
+        plano === "verdadero/falso"
+      );
+    };
+    const opcionDesdeLinea = (valor) => {
+      const linea = limpiarMarcas(valor);
+      const match = linea.match(/^([A-Da-d])[\.\)]\s*(.+)$/);
+      if (!match) return null;
+      return {
+        texto: limpiar(match[2]),
+        marcada: /\u2705/.test(String(valor || "")) || /âœ…/.test(String(valor || "")) || /^\s*\?\s*(?=[A-Da-d][\.\)])/.test(String(valor || "")),
+      };
+    };
+    const limpiarRespuestaLocal = (valor) => {
+      const sinMarca = limpiarMarcas(valor);
+      const conEtiqueta = sinMarca.match(/(?:respuesta\s+correcta|respuesta|correcta)\s*:\s*(.+)$/i);
+      const texto = conEtiqueta ? conEtiqueta[1] : sinMarca;
+      return texto
+        .replace(/^[A-Da-d][\.\)]\s*/g, "")
+        .replace(/^[1-4][\.\)]\s*/g, "")
+        .replace(/[\.\)\s]+$/g, "")
+        .trim();
+    };
+    const respuestaDesdeLinea = (valor, permitirCorta = false) => {
+      const original = String(valor || "").trim();
+      const conEtiqueta = /(?:respuesta\s+correcta|respuesta|correcta)\s*:/i.test(original);
+      if (!tieneMarca(original) && !conEtiqueta && !permitirCorta) return null;
+
+      const respuesta = normalizar(limpiarRespuestaLocal(original));
+      if (/^[a-d]$/.test(respuesta)) return { tipo: "letra", valor: respuesta.charCodeAt(0) - 97 };
+      if (/^[1-4]$/.test(respuesta)) return { tipo: "indice", valor: Number(respuesta) - 1 };
+      if (["verdadero", "v"].includes(respuesta)) return { tipo: "vf", valor: "verdadero" };
+      if (["falso", "f"].includes(respuesta)) return { tipo: "vf", valor: "falso" };
+      return null;
+    };
+    const esRespuesta = (valor) => !opcionDesdeLinea(valor) && Boolean(respuestaDesdeLinea(valor, true));
+    const resolverCorrectaLocal = (valor, opciones) => {
+      const respuesta = respuestaDesdeLinea(valor, true);
+      if (respuesta?.tipo === "letra" || respuesta?.tipo === "indice") {
+        return respuesta.valor >= 0 && respuesta.valor < opciones.length ? respuesta.valor : null;
+      }
+      if (respuesta?.tipo === "vf") {
+        const indice = opciones.findIndex((opcion) => normalizar(opcion) === respuesta.valor);
+        return indice >= 0 ? indice : null;
+      }
+
+      const porTexto = opciones.findIndex((opcion) => normalizar(opcion) === normalizar(limpiarRespuestaLocal(valor)));
+      return porTexto >= 0 ? porTexto : null;
+    };
+    const agregarPregunta = (pregunta, opciones, correcta, referencia) => {
+      if (!pregunta || !opciones?.length || opciones.some((opcion) => !opcion) || correcta === null) {
+        errores.push(`${referencia}: pregunta incompleta o respuesta correcta invalida`);
+        return;
+      }
+
+      preguntasParseadas.push({
+        id: `${Date.now()}-rapida-${preguntasParseadas.length}-${Math.round(Math.random() * 100000)}`,
+        pregunta,
+        opciones,
+        correcta,
+        tipo: tipoCargaRapida,
+        alcance: alcanceCargaRapida,
+      });
+    };
+
+    const separadorTabla = (linea) => (linea.includes("\t") ? "\t" : linea.includes(";") ? ";" : null);
+    const usarTabla = lineas.length > 0 && lineas.every((linea) => separadorTabla(linea));
+
+    if (usarTabla) {
+      lineas.forEach((linea, index) => {
+        const celdas = linea.split(separadorTabla(linea)).map(limpiar);
+        const esHeader =
+          index === 0 &&
+          normalizar(celdas[0]).includes("pregunta") &&
+          normalizar(celdas.join(" ")).includes("opcion");
+        if (esHeader) return;
+        if (celdas.length < 6) {
+          errores.push(`Fila ${index + 1}: faltan columnas`);
+          return;
+        }
+
+        const [pregunta, op1, op2, op3, op4, correctaTexto] = celdas;
+        const opciones = [op1, op2, op3, op4].map((opcion) =>
+          limpiarMarcas(opcion).replace(/^[A-Da-d][\.\)]\s*/g, ""),
+        );
+        agregarPregunta(
+          pregunta,
+          opciones,
+          resolverCorrectaLocal(correctaTexto, opciones),
+          `Fila ${index + 1}`,
+        );
+      });
+
+      return { preguntasParseadas, errores };
+    }
+
+    let i = 0;
+    while (i < lineas.length) {
+      if (esEncabezado(lineas[i])) {
+        i += 1;
+        continue;
+      }
+
+      let numero = null;
+      const partesPregunta = [];
+      if (esNumero(lineas[i])) {
+        numero = lineas[i].replace(/[\.)]/g, "");
+        i += 1;
+      } else if (numeroConTexto(lineas[i])) {
+        numero = lineas[i].match(/^[0-9]+/)?.[0] || null;
+        partesPregunta.push(quitarNumero(lineas[i]));
+        i += 1;
+      }
+
+      while (
+        i < lineas.length &&
+        !esNumero(lineas[i]) &&
+        !numeroConTexto(lineas[i]) &&
+        !opcionDesdeLinea(lineas[i]) &&
+        !esRespuesta(lineas[i])
+      ) {
+        if (!esEncabezado(lineas[i])) partesPregunta.push(quitarNumero(lineas[i]));
+        i += 1;
+      }
+
+      const pregunta = partesPregunta.join(" ").trim();
+      if (!pregunta) {
+        i += 1;
+        continue;
+      }
+
+      const opcionesInfo = [];
+      while (i < lineas.length && opcionDesdeLinea(lineas[i])) {
+        opcionesInfo.push(opcionDesdeLinea(lineas[i]));
+        i += 1;
+      }
+
+      const opciones = opcionesInfo.map((opcion) => opcion.texto);
+      let respuestaTexto = null;
+      if (i < lineas.length && !esNumero(lineas[i]) && !numeroConTexto(lineas[i]) && esRespuesta(lineas[i])) {
+        respuestaTexto = lineas[i];
+        i += 1;
+      }
+
+      const referencia = `Pregunta ${numero || preguntasParseadas.length + errores.length + 1}`;
+      const marcada = opcionesInfo.findIndex((opcion) => opcion.marcada);
+      const opcionesNormales = opciones.map(normalizar);
+
+      if (opciones.length === 4) {
+        agregarPregunta(
+          pregunta,
+          opciones,
+          respuestaTexto ? resolverCorrectaLocal(respuestaTexto, opciones) : marcada >= 0 ? marcada : null,
+          referencia,
+        );
+      } else if (
+        opciones.length === 2 &&
+        opcionesNormales.includes("verdadero") &&
+        opcionesNormales.includes("falso")
+      ) {
+        agregarPregunta(
+          pregunta,
+          opciones,
+          respuestaTexto ? resolverCorrectaLocal(respuestaTexto, opciones) : marcada >= 0 ? marcada : null,
+          referencia,
+        );
+      } else if (opciones.length === 0 && respuestaTexto) {
+        const opcionesVF = ["Verdadero", "Falso"];
+        agregarPregunta(pregunta, opcionesVF, resolverCorrectaLocal(respuestaTexto, opcionesVF), referencia);
+      } else {
+        errores.push(`${referencia}: no se encontraron 4 opciones o formato de verdadero/falso valido`);
+      }
+
+      while (i < lineas.length && !esNumero(lineas[i]) && !numeroConTexto(lineas[i])) {
+        i += 1;
+      }
+    }
+
+    return { preguntasParseadas, errores };
+  };
+
   const contarTiposPreguntas = (preguntas) => {
     const resumen = { total: preguntas.length, multiple: 0, vf: 0 };
     preguntas.forEach((pregunta) => {
@@ -379,7 +594,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
   };
 
   const cargarFilasAlFormulario = () => {
-    const { preguntasParseadas, errores } = parsearCargaRapida();
+    const { preguntasParseadas, errores } = parsearCargaRapidaFlexible();
     if (preguntasParseadas.length === 0) {
       return alert(errores[0] || "No se encontraron preguntas validas");
     }
@@ -394,7 +609,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
   };
 
   const guardarCargaRapida = async () => {
-    const { preguntasParseadas, errores } = parsearCargaRapida();
+    const { preguntasParseadas, errores } = parsearCargaRapidaFlexible();
     if (preguntasParseadas.length === 0) {
       return alert(errores[0] || "No se encontraron preguntas validas");
     }
