@@ -50,9 +50,13 @@ export default function Misiones({ usuario, cargarPerfil }) {
   const cargarPreguntasTrivia = async () => {
     try {
       const res = await client.get(`/misiones/trivia/preguntas?empresa_id=${usuario?.empresa_id || 1}`);
-      setPREGUNTAS_TRIVIA(res.data.preguntas);
+      const preguntas = Array.isArray(res.data?.preguntas) ? res.data.preguntas : [];
+      setPREGUNTAS_TRIVIA(preguntas);
+      return preguntas;
     } catch (e) {
       console.error("Error cargando preguntas", e);
+      setPREGUNTAS_TRIVIA([]);
+      return [];
     }
   };
 
@@ -152,6 +156,11 @@ export default function Misiones({ usuario, cargarPerfil }) {
       return;
     }
     if (misionId === "trivia_mundial") {
+      const preguntas = PREGUNTAS_TRIVIA.length ? PREGUNTAS_TRIVIA : await cargarPreguntasTrivia();
+      if (!preguntas.length) {
+        alert("No hay preguntas de trivia disponibles. Revisa el banco de preguntas o intenta nuevamente.");
+        return;
+      }
       setMostrarTrivia(true);
       setTriviaActual(0);
       setTriviaRespuestas([]);

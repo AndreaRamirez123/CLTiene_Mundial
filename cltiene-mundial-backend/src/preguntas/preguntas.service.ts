@@ -94,9 +94,34 @@ export class PreguntasService implements OnModuleInit {
       }
     }
 
-    const preguntas = await this.cargarPreguntasPorIds(
-      (trivia?.pregunta_ids || []).slice(0, limite),
+    let preguntaIds = this.normalizarPreguntaIds(trivia?.pregunta_ids);
+
+    if (trivia && preguntaIds.length === 0) {
+      preguntaIds = await this.seleccionarPreguntasDelDia(
+        empresaId,
+        limite,
+        fecha,
+      );
+      trivia.pregunta_ids = preguntaIds;
+      await this.triviaDiariaRepo.save(trivia);
+    }
+
+    let preguntas = await this.cargarPreguntasPorIds(
+      preguntaIds.slice(0, limite),
     );
+
+    if (trivia && preguntas.length < Math.min(limite, preguntaIds.length)) {
+      preguntaIds = await this.seleccionarPreguntasDelDia(
+        empresaId,
+        limite,
+        fecha,
+      );
+      trivia.pregunta_ids = preguntaIds;
+      await this.triviaDiariaRepo.save(trivia);
+      preguntas = await this.cargarPreguntasPorIds(
+        preguntaIds.slice(0, limite),
+      );
+    }
 
     return preguntas.map((p) => ({
       id: p.id,
@@ -468,6 +493,25 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
     });
     const porId = new Map(preguntas.map((p) => [p.id, p]));
     return ids.map((id) => porId.get(id)).filter(Boolean) as Pregunta[];
+  }
+
+  private normalizarPreguntaIds(valor: unknown): number[] {
+    if (!valor) return [];
+
+    let ids = valor;
+    if (typeof valor === 'string') {
+      try {
+        ids = JSON.parse(valor);
+      } catch {
+        ids = valor.split(',');
+      }
+    }
+
+    if (!Array.isArray(ids)) return [];
+
+    return ids
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id) && id > 0);
   }
 
   private async contarPoolMundial(empresaId: number) {

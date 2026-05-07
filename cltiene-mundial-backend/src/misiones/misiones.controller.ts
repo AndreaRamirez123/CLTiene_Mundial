@@ -11,15 +11,15 @@ export class MisionesController {
     return this.misionesService.getRunnerEmbed();
   }
 
-  @Get(':uid')
-  getMisiones(@Param('uid') uid: string) {
-    return this.misionesService.getMisiones(uid);
-  }
-
   @Get('trivia/preguntas')
   getPreguntasTrivia(@Query('empresa_id') empresaId?: string) {
     const id = empresaId ? parseInt(empresaId, 10) : 1;
     return this.misionesService.getPreguntasDelDia(id);
+  }
+
+  @Get(':uid')
+  getMisiones(@Param('uid') uid: string) {
+    return this.misionesService.getMisiones(uid);
   }
 
   @Post(':uid/trivia')
