@@ -18,7 +18,7 @@
   --texto-ter: rgba(255,255,255,0.4);
   --navbar: rgba(15,10,30,0.98);
   --nav-border: rgba(var(--brand-primary-rgb), 0.2);
-  --input-bg: rgba(255,255,255,0.06);
+  --input-bg: rgba(255,255,255,0.06); 
   --input-border: rgba(255,255,255,0.1);
   --overlay: rgba(0,0,0,0.7);
 }
