@@ -44,9 +44,20 @@
   50% { opacity: 0.5; }
 }
 
-/* Logo: mostrar tal cual (cada empresa sube su logo con los colores que quiera) */
+/* Logo con respaldo claro en modo oscuro para PNG transparentes con texto oscuro. */
 .logo-header {
+  display: block;
+  background: rgba(255,255,255,0.96);
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
   filter: none;
+}
+
+.tema-claro .logo-header {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
 }
 
 * {

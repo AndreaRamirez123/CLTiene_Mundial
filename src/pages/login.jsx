@@ -275,7 +275,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                 </div>
 
                 <p style={s.desc}>
-                    {modo === "login" && "Ingresa para gestionar tus apuestas y premios: "}
+                    {modo === "login" && "Ingresa para gestionar tus predicciones y premios: "}
                     {modo === "registro" && "Regístrate y obtén un bono de bienvenida"}
                     {modo === "reset-email" && "Ingresa tu correo para recuperar tu contraseña"}
                     {modo === "reset-codigo" && "Ingresa el código que recibiste en tu correo"}
@@ -285,7 +285,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                 {empresas.length >= 1 && (
                     <div style={{ marginBottom: "16px" }}>
                         <label style={{ display: "block", color: "var(--texto-sec)", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
-                            Selecciona tu organizacion
+                            Selecciona tu organización
                         </label>
                         <select
                             value={empresaSlug}

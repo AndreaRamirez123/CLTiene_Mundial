@@ -266,7 +266,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
       const correcta = resolverCorrecta(correctaTexto, opciones);
 
       if (!pregunta || opciones.some((opcion) => !opcion) || correcta === null) {
-        errores.push(`Bloque ${idxBloque + 1}, fila ${filaIdx + 1}: pregunta incompleta o respuesta correcta invalida`);
+        errores.push(`Bloque ${idxBloque + 1}, fila ${filaIdx + 1}: pregunta incompleta o respuesta correcta inválida`);
         return;
       }
 
@@ -314,7 +314,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
           }
 
           if (!pregunta || opciones.some((opcion) => !opcion) || correcta === null) {
-            errores.push(`Bloque ${idxBloque + 1}, pregunta ${Math.floor(i / 6) + 1}: pregunta incompleta o respuesta correcta invalida`);
+            errores.push(`Bloque ${idxBloque + 1}, pregunta ${Math.floor(i / 6) + 1}: pregunta incompleta o respuesta correcta inválida`);
             i = Math.max(i + 1, j);
             continue;
           }
@@ -352,7 +352,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
           }
         }
 
-        errores.push(`Bloque ${idxBloque + 1}, pregunta ${Math.floor(i / 6) + 1}: no se encontraron 4 opciones o formato de verdadero/falso valido`);
+        errores.push(`Bloque ${idxBloque + 1}, pregunta ${Math.floor(i / 6) + 1}: no se encontraron 4 opciones o formato de verdadero/falso válido`);
         i = Math.max(i + 1, j);
       }
     };
@@ -454,7 +454,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
     };
     const agregarPregunta = (pregunta, opciones, correcta, referencia) => {
       if (!pregunta || !opciones?.length || opciones.some((opcion) => !opcion) || correcta === null) {
-        errores.push(`${referencia}: pregunta incompleta o respuesta correcta invalida`);
+        errores.push(`${referencia}: pregunta incompleta o respuesta correcta inválida`);
         return;
       }
 
@@ -573,7 +573,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
         const opcionesVF = ["Verdadero", "Falso"];
         agregarPregunta(pregunta, opcionesVF, resolverCorrectaLocal(respuestaTexto, opcionesVF), referencia);
       } else {
-        errores.push(`${referencia}: no se encontraron 4 opciones o formato de verdadero/falso valido`);
+        errores.push(`${referencia}: no se encontraron 4 opciones o formato de verdadero/falso válido`);
       }
 
       while (i < lineas.length && !esNumero(lineas[i]) && !numeroConTexto(lineas[i])) {
@@ -596,7 +596,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
   const cargarFilasAlFormulario = () => {
     const { preguntasParseadas, errores } = parsearCargaRapidaFlexible();
     if (preguntasParseadas.length === 0) {
-      return alert(errores[0] || "No se encontraron preguntas validas");
+      return alert(errores[0] || "No se encontraron preguntas válidas");
     }
     setLotePreguntas(preguntasParseadas);
     const total = preguntasParseadas.length + errores.length;
@@ -611,7 +611,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
   const guardarCargaRapida = async () => {
     const { preguntasParseadas, errores } = parsearCargaRapidaFlexible();
     if (preguntasParseadas.length === 0) {
-      return alert(errores[0] || "No se encontraron preguntas validas");
+      return alert(errores[0] || "No se encontraron preguntas válidas");
     }
 
     const payloads = preguntasParseadas.map(payloadPregunta);
@@ -685,7 +685,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
   };
 
   const eliminarPregunta = async (id) => {
-    if (!confirm("Eliminar esta pregunta?")) return;
+    if (!confirm("¿Eliminar esta pregunta?")) return;
     await client.delete(`/preguntas/${id}`);
     await cargar();
   };
@@ -743,7 +743,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
             Trivia de marca
           </h2>
           <p style={{ color: "var(--texto-sec)", fontSize: 13, margin: 0 }}>
-            Agrega preguntas de la empresa; se mezclan cada dia con 3 preguntas del Mundial generadas para el banco.
+            Agrega preguntas de la empresa; se mezclan cada día con 3 preguntas del Mundial generadas para el banco.
           </p>
         </div>
         <button
@@ -793,7 +793,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
       <div style={{ display: "grid", gridTemplateColumns: embedded ? "1fr" : "minmax(280px, 380px) 1fr", gap: 16, alignItems: "start" }}>
         <div style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 16 }}>
           <div style={{ marginBottom: 18, paddingBottom: 16, borderBottom: "1px solid var(--card-border)" }}>
-            <h3 style={{ color: "var(--texto)", margin: "0 0 10px", fontSize: 15 }}>Carga rapida</h3>
+            <h3 style={{ color: "var(--texto)", margin: "0 0 10px", fontSize: 15 }}>Carga rápida</h3>
             <label style={labelStyle}>
               Tipo para esta carga
               <select
@@ -826,7 +826,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
               rows={9}
               style={{ ...inputBase, resize: "vertical", fontFamily: "inherit", lineHeight: 1.45 }}
               placeholder={
-                "Pregunta\nA. Opcion 1\nB. Opcion 2\nC. Opcion 3\nD. Opcion 4\n✅ B\n\nVerdadero/falso:\nPregunta\n✅ Verdadero\n\nO bien en una sola linea separada por tabuladores o punto y coma:\nPregunta\tOpcion1\tOpcion2\tOpcion3\tOpcion4\tCorrecta"
+                "Pregunta\nA. Opción 1\nB. Opción 2\nC. Opción 3\nD. Opción 4\n✅ B\n\nVerdadero/falso:\nPregunta\n✅ Verdadero\n\nO bien en una sola línea separada por tabuladores o punto y coma:\nPregunta\tOpción1\tOpción2\tOpción3\tOpción4\tCorrecta"
               }
             />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
@@ -892,13 +892,13 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
 
                   {item.opciones.map((opcion, idx) => (
                     <label key={idx} style={labelStyle}>
-                      Opcion {idx + 1}
+                      Opción {idx + 1}
                       <div style={{ display: "flex", gap: 8 }}>
                         <input
                           value={opcion}
                           onChange={(e) => actualizarOpcionLote(item.id, idx, e.target.value)}
                           style={inputBase}
-                          placeholder={`Opcion ${idx + 1}`}
+                          placeholder={`Opción ${idx + 1}`}
                         />
                         <button
                           type="button"
@@ -976,7 +976,7 @@ export default function VistaTrivia({ client, usuario, embedded = false, empresa
                       {p.pregunta}
                     </div>
                     <div style={{ color: "var(--texto-ter)", fontSize: 11, marginTop: 6 }}>
-                      Usada {p.veces_usada || 0} veces {p.ultima_usada ? `- ultima: ${p.ultima_usada}` : ""}
+                      Usada {p.veces_usada || 0} veces {p.ultima_usada ? `- última: ${p.ultima_usada}` : ""}
                     </div>
                   </div>
                   {puedeEditar(p) && (

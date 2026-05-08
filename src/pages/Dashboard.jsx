@@ -55,7 +55,8 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
       setRanking(
         r.data.map((j) => ({
           pos: j.posicion,
-          nombre: j.nombre || j.email?.split("@")[0] || "Jugador",
+          nick: j.nick || "",
+          nombre: j.nick ? `@${j.nick}` : j.nombre || "Jugador",
           goles: j.goles || 0,
           monedas: j.monedas || 0,
           predicciones: j.predicciones || 0,

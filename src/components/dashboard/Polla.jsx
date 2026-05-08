@@ -3,11 +3,11 @@ import client from "../../api/client";
 import { C, formatearFecha, Bandera } from "./constants";
 
 const MENSAJES_POSITIVOS = [
-  "Sigue asi, la proxima sera tuya",
-  "El futbol es impredecible, eso lo hace emocionante",
+  "Sigue así, la próxima será tuya",
+  "El fútbol es impredecible, eso lo hace emocionante",
   "No te rindas, los grandes jugadores insisten",
-  "Cada prediccion te acerca mas al top",
-  "El Mundial apenas empieza, todavia hay muchas oportunidades",
+  "Cada predicción te acerca más al top",
+  "El Mundial apenas empieza, todavía hay muchas oportunidades",
 ];
 
 export default function Polla({ usuario, cargarPerfil, partidos }) {
@@ -62,7 +62,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
       await cargarPerfil();
       await cargarMisPredicciones();
     } catch (e) {
-      alert(e.response?.data?.message || "Error al guardar prediccion");
+      alert(e.response?.data?.message || "Error al guardar predicción");
     } finally {
       setEnviando((e) => ({ ...e, [partido.id]: false }));
     }
@@ -214,7 +214,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                   whiteSpace: "nowrap",
                 }}
               >
-                Proximos
+                Próximos
               </button>
               {fechasDisponibles.map((f) => (
                 <button
@@ -281,7 +281,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8, fontWeight: 700 }}>Quien gana?</div>
+                  <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8, fontWeight: 700 }}>¿Quién gana?</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                     {[
                       { val: "local", label: p.local, codigo: p.bandera_l },
@@ -356,7 +356,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                     cursor: enviando[p.id] ? "not-allowed" : "pointer",
                   }}
                 >
-                  {enviando[p.id] ? "Guardando..." : "⚽ Confirmar prediccion"}
+                  {enviando[p.id] ? "Guardando..." : "⚽ Confirmar predicción"}
                 </button>
               </div>
             ))
@@ -368,7 +368,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
         <div>
           {misPredicciones.length === 0 ? (
             <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
-              Aun no has hecho predicciones. Empieza ahora.
+              Aún no has hecho predicciones. Empieza ahora.
             </div>
           ) : (
             misPredicciones.map((pred, idx) => {
@@ -410,7 +410,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ fontSize: 12, color: "var(--texto-sec)" }}>
-                      Tu prediccion:{" "}
+                      Tu predicción:{" "}
                       <span style={{ color: "var(--texto)", fontWeight: 700 }}>
                         {pred.resultado === "local" ? partido.local_equipo : pred.resultado === "visitante" ? partido.visitante_equipo : "Empate"}
                       </span>
@@ -430,7 +430,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                       ) : (
                         <div style={{ color: info.color, fontWeight: 700, fontSize: 13 }}>
                           {info.texto}
-                          {pred.estado === "acertada_especial" && " Increible!"}
+                          {pred.estado === "acertada_especial" && " ¡Increíble!"}
                         </div>
                       )}
                     </div>

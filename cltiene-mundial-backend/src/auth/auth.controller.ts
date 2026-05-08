@@ -86,6 +86,7 @@ export class AuthController {
       password: string;
       empresa_slug?: string;
       nombre: string;
+      nick: string;
       telefono: string;
       tipojugador: string;
       relacion_cltiene: string;
@@ -106,6 +107,7 @@ export class AuthController {
     body: {
       uid: string;
       nombre: string;
+      nick: string;
       telefono: string;
       tipojugador: string;
       relacion_cltiene: string;

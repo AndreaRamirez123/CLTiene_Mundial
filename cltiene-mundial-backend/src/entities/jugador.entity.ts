@@ -17,6 +17,7 @@ import { Canje } from './canje.entity';
 
 @Entity('jugadores')
 @Index('uk_email_empresa', ['email', 'empresa_id'], { unique: true })
+@Index('uk_nick_empresa', ['empresa_id', 'nick_normalizado'], { unique: true })
 export class Jugador {
   @PrimaryGeneratedColumn()
   id: number;
@@ -41,6 +42,12 @@ export class Jugador {
 
   @Column({ type: 'varchar', length: 150, default: '' })
   nombre: string;
+
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  nick: string | null;
+
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  nick_normalizado: string | null;
 
   @Column({ type: 'varchar', length: 30, default: '' })
   telefono: string;

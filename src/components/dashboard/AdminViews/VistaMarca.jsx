@@ -136,7 +136,7 @@ export default function VistaMarca({ client, usuario }) {
   if (cargando && empresas.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: 40 }}>
-        <div style={{ color: C.naranja, fontSize: 16 }}>Cargando configuracion...</div>
+        <div style={{ color: C.naranja, fontSize: 16 }}>Cargando configuración...</div>
       </div>
     );
   }
@@ -177,7 +177,7 @@ export default function VistaMarca({ client, usuario }) {
       <div style={{ background: "var(--card)", border: "1px solid var(--card-border)", borderRadius: 18, padding: "24px 16px", boxShadow: "0 12px 40px rgba(0,0,0,0.25)", overflow: "hidden" }}>
         <div style={{ marginBottom: 16 }}>
           <h2 style={{ color: "var(--texto)", fontSize: 20, fontWeight: 800, marginBottom: 6 }}>
-            🎨 Configuracion de Marca
+            🎨 Configuración de marca
           </h2>
           <p style={{ color: "var(--texto-sec)", fontSize: 13 }}>
             Cambia logo, nombre y colores 
@@ -218,7 +218,7 @@ export default function VistaMarca({ client, usuario }) {
                 onChange={(v) => set("nombre_app", v)}
               />
               <Campo
-                label="Subtitulo"
+                label="Subtítulo"
                 value={form.subtitulo}
                 placeholder="Mundial 2026"
                 onChange={(v) => set("subtitulo", v)}
@@ -310,12 +310,12 @@ export default function VistaMarca({ client, usuario }) {
               <div style={{ display: "grid", gap: 14 }}>
                 <div>
                   <label style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>
-                    Terminos y Condiciones
+                    Términos y condiciones
                   </label>
                   <textarea
                     value={form.terminos_condiciones || ""}
                     onChange={(e) => set("terminos_condiciones", e.target.value)}
-                    placeholder="Escribe aqui los terminos y condiciones de tu empresa..."
+                    placeholder="Escribe aquí los términos y condiciones de tu empresa..."
                     rows={6}
                     style={{
                       width: "100%", padding: "11px 12px", borderRadius: 12,
@@ -327,12 +327,12 @@ export default function VistaMarca({ client, usuario }) {
                 </div>
                 <div>
                   <label style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>
-                    Politica de Privacidad
+                    Política de privacidad
                   </label>
                   <textarea
                     value={form.politica_privacidad || ""}
                     onChange={(e) => set("politica_privacidad", e.target.value)}
-                    placeholder="Escribe aqui la politica de privacidad de tu empresa..."
+                    placeholder="Escribe aquí la política de privacidad de tu empresa..."
                     rows={6}
                     style={{
                       width: "100%", padding: "11px 12px", borderRadius: 12,
@@ -584,7 +584,7 @@ const SLIDE_VACIO = {
   titulo: "",
   descripcion: "",
   items: [],
-  cta: "Conocer mas",
+  cta: "Conocer más",
   url: "",
   heroIcon: "",
   gradient: "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14))",
@@ -721,21 +721,21 @@ function EditorCarrusel({ value, onChange }) {
             {/* Contenido expandible */}
             {abierto === idx && (
               <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
-                {/* Fila 1: Eyebrow + Titulo */}
+                {/* Fila 1: Eyebrow + Título */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 10 }}>
                   <div>
                     <span style={labelStyle}>Etiqueta superior</span>
                     <input style={inputStyle} value={slide.eyebrow || ""} placeholder="PLAN SALUD" onChange={(e) => actualizar(idx, "eyebrow", e.target.value)} />
                   </div>
                   <div>
-                    <span style={labelStyle}>Titulo</span>
+                    <span style={labelStyle}>Título</span>
                     <input style={inputStyle} value={slide.titulo || ""} placeholder="Salud al instante" onChange={(e) => actualizar(idx, "titulo", e.target.value)} />
                   </div>
                 </div>
 
-                {/* Descripcion */}
+                {/* Descripción */}
                 <div>
-                  <span style={labelStyle}>Descripcion</span>
+                  <span style={labelStyle}>Descripción</span>
                   <textarea
                     style={{ ...inputStyle, resize: "vertical", minHeight: 50, fontFamily: "inherit" }}
                     value={slide.descripcion || ""}
@@ -766,7 +766,7 @@ function EditorCarrusel({ value, onChange }) {
                 {/* Items (iconos + texto) */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={labelStyle}>Items destacados</span>
+                    <span style={labelStyle}>Ítems destacados</span>
                     <button
                       type="button"
                       onClick={() => agregarItem(idx)}
@@ -792,13 +792,13 @@ function EditorCarrusel({ value, onChange }) {
                           <input
                             style={{ ...inputStyle, marginBottom: 6 }}
                             value={item.texto || ""}
-                            placeholder="Titulo del item (ej: Grua y asistencia)"
+                            placeholder="Título del ítem (ej: Grúa y asistencia)"
                             onChange={(e) => actualizarItem(idx, iIdx, "texto", e.target.value)}
                           />
                           <input
                             style={{ ...inputStyle, fontSize: 12 }}
                             value={item.descripcion || ""}
-                            placeholder="Descripcion breve (opcional)"
+                            placeholder="Descripción breve (opcional)"
                             onChange={(e) => actualizarItem(idx, iIdx, "descripcion", e.target.value)}
                           />
                         </div>
@@ -872,9 +872,9 @@ function EditorCarrusel({ value, onChange }) {
                       <input style={inputStyle} value={slide.gradient || ""} placeholder="linear-gradient(135deg, ...)" onChange={(e) => actualizar(idx, "gradient", e.target.value)} />
                     </div>
 
-                    {/* Gradiente boton - presets */}
+                    {/* Gradiente botón - presets */}
                     <div>
-                      <span style={labelStyle}>Gradiente boton</span>
+                      <span style={labelStyle}>Gradiente botón</span>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
                         {BUTTON_PRESETS.map((p) => (
                           <button
@@ -954,9 +954,9 @@ function EditorBeneficios({ value, onChange }) {
     <div style={{ marginTop: 22 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div>
-          <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700 }}>Beneficios (Catalogo de canjes)</div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, fontWeight: 700 }}>Beneficios (Catálogo de canjes)</div>
           <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>
-            {beneficios.length === 0 ? "Sin beneficios. Se usara el catalogo por defecto." : `${beneficios.length} beneficio${beneficios.length > 1 ? "s" : ""}`}
+            {beneficios.length === 0 ? "Sin beneficios. Se usará el catálogo por defecto." : `${beneficios.length} beneficio${beneficios.length > 1 ? "s" : ""}`}
           </div>
         </div>
         <button
@@ -996,7 +996,7 @@ function EditorBeneficios({ value, onChange }) {
                     {ben.nombre || `Beneficio ${idx + 1}`}
                   </span>
                   <span style={{ color: "var(--texto-ter)", fontSize: 11, marginLeft: 8 }}>
-                    🪙 {ben.costo || 0} — {ben.categoria || "Sin categoria"}
+                    🪙 {ben.costo || 0} — {ben.categoria || "Sin categoría"}
                   </span>
                 </div>
               </div>
@@ -1033,19 +1033,19 @@ function EditorBeneficios({ value, onChange }) {
                   <input style={inputStyle} value={ben.nombre || ""} placeholder="Descuento 10% en servicios" onChange={(e) => actualizar(idx, "nombre", e.target.value)} />
                 </div>
 
-                {/* Descripcion */}
+                {/* Descripción */}
                 <div>
-                  <span style={labelStyle}>Descripcion</span>
+                  <span style={labelStyle}>Descripción</span>
                   <textarea
                     style={{ ...inputStyle, resize: "vertical", minHeight: 50, fontFamily: "inherit" }}
                     value={ben.descripcion || ""}
-                    placeholder="Aplica en cualquier servicio por 30 dias..."
+                    placeholder="Aplica en cualquier servicio por 30 días..."
                     rows={2}
                     onChange={(e) => actualizar(idx, "descripcion", e.target.value)}
                   />
                 </div>
 
-                {/* Costo + Categoria */}
+                {/* Costo + Categoría */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <div>
                     <span style={labelStyle}>Costo en monedas</span>
@@ -1059,7 +1059,7 @@ function EditorBeneficios({ value, onChange }) {
                     />
                   </div>
                   <div>
-                    <span style={labelStyle}>Categoria</span>
+                    <span style={labelStyle}>Categoría</span>
                     <select
                       value={ben.categoria || "Descuentos"}
                       onChange={(e) => actualizar(idx, "categoria", e.target.value)}

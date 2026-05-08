@@ -15,12 +15,12 @@ export default function Privacidad({ onVolver }) {
             ←
           </button>
           <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 28 }} />
-          <span style={{ fontWeight: 800, fontSize: 15 }}>Politica de Privacidad</span>
+          <span style={{ fontWeight: 800, fontSize: 15 }}>Política de privacidad</span>
         </div>
         <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 60px" }}>
           <div style={{ background: "linear-gradient(135deg, rgba(64,141,255,0.12), rgba(130,43,210,0.12))", border: "1px solid rgba(64,141,255,0.2)", borderRadius: 16, padding: "24px 20px", marginBottom: 28, textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>🔒</div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Politica de Privacidad</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Política de privacidad</h1>
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{nombreEmpresa}</p>
           </div>
           <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 14, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>

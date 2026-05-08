@@ -41,7 +41,7 @@ const MISIONES: Mision[] = [
   {
     id: 'invita_amigo',
     icono: '🤝',
-    titulo: 'Invita un amigo',
+    titulo: 'Invita a un amigo',
     desc: 'Un amigo se registró con tu código',
     monedas: 50,
     tipo: 'auto',
@@ -51,7 +51,7 @@ const MISIONES: Mision[] = [
     icono: '▶️',
     titulo: 'Video del día',
     desc: 'Mira el video del día de tu empresa',
-    monedas: 20,
+    monedas: 10,
     tipo: 'manual',
   },
   {
@@ -59,7 +59,7 @@ const MISIONES: Mision[] = [
     icono: '🧠',
     titulo: 'Trivia del Mundial',
     desc: 'Juega la trivia diaria de fútbol',
-    monedas: 25,
+    monedas: 10,
     tipo: 'auto',
   },
   {
@@ -75,7 +75,7 @@ const MISIONES: Mision[] = [
     icono: '🐾',
     titulo: 'Pet Running',
     desc: 'Juega el runner y completa la misión',
-    monedas: 30,
+    monedas: 20,
     tipo: 'manual',
   },
 ];
@@ -153,7 +153,7 @@ const _LEGACY_PREGUNTAS = [
     },
     {
       pregunta:
-        '¿Cuántas selecciones sudamericanas históricamente ganan Mundiales?',
+        '¿Cuántas selecciones sudamericanas han ganado Mundiales?',
       opciones: ['1', '2', '3', '4'],
       correcta: 2,
     },
@@ -181,7 +181,7 @@ const _LEGACY_PREGUNTAS = [
       correcta: 1,
     },
     {
-      pregunta: '¿CLTiene tiene Plan PREMIUM?',
+      pregunta: '¿CLTiene tiene Plan Premium?',
       opciones: ['No existe', 'Sí, cubre todo', 'Solo parcialmente', 'Es mito'],
       correcta: 1,
     },

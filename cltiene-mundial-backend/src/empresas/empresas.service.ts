@@ -153,7 +153,7 @@ export class EmpresasService {
     // Usuario nuevo: validar password y crear
     if (!datos.password || datos.password.length < 6) {
       throw new BadRequestException(
-        'La contrasena debe tener al menos 6 caracteres.',
+        'La contraseña debe tener al menos 6 caracteres.',
       );
     }
 
@@ -202,7 +202,7 @@ export class EmpresasService {
 
     if (datos.password.length < 6) {
       throw new BadRequestException(
-        'La contrasena debe tener al menos 6 caracteres.',
+        'La contraseña debe tener al menos 6 caracteres.',
       );
     }
 

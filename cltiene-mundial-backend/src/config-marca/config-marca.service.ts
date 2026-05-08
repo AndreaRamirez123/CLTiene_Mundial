@@ -19,7 +19,7 @@ export class ConfigMarcaService {
     });
     if (!config) {
       throw new NotFoundException(
-        'Configuracion de marca no encontrada para esta empresa.',
+        'Configuración de marca no encontrada para esta empresa.',
       );
     }
     return config;
@@ -34,7 +34,7 @@ export class ConfigMarcaService {
     });
     if (!config) {
       throw new NotFoundException(
-        'Configuracion de marca no encontrada para esta empresa.',
+        'Configuración de marca no encontrada para esta empresa.',
       );
     }
 

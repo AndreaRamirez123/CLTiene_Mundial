@@ -52,7 +52,7 @@ export async function obtenerNoticiasMundial(forzar = false) {
 export async function obtenerInicioMundial() {
   const fallback = {
     targetDate: "2026-06-11T00:00:00-05:00",
-    titulo: "USA - Mexico - Canada 2026",
+    titulo: "USA - México - Canadá 2026",
     fuente: "FIFA",
     url: "https://inside.fifa.com",
   };

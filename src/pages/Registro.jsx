@@ -27,7 +27,8 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
 
     const [form, setForm] = useState({
         tipojugador: "", relacionCLTiene: "", esReferido: codigoRefUrl ? true : null,
-        nombreReferidor: "", codigoReferidor: codigoRefUrl, nombre: usuario?.googleNombre || "", telefono: "",
+        nickReferidor: codigoRefUrl, nombreReferidor: "", codigoReferidor: codigoRefUrl,
+        nombre: usuario?.googleNombre || "", nick: "", telefono: "",
         departamento: "", ciudad: "",
     });
     const [completado, setCompletado] = useState(false);
@@ -36,6 +37,8 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     const [guardando, setGuardando] = useState(false);
 
     const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+    const limpiarNick = (valor) => String(valor || "").trim().replace(/^@+/, "");
+    const nickValido = (valor) => /^[A-Za-z0-9._-]{3,20}$/.test(limpiarNick(valor));
 
     const validar = () => {
         setErrorGeneral("");
@@ -43,10 +46,20 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
         if (step === 1 && !form.tipojugador) e.tipojugador = "Selecciona una opción";
         if (step === 2 && !form.relacionCLTiene) e.relacionCLTiene = "Selecciona una opción";
         if (step === 3 && form.esReferido === null) e.esReferido = "Selecciona una opción";
-        if (step === 4 && form.esReferido && !form.nombreReferidor.trim()) e.nombreReferidor = "Ingresa el nombre";
+        if (step === 4 && form.esReferido) {
+            if (!limpiarNick(form.nickReferidor)) e.nickReferidor = "Ingresa el nick";
+            else if (!nickValido(form.nickReferidor)) e.nickReferidor = "Usa 3 a 20 caracteres: letras, números, punto, guion o guion bajo";
+        }
         if ((step === 4 && !form.esReferido) || step === 5)
             if (!form.nombre.trim()) e.nombre = "Ingresa tu nombre";
         if (step === 6) {
+            if (!limpiarNick(form.nick)) e.nick = "Ingresa tu nick";
+            else if (!nickValido(form.nick)) e.nick = "Usa 3 a 20 caracteres: letras, números, punto, guion o guion bajo";
+            else if (form.esReferido && limpiarNick(form.nick).toLowerCase() === limpiarNick(form.nickReferidor).toLowerCase()) {
+                e.nick = "Tu nick no puede ser igual al nick de quien te refirió";
+            }
+        }
+        if (step === 7) {
             if (!form.telefono.trim()) {
                 e.telefono = "Ingresa tu número";
             } else {
@@ -56,7 +69,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                 }
             }
         }
-        if (step === 7) {
+        if (step === 8) {
             if (!form.departamento) e.departamento = "Selecciona tu departamento";
             if (!form.ciudad.trim() || form.ciudad === "__otra__") e.ciudad = "Selecciona o ingresa tu ciudad";
         }
@@ -77,12 +90,13 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                     password: preRegistro.password,
                     empresa_slug: preRegistro.empresa_slug,
                     nombre: datos.nombre,
+                    nick: limpiarNick(datos.nick),
                     telefono: datos.telefono,
                     tipojugador: datos.tipojugador,
                     relacion_cltiene: datos.relacionCLTiene,
                     es_referido: datos.esReferido ? 1 : 0,
-                    nombre_referidor: datos.nombreReferidor || "",
-                    referido_por: datos.codigoReferidor || "",
+                    nombre_referidor: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
+                    referido_por: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
                     departamento: datos.departamento || "",
                     ciudad: datos.ciudad || "",
                 });
@@ -94,12 +108,13 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                 res = await client.post("/auth/completar-perfil", {
                     uid: usuario.uid,
                     nombre: datos.nombre,
+                    nick: limpiarNick(datos.nick),
                     telefono: datos.telefono,
                     tipojugador: datos.tipojugador,
                     relacion_cltiene: datos.relacionCLTiene,
                     es_referido: datos.esReferido ? 1 : 0,
-                    nombre_referidor: datos.nombreReferidor || "",
-                    referido_por: datos.codigoReferidor || "",
+                    nombre_referidor: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
+                    referido_por: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
                     departamento: datos.departamento || "",
                     ciudad: datos.ciudad || "",
                 });
@@ -119,7 +134,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     const siguiente = async () => {
         if (!validar()) return;
         if (step === 3 && form.esReferido === false) { setStep(5); return; }
-        if (step === 7) {
+        if (step === 8) {
             const resultado = await guardarPerfil(form);
             if (!resultado) return;
             setCompletado(true);
@@ -135,7 +150,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     };
 
     const pasoActual = form.esReferido === false && step >= 5 ? step - 1 : step;
-    const totalPasos = form.esReferido === false ? 6 : 7;
+    const totalPasos = form.esReferido === false ? 7 : 8;
     const progreso = step === 0 ? 0 : Math.round((pasoActual / totalPasos) * 100);
 
     if (completado) return <PantallaFinal nombre={form.nombre} />;
@@ -215,16 +230,16 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                         <div>
                             <PantallaInput
                                 titulo="¿Quién te refirió?"
-                                descripcion="Ingresa el nombre de quien te invitó para que reciba su bono de 50 monedas."
-                                placeholder="Nombre del referidor"
-                                valor={form.nombreReferidor}
-                                onChange={(v) => set("nombreReferidor", v)}
-                                error={errores.nombreReferidor}
+                                descripcion="Ingresa el nick de quien te invitó. Así ambos reciben el bono de 50 monedas."
+                                placeholder="Ej: campeon2026"
+                                valor={form.nickReferidor}
+                                onChange={(v) => set("nickReferidor", v)}
+                                error={errores.nickReferidor}
                             />
                             {codigoRefUrl && (
                                 <div style={{ marginTop: 12, padding: "10px 14px", background: `${C.dorado}18`, border: `1px solid ${C.dorado}40`, borderRadius: 10, display: "flex", alignItems: "center", gap: 8 }}>
                                     <span style={{ fontSize: 16 }}>🎟️</span>
-                                    <span style={{ color: C.dorado, fontSize: 13, fontWeight: 600 }}>Código de referido: {codigoRefUrl}</span>
+                                    <span style={{ color: C.dorado, fontSize: 13, fontWeight: 600 }}>Referido detectado: @{codigoRefUrl}</span>
                                 </div>
                             )}
                         </div>
@@ -240,6 +255,16 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                     )}
                     {step === 6 && (
                         <PantallaInput
+                            titulo="Elige tu nick"
+                            descripcion="Este será el nombre público que aparecerá en el ranking y el que tus referidos podrán usar."
+                            placeholder="Ej: campeon2026"
+                            valor={form.nick}
+                            onChange={(v) => set("nick", v)}
+                            error={errores.nick}
+                        />
+                    )}
+                    {step === 7 && (
+                        <PantallaInput
                             titulo="¿Cuál es tu número de contacto?"
                             placeholder="Ej: 300 123 4567"
                             tipo="tel"
@@ -248,7 +273,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                             error={errores.telefono}
                         />
                     )}
-                    {step === 7 && (
+                    {step === 8 && (
                         <PantallaUbicacion
                             departamento={form.departamento}
                             ciudad={form.ciudad}
@@ -277,7 +302,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                             cursor: (step === 0 && !aceptado) ? "not-allowed" : "pointer",
                         }}
                     >
-                        {guardando ? "Guardando..." : step === 7 ? "🎉 Crear mi perfil" : "Continuar →"}
+                        {guardando ? "Guardando..." : step === 8 ? "🎉 Crear mi perfil" : "Continuar →"}
                     </button>
                 </div>
             </div>

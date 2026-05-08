@@ -18,11 +18,11 @@ export class Pregunta {
   @Column({ type: 'text' })
   pregunta: string;
 
-  // JSON array de strings: ["opcion1", "opcion2", "opcion3", "opcion4"]
+  // JSON array de strings: ["opción1", "opción2", "opción3", "opción4"]
   @Column({ type: 'json' })
   opciones: string[];
 
-  // Indice de la respuesta correcta (0-3)
+  // Índice de la respuesta correcta (0-3)
   @Column({ type: 'tinyint' })
   correcta: number;
 
@@ -34,7 +34,7 @@ export class Pregunta {
   @Column({ type: 'int', nullable: true })
   empresa_id: number | null;
 
-  // mundial = sobre futbol, empresa = sobre la empresa
+  // mundial = sobre fútbol, empresa = sobre la empresa
   @Column({
     type: 'enum',
     enum: ['mundial', 'empresa'],
@@ -42,7 +42,7 @@ export class Pregunta {
   })
   tipo: string;
 
-  // Si se quiere asignar a un dia especifico (0=dom, 1=lun, ..., 6=sab), null = cualquier dia
+  // Si se quiere asignar a un día específico (0=dom, 1=lun, ..., 6=sab), null = cualquier día
   @Column({ type: 'tinyint', nullable: true })
   dia_semana: number | null;
 

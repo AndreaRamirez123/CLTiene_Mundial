@@ -143,7 +143,7 @@ export default function VistaUsuarios({ usuarios, client }) {
         border: `1px solid ${C.naranja}30`,
       }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--texto)' }}>
-          Todos los Usuarios
+          Todos los usuarios
         </h2>
         <div style={{ overflowX: 'auto' }}>
           <table style={{

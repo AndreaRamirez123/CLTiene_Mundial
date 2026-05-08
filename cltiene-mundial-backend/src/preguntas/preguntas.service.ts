@@ -29,13 +29,14 @@ export class PreguntasService implements OnModuleInit {
     private configService: ConfigService,
   ) {}
 
-  // Al iniciar, migrar BANCO_PREGUNTAS si la tabla esta vacia
+  // Al iniciar, migrar BANCO_PREGUNTAS si la tabla está vacía
   async onModuleInit() {
     const count = await this.preguntaRepo.count();
     if (count === 0) {
       this.logger.log('Migrando BANCO_PREGUNTAS a la base de datos...');
       await this.seedPreguntasGlobales();
     }
+    await this.corregirPreguntasGlobalesLegadas();
   }
 
   // Generar preguntas IA diarias por empresa (opcional)
@@ -170,7 +171,7 @@ export class PreguntasService implements OnModuleInit {
 
     if (datos.correcta < 0 || datos.correcta >= datos.opciones.length) {
       throw new BadRequestException(
-        'El indice de respuesta correcta debe ser válido.',
+        'El índice de respuesta correcta debe ser válido.',
       );
     }
     if (tipo === 'empresa' && !empresaId) {
@@ -214,7 +215,7 @@ export class PreguntasService implements OnModuleInit {
         errores.push({
           indice: index + 1,
           mensaje:
-            error instanceof Error ? error.message : 'Pregunta invalida.',
+            error instanceof Error ? error.message : 'Pregunta inválida.',
         });
       }
     }
@@ -262,7 +263,7 @@ export class PreguntasService implements OnModuleInit {
 
     const prompt = `Genera exactamente ${limite} preguntas nuevas de trivia en formato JSON.
 
-Tema unico: Mundial de Futbol FIFA 2026, historia de los mundiales, sedes, formato, selecciones, records y curiosidades futboleras.
+Tema único: Mundial de Fútbol FIFA 2026, historia de los mundiales, sedes, formato, selecciones, récords y curiosidades futboleras.
 
 No generes preguntas sobre la empresa "${empresa.nombre}".
 No inventes servicios, beneficios ni datos corporativos.
@@ -272,12 +273,12 @@ ${listaExistentes || '- No hay preguntas previas.'}
 Cada pregunta debe tener este formato exacto:
 {
   "pregunta": "texto de la pregunta",
-  "opciones": ["opcion1", "opcion2", "opcion3", "opcion4"],
+  "opciones": ["opción1", "opción2", "opción3", "opción4"],
   "correcta": 0,
   "tipo": "mundial"
 }
 
-"correcta" es el indice (0-3) de la opcion correcta.
+"correcta" es el índice (0-3) de la opción correcta.
 
 Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
 [{"pregunta":"...","opciones":["a","b","c","d"],"correcta":0,"tipo":"mundial"}]`;
@@ -300,15 +301,15 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
         this.logger.warn(`OpenAI trivia error ${response.status}: ${err}`);
         if (response.status === 401) {
           throw new Error(
-            'OPENAI_API_KEY invalida o revocada. Crea una key nueva y reinicia el backend.',
+            'OPENAI_API_KEY inválida o revocada. Crea una key nueva y reinicia el backend.',
           );
         }
         if (response.status === 429) {
           throw new Error(
-            'OpenAI no tiene cuota disponible o alcanzo el limite de uso.',
+            'OpenAI no tiene cuota disponible o alcanzó el límite de uso.',
           );
         }
-        throw new Error(`OpenAI respondio con estado ${response.status}.`);
+        throw new Error(`OpenAI respondió con estado ${response.status}.`);
       }
 
       const data = await response.json();
@@ -323,7 +324,7 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
       const preguntas = JSON.parse(jsonMatch[0]);
 
       if (!Array.isArray(preguntas) || preguntas.length === 0) {
-        throw new Error('OpenAI no devolvio preguntas validas');
+        throw new Error('OpenAI no devolvió preguntas válidas');
       }
 
       // Guardar en DB evitando duplicados
@@ -560,93 +561,93 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
     return pregunta;
   }
 
-  // Seed: migrar BANCO_PREGUNTAS estatico a la DB como preguntas globales
+  // Seed: migrar BANCO_PREGUNTAS estático a la DB como preguntas globales
   private async seedPreguntasGlobales() {
     const BANCO = [
       // Preguntas del Mundial (globales)
       {
-        pregunta: 'En que pais se jugara la final del Mundial 2026?',
-        opciones: ['Mexico', 'Estados Unidos', 'Canada', 'Brasil'],
+        pregunta: '¿En qué país se jugará la final del Mundial 2026?',
+        opciones: ['México', 'Estados Unidos', 'Canadá', 'Brasil'],
         correcta: 1,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Cuantos equipos participaran en el Mundial 2026?',
+        pregunta: '¿Cuántos equipos participarán en el Mundial 2026?',
         opciones: ['32', '36', '48', '64'],
         correcta: 2,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Cual seleccion ha ganado mas Mundiales?',
+        pregunta: '¿Cuál selección ha ganado más Mundiales?',
         opciones: ['Alemania', 'Argentina', 'Brasil', 'Italia'],
         correcta: 2,
         tipo: 'mundial',
       },
       {
-        pregunta: 'En que ano se jugo el primer Mundial?',
+        pregunta: '¿En qué año se jugó el primer Mundial?',
         opciones: ['1928', '1930', '1934', '1942'],
         correcta: 1,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Cual fue la sede del Mundial 2022?',
-        opciones: ['Rusia', 'Qatar', 'Japon', 'Sudafrica'],
+        pregunta: '¿Cuál fue la sede del Mundial 2022?',
+        opciones: ['Rusia', 'Qatar', 'Japón', 'Sudáfrica'],
         correcta: 1,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Quien gano el Balon de Oro del Mundial 2022?',
-        opciones: ['Mbappe', 'Messi', 'Modric', 'Neymar'],
+        pregunta: '¿Quién ganó el Balón de Oro del Mundial 2022?',
+        opciones: ['Mbappé', 'Messi', 'Modric', 'Neymar'],
         correcta: 1,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Cuantos goles marco Kylian Mbappe en la final 2022?',
+        pregunta: '¿Cuántos goles marcó Kylian Mbappé en la final 2022?',
         opciones: ['1', '2', '3', '4'],
         correcta: 2,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Que pais ha sido sede del Mundial en mas ocasiones?',
-        opciones: ['Mexico', 'Brasil', 'Italia', 'Alemania'],
+        pregunta: '¿Qué país ha sido sede del Mundial en más ocasiones?',
+        opciones: ['México', 'Brasil', 'Italia', 'Alemania'],
         correcta: 0,
         tipo: 'mundial',
       },
       {
         pregunta:
-          'Cuantos partidos se jugaran en fase de grupos del Mundial 2026?',
+          '¿Cuántos partidos se jugarán en fase de grupos del Mundial 2026?',
         opciones: ['48', '64', '72', '96'],
         correcta: 2,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Que estadio albergara la final del Mundial 2026?',
+        pregunta: '¿Qué estadio albergará la final del Mundial 2026?',
         opciones: ['Azteca', 'MetLife Stadium', 'Rose Bowl', 'AT&T Stadium'],
         correcta: 1,
         tipo: 'mundial',
       },
       {
         pregunta:
-          'Cual seleccion suramericana clasifico invicta al Mundial 2026?',
+          '¿Cuál selección suramericana clasificó invicta al Mundial 2026?',
         opciones: ['Brasil', 'Argentina', 'Uruguay', 'Colombia'],
         correcta: 1,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Cuantos grupos tendra el Mundial 2026?',
+        pregunta: '¿Cuántos grupos tendrá el Mundial 2026?',
         opciones: ['8', '10', '12', '16'],
         correcta: 2,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Que pais centroamericano clasifico al Mundial 2026?',
-        opciones: ['Costa Rica', 'Honduras', 'Panama', 'Guatemala'],
+        pregunta: '¿Qué país centroamericano clasificó al Mundial 2026?',
+        opciones: ['Costa Rica', 'Honduras', 'Panamá', 'Guatemala'],
         correcta: 2,
         tipo: 'mundial',
       },
       {
-        pregunta: 'Quien es el maximo goleador historico de los Mundiales?',
-        opciones: ['Ronaldo', 'Klose', 'Pele', 'Messi'],
+        pregunta: '¿Quién es el máximo goleador histórico de los Mundiales?',
+        opciones: ['Ronaldo', 'Klose', 'Pelé', 'Messi'],
         correcta: 1,
         tipo: 'mundial',
       },
@@ -661,5 +662,100 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
     );
     await this.preguntaRepo.save(entities);
     this.logger.log(`${entities.length} preguntas globales migradas a la DB`);
+  }
+
+  private async corregirPreguntasGlobalesLegadas() {
+    const correcciones = [
+      {
+        anterior: 'En que pais se jugara la final del Mundial 2026?',
+        pregunta: '¿En qué país se jugará la final del Mundial 2026?',
+        opciones: ['México', 'Estados Unidos', 'Canadá', 'Brasil'],
+      },
+      {
+        anterior: 'Cuantos equipos participaran en el Mundial 2026?',
+        pregunta: '¿Cuántos equipos participarán en el Mundial 2026?',
+        opciones: ['32', '36', '48', '64'],
+      },
+      {
+        anterior: 'Cual seleccion ha ganado mas Mundiales?',
+        pregunta: '¿Cuál selección ha ganado más Mundiales?',
+        opciones: ['Alemania', 'Argentina', 'Brasil', 'Italia'],
+      },
+      {
+        anterior: 'En que ano se jugo el primer Mundial?',
+        pregunta: '¿En qué año se jugó el primer Mundial?',
+        opciones: ['1928', '1930', '1934', '1942'],
+      },
+      {
+        anterior: 'Cual fue la sede del Mundial 2022?',
+        pregunta: '¿Cuál fue la sede del Mundial 2022?',
+        opciones: ['Rusia', 'Qatar', 'Japón', 'Sudáfrica'],
+      },
+      {
+        anterior: 'Quien gano el Balon de Oro del Mundial 2022?',
+        pregunta: '¿Quién ganó el Balón de Oro del Mundial 2022?',
+        opciones: ['Mbappé', 'Messi', 'Modric', 'Neymar'],
+      },
+      {
+        anterior: 'Cuantos goles marco Kylian Mbappe en la final 2022?',
+        pregunta: '¿Cuántos goles marcó Kylian Mbappé en la final 2022?',
+        opciones: ['1', '2', '3', '4'],
+      },
+      {
+        anterior: 'Que pais ha sido sede del Mundial en mas ocasiones?',
+        pregunta: '¿Qué país ha sido sede del Mundial en más ocasiones?',
+        opciones: ['México', 'Brasil', 'Italia', 'Alemania'],
+      },
+      {
+        anterior: 'Cuantos partidos se jugaran en fase de grupos del Mundial 2026?',
+        pregunta: '¿Cuántos partidos se jugarán en fase de grupos del Mundial 2026?',
+        opciones: ['48', '64', '72', '96'],
+      },
+      {
+        anterior: 'Que estadio albergara la final del Mundial 2026?',
+        pregunta: '¿Qué estadio albergará la final del Mundial 2026?',
+        opciones: ['Azteca', 'MetLife Stadium', 'Rose Bowl', 'AT&T Stadium'],
+      },
+      {
+        anterior: 'Cual seleccion suramericana clasifico invicta al Mundial 2026?',
+        pregunta: '¿Cuál selección suramericana clasificó invicta al Mundial 2026?',
+        opciones: ['Brasil', 'Argentina', 'Uruguay', 'Colombia'],
+      },
+      {
+        anterior: 'Cuantos grupos tendra el Mundial 2026?',
+        pregunta: '¿Cuántos grupos tendrá el Mundial 2026?',
+        opciones: ['8', '10', '12', '16'],
+      },
+      {
+        anterior: 'Que pais centroamericano clasifico al Mundial 2026?',
+        pregunta: '¿Qué país centroamericano clasificó al Mundial 2026?',
+        opciones: ['Costa Rica', 'Honduras', 'Panamá', 'Guatemala'],
+      },
+      {
+        anterior: 'Quien es el maximo goleador historico de los Mundiales?',
+        pregunta: '¿Quién es el máximo goleador histórico de los Mundiales?',
+        opciones: ['Ronaldo', 'Klose', 'Pelé', 'Messi'],
+      },
+    ];
+
+    const porPregunta = new Map(correcciones.map((item) => [item.anterior, item]));
+    const preguntas = await this.preguntaRepo.find({
+      where: {
+        empresa_id: IsNull(),
+        pregunta: In(correcciones.map((item) => item.anterior)),
+      },
+    });
+
+    if (preguntas.length === 0) return;
+
+    for (const pregunta of preguntas) {
+      const correccion = porPregunta.get(pregunta.pregunta);
+      if (!correccion) continue;
+      pregunta.pregunta = correccion.pregunta;
+      pregunta.opciones = correccion.opciones;
+    }
+
+    await this.preguntaRepo.save(preguntas);
+    this.logger.log(`${preguntas.length} preguntas globales legadas corregidas`);
   }
 }

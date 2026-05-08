@@ -16,7 +16,7 @@ export default function VistaPrediciones({ predicciones }) {
       border: `1px solid ${C.naranja}30`,
     }}>
       <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--texto)' }}>
-        Predicciones Sin Validar ({predicciones.length})
+        Predicciones sin validar ({predicciones.length})
       </h2>
 
       <div style={{ overflowX: 'auto' }}>
@@ -80,7 +80,7 @@ export default function VistaPrediciones({ predicciones }) {
         color: C.verde,
         fontWeight: 600,
       }}>
-        💡 Tip: Las predicciones se validan automáticamente cuando se define el resultado del partido
+        💡 Consejo: Las predicciones se validan automáticamente cuando se define el resultado del partido
       </div>
     </div>
   );

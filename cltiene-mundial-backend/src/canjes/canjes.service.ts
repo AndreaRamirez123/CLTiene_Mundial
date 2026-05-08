@@ -64,7 +64,7 @@ export class CanjesService {
     // Verificar elegibilidad (por predicciones, regla de negocio existente)
     if (jugador.predicciones_count < 11) {
       throw new BadRequestException(
-        'No cumples los requisitos minimos para canjear. Necesitas al menos 11 predicciones.',
+        'No cumples los requisitos mínimos para canjear. Necesitas al menos 11 predicciones.',
       );
     }
 
@@ -152,7 +152,7 @@ export class CanjesService {
         estado: 'solicitado',
         notas_asesor: wipServicio?.id
           ? `WIP Service ID: ${wipServicio.id}`
-          : 'Pendiente creacion en WIP',
+          : 'Pendiente creación en WIP',
       });
       const canjeSaved = await manager.save(canje);
       canjeId = canjeSaved.id;
@@ -160,7 +160,7 @@ export class CanjesService {
 
     return {
       mensaje:
-        'Solicitud de canje registrada. Un asesor se pondra en contacto contigo.',
+        'Solicitud de canje registrada. Un asesor se pondrá en contacto contigo.',
       canje_id: canjeId,
       wip_service_id: wipServicio?.id || null,
     };

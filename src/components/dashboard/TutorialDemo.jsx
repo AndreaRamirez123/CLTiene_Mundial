@@ -3,20 +3,20 @@ import { useState, useEffect, useRef } from 'react';
 const PASOS = [
   {
     target: null,
-    titulo: 'Bienvenido!',
-    descripcion: 'Te explicamos rapidamente como funciona la plataforma. Vamos paso a paso.',
+    titulo: '¡Bienvenido!',
+    descripcion: 'Te explicamos rápidamente cómo funciona la plataforma. Vamos paso a paso.',
     icono: '🏆',
   },
   {
     target: '#tutorial-monedas',
     titulo: 'Tus monedas',
-    descripcion: 'Aqui ves cuantas monedas tienes. Las ganas haciendo predicciones correctas, jugando trivia e invitando amigos.',
+    descripcion: 'Aquí ves cuántas monedas tienes. Las ganas con el bono diario, misiones, video del día, trivia, Pet Running e invitando amigos.',
     icono: '🪙',
   },
   {
     target: '#tutorial-goles',
     titulo: 'Tus goles',
-    descripcion: 'Los goles se ganan completando misiones. Acumula goles para desbloquear recompensas.',
+    descripcion: 'Los goles se ganan acertando predicciones: 1 gol por resultado correcto y 3 goles por marcador exacto. El ranking se ordena por goles.',
     icono: '⚽',
   },
 
@@ -29,19 +29,19 @@ const PASOS = [
   {
     target: '#tutorial-stats',
     titulo: 'Tu progreso',
-    descripcion: 'Monedas acumuladas, predicciones hechas y tu posicion en el ranking. Todo de un vistazo.',
+    descripcion: 'Monedas acumuladas, predicciones hechas y tu posición en el ranking. Todo de un vistazo.',
     icono: '📊',
   },
   {
     target: 'navbar-auto',
-    titulo: 'Navegacion',
-    descripcion: 'Usa la barra inferior para moverte: Predicciones para predecir partidos, Misiones para ganar goles, Ranking para competir y Beneficios para canjear premios.',
+    titulo: 'Navegación',
+    descripcion: 'Usa la barra inferior para moverte: Predicciones para sumar goles, Misiones para ganar monedas, Ranking para competir y Beneficios para canjear premios.',
     icono: '🧭',
   },
   {
     target: null,
-    titulo: 'Listo para jugar!',
-    descripcion: 'Empieza prediciendo el resultado de un partido. Si aciertas el resultado ganas 50 monedas, si aciertas el marcador exacto ganas 100!',
+    titulo: '¡Listo para jugar!',
+    descripcion: 'Empieza prediciendo el resultado de un partido. Si aciertas el resultado sumas 1 gol; si aciertas el marcador exacto, sumas 3 goles.',
     icono: '🎉',
   },
 ];

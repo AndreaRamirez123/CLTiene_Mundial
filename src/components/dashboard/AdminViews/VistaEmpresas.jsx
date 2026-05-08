@@ -33,7 +33,7 @@ export default function VistaEmpresas({ client }) {
     setMensaje('');
     try {
       await client.post('/admin/empresas', formEmpresa);
-      setMensaje('Empresa creada exitosamente');
+      setMensaje('Empresa creada correctamente');
       setFormEmpresa({ nombre: '', slug: '' });
       setMostrarFormEmpresa(false);
       cargarEmpresas();
@@ -48,7 +48,7 @@ export default function VistaEmpresas({ client }) {
     setMensaje('');
     try {
       const res = await client.post(`/admin/empresas/${mostrarFormAdmin}/crear-admin`, formAdmin);
-      const msg = res.data?.promovido ? 'Usuario existente promovido a Admin' : 'Admin creado exitosamente';
+      const msg = res.data?.promovido ? 'Usuario existente promovido a admin' : 'Admin creado correctamente';
       setMensaje(msg);
       alert(msg);
       setFormAdmin({ email: '', password: '', nombre: '' });
@@ -113,7 +113,7 @@ export default function VistaEmpresas({ client }) {
           Empresas ({empresas.length})
         </h2>
         <button style={btnStyle} onClick={() => setMostrarFormEmpresa(!mostrarFormEmpresa)}>
-          + Nueva Empresa
+          + Nueva empresa
         </button>
       </div>
 
@@ -126,7 +126,7 @@ export default function VistaEmpresas({ client }) {
           marginBottom: 20,
           border: '1px solid rgba(255,255,255,0.1)',
         }}>
-          <h3 style={{ color: 'var(--texto)', marginBottom: 16, fontSize: 16 }}>Crear Empresa</h3>
+          <h3 style={{ color: 'var(--texto)', marginBottom: 16, fontSize: 16 }}>Crear empresa</h3>
           <div style={{ display: 'grid', gap: 12, maxWidth: 400 }}>
             <div>
               <label style={{ color: 'var(--texto-sec)', fontSize: 12, marginBottom: 4, display: 'block' }}>Nombre</label>
@@ -196,11 +196,11 @@ export default function VistaEmpresas({ client }) {
               />
             </div>
             <div>
-              <label style={{ color: 'var(--texto-sec)', fontSize: 12, marginBottom: 4, display: 'block' }}>Contrasena</label>
+              <label style={{ color: 'var(--texto-sec)', fontSize: 12, marginBottom: 4, display: 'block' }}>Contraseña</label>
               <input
                 style={inputStyle}
                 type="password"
-                placeholder="Minimo 6 caracteres"
+                placeholder="Mínimo 6 caracteres"
                 value={formAdmin.password}
                 onChange={(e) => setFormAdmin({ ...formAdmin, password: e.target.value })}
                 required
@@ -208,7 +208,7 @@ export default function VistaEmpresas({ client }) {
               />
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button type="submit" style={btnStyle}>Crear Admin</button>
+              <button type="submit" style={btnStyle}>Crear admin</button>
               <button type="button" style={{ ...btnStyle, background: 'rgba(255,255,255,0.1)' }} onClick={() => setMostrarFormAdmin(null)}>
                 Cancelar
               </button>
@@ -266,7 +266,7 @@ export default function VistaEmpresas({ client }) {
 
         {empresas.length === 0 && (
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--texto-sec)' }}>
-            No hay empresas creadas aun. Crea la primera.
+            No hay empresas creadas aún. Crea la primera.
           </div>
         )}
       </div>

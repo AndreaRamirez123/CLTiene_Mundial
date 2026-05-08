@@ -48,7 +48,7 @@ export default function RunnerModal({ onCompletar, onCerrar }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <div>
             <div style={{ color: "var(--texto)", fontWeight: 900, fontSize: isMobile ? 16 : 18 }}>Runner de Mascotas</div>
-            <div style={{ color: "var(--texto-sec)", fontSize: 11, marginTop: 2 }}>Juega y completa la mision para ganar monedas</div>
+            <div style={{ color: "var(--texto-sec)", fontSize: 11, marginTop: 2 }}>Juega y completa la misión para ganar monedas</div>
           </div>
           <button
             onClick={onCerrar}
@@ -70,8 +70,8 @@ export default function RunnerModal({ onCompletar, onCerrar }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ color: "var(--texto-sec)", fontSize: 12, textAlign: "center", marginBottom: 6 }}>
             {juegoCompleto
-              ? "Juego completado. Ya puedes reclamar la mision."
-              : "Termina el juego para habilitar el boton de completar mision."}
+              ? "Juego completado. Ya puedes reclamar la misión."
+              : "Termina el juego para habilitar el botón de completar misión."}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
@@ -97,7 +97,7 @@ export default function RunnerModal({ onCompletar, onCerrar }) {
                 opacity: juegoCompleto ? 1 : 0.55,
               }}
             >
-              Completar mision
+              Completar misión
             </button>
           </div>
         </div>

@@ -8,7 +8,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
   useTheme();
   const [inicioMundial, setInicioMundial] = useState({
     targetDate: "2026-06-11T00:00:00-05:00",
-    titulo: "USA - Mexico - Canada 2026",
+    titulo: "USA - México - Canadá 2026",
   });
   const [promoIndex, setPromoIndex] = useState(0);
 
@@ -32,7 +32,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
     },
     {
       eyebrow: "PLAN MASCOTAS CLTIENE",
-      titulo: "Veterinario en casa, sin estres ni carreras",
+      titulo: "Veterinario en casa, sin estrés ni carreras",
       descripcion: "Conoce el respaldo para tus mascotas con orientación veterinaria, visitas a domicilio y servicios pensados para su bienestar.",
       items: [
         { icono: "🐾", texto: "Veterinario en casa" },
@@ -52,7 +52,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
       titulo: "Listos para ayudarte en cualquier camino",
       descripcion: "Descubre asistencias para carro o moto como grúa, batería, cerrajería y cambio de llanta con respaldo CLTiene.",
       items: [
-        { icono: "🚗", texto: "Grua y asistencia" },
+        { icono: "🚗", texto: "Grúa y asistencia" },
         { icono: "🔋", texto: "Batería y arranque" },
         { icono: "🛞", texto: "Cambio de llanta" },
       ],
@@ -203,7 +203,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
         <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 12, marginBottom: 8 }}>El torneo comienza en</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 12 }}>
           {[
-            [tiempo.dias, "DIAS"],
+            [tiempo.dias, "DÍAS"],
             [tiempo.horas, "HRS"],
             [tiempo.minutos, "MIN"],
             [tiempo.segundos, "SEG"],
@@ -215,7 +215,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
           ))}
         </div>
         <div style={{ color: "#FFFFFF", fontWeight: 700, fontSize: 14 }}>
-          {tiempo.finalizado ? "El torneo ya comenzo" : `Inicio oficial: ${inicioMundial.titulo}`}
+          {tiempo.finalizado ? "El torneo ya comenzó" : `Inicio oficial: ${inicioMundial.titulo}`}
         </div>
       </div>
 
@@ -409,7 +409,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
       >
         <div>
           <div style={{ color: "#ECA82D", fontWeight: 800, fontSize: 15 }}>🪙 Bono diario</div>
-          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 3 }}>Tienes monedas esperandote</div>
+          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 3 }}>Tienes monedas esperándote</div>
         </div>
         <button 
           className="anim-pulse" 

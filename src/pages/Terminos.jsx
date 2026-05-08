@@ -16,12 +16,12 @@ export default function Terminos({ onVolver }) {
             ←
           </button>
           <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 28 }} />
-          <span style={{ fontWeight: 800, fontSize: 15 }}>Terminos y Condiciones</span>
+          <span style={{ fontWeight: 800, fontSize: 15 }}>Términos y condiciones</span>
         </div>
         <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 60px" }}>
           <div style={{ background: "linear-gradient(135deg, rgba(253,119,81,0.12), rgba(130,43,210,0.12))", border: "1px solid rgba(253,119,81,0.2)", borderRadius: 16, padding: "24px 20px", marginBottom: 28, textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Terminos y Condiciones</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Términos y condiciones</h1>
             <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{nombreEmpresa}</p>
           </div>
           <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 14, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
@@ -41,7 +41,7 @@ export default function Terminos({ onVolver }) {
           ←
         </button>
         <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 28 }} />
-        <span style={{ fontWeight: 800, fontSize: 15 }}>Terminos y Condiciones</span>
+        <span style={{ fontWeight: 800, fontSize: 15 }}>Términos y condiciones</span>
       </div>
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 60px" }}>
@@ -53,7 +53,7 @@ export default function Terminos({ onVolver }) {
             Predicciones CLTiene - Mundial 2026
           </p>
           <div style={{ display: "inline-block", marginTop: 10, background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: "4px 14px" }}>
-            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>Ultima actualizacion: Marzo 2026</span>
+            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>Última actualización: Marzo 2026</span>
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export default function Terminos({ onVolver }) {
           La aplicación <b style={{ color: C.naranja }}>CLTiene Mundial 2026</b> es una plataforma digital de interacción
           y gamificación diseñada para captar, conocer y fidelizar potenciales clientes de la empresa
 
-          MULTISERVICIOS CL TIENE, aprovechando el Mundial de Futbol 2026.
+          MULTISERVICIOS CL TIENE, aprovechando el Mundial de Fútbol 2026.
           La App funciona como un sistema de <b>"predicciones deportivas con monedas virtuales"</b> donde los usuarios participan
           haciendo predicciones sobre partidos del torneo, <b>sin apostar dinero real</b>.
         </Section>
@@ -82,7 +82,7 @@ export default function Terminos({ onVolver }) {
           <Item>Si el usuario acierta el resultado (gana, empata, pierde), gana <b>+50 monedas</b>.</Item>
           <Item>Si el usuario acierta el marcador exacto, gana <b>+100 monedas adicionales</b>.</Item>
           <Item>Si el usuario no acierta, <b>no pierde monedas</b>.</Item>
-          <Item>Las predicciones tienen un tiempo limite de edicion antes del inicio del partido.</Item>
+          <Item>Las predicciones tienen un tiempo límite de edición antes del inicio del partido.</Item>
         </Section>
 
         <Section icono="🎁" titulo="4. Sistema de Bonos" color={C.morado}>
@@ -92,7 +92,7 @@ export default function Terminos({ onVolver }) {
         </Section>
 
         <Section icono="🏷️" titulo="5. Canje de Monedas" color={C.naranja}>
-          <Item>Las monedas acumuladas podraán redimirse por beneficios reales de CLTiene <b>al finalizar el Mundial</b>.</Item>
+          <Item>Las monedas acumuladas podrán redimirse por beneficios reales de CLTiene <b>al finalizar el Mundial</b>.</Item>
           <Item>Los beneficios incluyen: descuentos en servicios, planes especiales, consultorías y beneficios exclusivos.</Item>
           <Item>Para canjear, el usuario debe cumplir al menos <b>una condición de participación activa</b>.</Item>
           <Item>Un asesor de CLTiene se pondrá en contacto con el usuario para activar su beneficio.</Item>

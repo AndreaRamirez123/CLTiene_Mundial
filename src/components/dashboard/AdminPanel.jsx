@@ -61,7 +61,7 @@ export default function AdminPanel({ usuario, client }) {
         {/* Header */}
         <div style={{ marginBottom: 30 }}>
           <h1 style={{ fontSize: 32, fontWeight: 900, color: 'var(--texto)', marginBottom: 8 }}>
-            🛡️ Panel de Administrador
+            🛡️ Panel de administrador
           </h1>
           <p style={{ color: 'var(--texto-sec)', fontSize: 14 }}>
             Controla todo en {getNombreMarca()}

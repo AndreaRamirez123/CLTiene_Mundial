@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as nodemailer from 'nodemailer';
@@ -99,6 +99,119 @@ export class AuthService {
     }
   }
 
+  private prepararNick(nick?: string, requerido = true) {
+    const limpio = String(nick || '').trim().replace(/^@+/, '');
+    if (!limpio) {
+      if (requerido) {
+        throw new BadRequestException('Ingresa un nick para el ranking.');
+      }
+      return { nick: null, nickNormalizado: null };
+    }
+
+    if (!/^[A-Za-z0-9._-]{3,20}$/.test(limpio)) {
+      throw new BadRequestException(
+        'El nick debe tener entre 3 y 20 caracteres y solo puede usar letras, números, punto, guion o guion bajo.',
+      );
+    }
+
+    return { nick: limpio, nickNormalizado: limpio.toLowerCase() };
+  }
+
+  private async validarNickDisponible(
+    empresaId: number,
+    nickNormalizado: string | null,
+    jugadorId?: number,
+  ) {
+    if (!nickNormalizado) return;
+    const existe = await this.jugadorRepo.findOne({
+      where: { empresa_id: empresaId, nick_normalizado: nickNormalizado },
+    });
+    if (existe && existe.id !== jugadorId) {
+      throw new BadRequestException('Este nick ya está en uso. Elige otro.');
+    }
+  }
+
+  private async buscarReferidorPorNickOCodigo(
+    empresaId: number,
+    referencia: string,
+    nickPropioNormalizado?: string | null,
+    jugadorId?: number,
+  ) {
+    const limpio = String(referencia || '').trim().replace(/^@+/, '');
+    if (!limpio) {
+      throw new BadRequestException('Ingresa el nick de quien te refirió.');
+    }
+
+    const referidor = await this.jugadorRepo.findOne({
+      where: [
+        { empresa_id: empresaId, nick_normalizado: limpio.toLowerCase() },
+        { empresa_id: empresaId, codigo_referido: limpio.toUpperCase() },
+      ],
+    });
+
+    if (!referidor) {
+      throw new BadRequestException(
+        'No encontramos un jugador con ese nick de referido.',
+      );
+    }
+
+    if (
+      referidor.id === jugadorId ||
+      (nickPropioNormalizado &&
+        referidor.nick_normalizado === nickPropioNormalizado)
+    ) {
+      throw new BadRequestException('No puedes usar tu propio nick como referido.');
+    }
+
+    return referidor;
+  }
+
+  private async aplicarBonoReferido(
+    manager: EntityManager,
+    referido: Jugador,
+    referidorBase: Jugador,
+  ) {
+    const bono = 50;
+    const referidor = await manager.findOne(Jugador, {
+      where: { id: referidorBase.id },
+    });
+    if (!referidor) {
+      throw new BadRequestException('Jugador referidor no encontrado');
+    }
+
+    const saldoReferido = referido.monedas || 0;
+    const saldoNuevoReferido = saldoReferido + bono;
+    await manager.save(Transaccion, {
+      jugador_id: referido.id,
+      tipo: 'bono_referido',
+      monto: bono,
+      saldo_anterior: saldoReferido,
+      saldo_nuevo: saldoNuevoReferido,
+      descripcion: `Bono por ser referido por @${referidor.nick || referidor.codigo_referido}`,
+    });
+    referido.monedas = saldoNuevoReferido;
+    referido.monedas_totales_ganadas =
+      (referido.monedas_totales_ganadas || 0) + bono;
+
+    const saldoReferidor = referidor.monedas || 0;
+    const saldoNuevoReferidor = saldoReferidor + bono;
+    await manager.save(Transaccion, {
+      jugador_id: referidor.id,
+      tipo: 'bono_referido',
+      monto: bono,
+      saldo_anterior: saldoReferidor,
+      saldo_nuevo: saldoNuevoReferidor,
+      descripcion: `Bono por referir a @${referido.nick || referido.codigo_referido}`,
+    });
+    referidor.monedas = saldoNuevoReferidor;
+    referidor.monedas_totales_ganadas =
+      (referidor.monedas_totales_ganadas || 0) + bono;
+    referidor.referidos_count = (referidor.referidos_count || 0) + 1;
+    referidor.nivel = calcularNivelActividad(referidor);
+
+    await manager.save(Jugador, referidor);
+  }
+
   async registro(email: string, password: string, empresaSlug?: string) {
     const empresaId = await this.resolverEmpresa(empresaSlug);
 
@@ -107,7 +220,7 @@ export class AuthService {
     });
     if (existe) {
       throw new BadRequestException(
-        'Este correo ya esta registrado en esta empresa.',
+        'Este correo ya está registrado en esta empresa.',
       );
     }
 
@@ -146,6 +259,7 @@ export class AuthService {
     empresaSlug: string,
     datos: {
       nombre: string;
+      nick: string;
       telefono: string;
       tipojugador: string;
       relacion_cltiene: string;
@@ -163,7 +277,7 @@ export class AuthService {
     });
     if (existe) {
       throw new BadRequestException(
-        'Este correo ya esta registrado en esta empresa.',
+        'Este correo ya está registrado en esta empresa.',
       );
     }
 
@@ -172,7 +286,7 @@ export class AuthService {
     const telLimpio = datos.telefono.replace(/\D/g, '');
     if (!/^3\d{9}$/.test(telLimpio)) {
       throw new BadRequestException(
-        'El numero de telefono no es valido. Debe ser un celular colombiano de 10 digitos.',
+        'El número de teléfono no es válido. Debe ser un celular colombiano de 10 dígitos.',
       );
     }
 
@@ -181,9 +295,22 @@ export class AuthService {
     });
     if (telExiste) {
       throw new BadRequestException(
-        'Este numero de telefono ya esta registrado por otro jugador.',
+        'Este número de teléfono ya está registrado por otro jugador.',
       );
     }
+
+    const { nick, nickNormalizado } = this.prepararNick(datos.nick);
+    await this.validarNickDisponible(empresaId, nickNormalizado);
+
+    const referenciaReferidor =
+      datos.es_referido ? datos.referido_por || datos.nombre_referidor : '';
+    const referidor = datos.es_referido
+      ? await this.buscarReferidorPorNickOCodigo(
+          empresaId,
+          referenciaReferidor,
+          nickNormalizado,
+        )
+      : null;
 
     const hash = await bcrypt.hash(password, 10);
     const uid = this.generarUid();
@@ -196,12 +323,16 @@ export class AuthService {
         password: hash,
         correo: email,
         nombre: datos.nombre,
+        nick,
+        nick_normalizado: nickNormalizado,
         telefono: telLimpio,
         tipojugador: datos.tipojugador || null,
         relacion_cltiene: datos.relacion_cltiene || null,
-        es_referido: datos.es_referido,
-        nombre_referidor: datos.nombre_referidor || '',
-        referido_por: datos.referido_por || '',
+        es_referido: referidor ? 1 : 0,
+        nombre_referidor: referidor
+          ? referidor.nick || referidor.nombre || referidor.codigo_referido
+          : '',
+        referido_por: referidor ? referidor.codigo_referido : '',
         departamento: datos.departamento || '',
         ciudad: datos.ciudad || '',
         monedas: bonoRegistro,
@@ -224,6 +355,11 @@ export class AuthService {
         descripcion: 'Bono de bienvenida por registro',
       });
 
+      if (referidor) {
+        await this.aplicarBonoReferido(manager, saved, referidor);
+        await manager.save(Jugador, saved);
+      }
+
       const token = this.generarToken(saved);
       return {
         token,
@@ -243,6 +379,8 @@ export class AuthService {
         'email',
         'password',
         'nombre',
+        'nick',
+        'nick_normalizado',
         'rol',
         'monedas',
         'telefono',
@@ -264,6 +402,8 @@ export class AuthService {
           'email',
           'password',
           'nombre',
+          'nick',
+          'nick_normalizado',
           'telefono',
           'correo',
           'departamento',
@@ -279,7 +419,7 @@ export class AuthService {
           superadminEnOtra.password,
         );
         if (!passValida) {
-          throw new UnauthorizedException('Correo o contrasena incorrectos.');
+          throw new UnauthorizedException('Correo o contraseña incorrectos.');
         }
 
         // Auto-crear cuenta superadmin completa en esta empresa
@@ -290,6 +430,8 @@ export class AuthService {
           password: superadminEnOtra.password,
           correo: superadminEnOtra.correo || email,
           nombre: superadminEnOtra.nombre || '',
+          nick: superadminEnOtra.nick || null,
+          nick_normalizado: superadminEnOtra.nick_normalizado || null,
           telefono: superadminEnOtra.telefono || '',
           departamento: superadminEnOtra.departamento || '',
           ciudad: superadminEnOtra.ciudad || '',
@@ -310,12 +452,12 @@ export class AuthService {
         return { token, usuario: this.limpiarUsuario(jugador) };
       }
 
-      throw new UnauthorizedException('Correo o contrasena incorrectos.');
+      throw new UnauthorizedException('Correo o contraseña incorrectos.');
     }
 
     const passValida = await bcrypt.compare(password, jugador.password);
     if (!passValida) {
-      throw new UnauthorizedException('Correo o contrasena incorrectos.');
+      throw new UnauthorizedException('Correo o contraseña incorrectos.');
     }
 
     actualizarRachaDeAcceso(jugador);
@@ -334,6 +476,7 @@ export class AuthService {
     uid: string,
     datos: {
       nombre: string;
+      nick: string;
       telefono: string;
       tipojugador: string;
       relacion_cltiene: string;
@@ -352,7 +495,7 @@ export class AuthService {
     const telLimpio = datos.telefono.replace(/\D/g, '');
     if (!/^3\d{9}$/.test(telLimpio)) {
       throw new BadRequestException(
-        'El numero de telefono no es valido. Debe ser un celular colombiano de 10 digitos.',
+        'El número de teléfono no es válido. Debe ser un celular colombiano de 10 dígitos.',
       );
     }
 
@@ -362,20 +505,45 @@ export class AuthService {
     });
     if (telExiste && telExiste.id !== jugador.id) {
       throw new BadRequestException(
-        'Este numero de telefono ya esta registrado por otro jugador.',
+        'Este número de teléfono ya está registrado por otro jugador.',
       );
     }
+
+    const { nick, nickNormalizado } = this.prepararNick(datos.nick);
+    await this.validarNickDisponible(
+      jugador.empresa_id,
+      nickNormalizado,
+      jugador.id,
+    );
+
+    const debeAplicarReferido = Boolean(
+      datos.es_referido && !jugador.referido_por,
+    );
+    const referidor = debeAplicarReferido
+      ? await this.buscarReferidorPorNickOCodigo(
+          jugador.empresa_id,
+          datos.referido_por || datos.nombre_referidor,
+          nickNormalizado,
+          jugador.id,
+        )
+      : null;
 
     const bonoRegistro = 100;
 
     return this.dataSource.transaction(async (manager) => {
       jugador.nombre = datos.nombre;
+      jugador.nick = nick;
+      jugador.nick_normalizado = nickNormalizado;
       jugador.telefono = telLimpio;
       jugador.tipojugador = datos.tipojugador || null;
       jugador.relacion_cltiene = datos.relacion_cltiene || null;
-      jugador.es_referido = datos.es_referido;
-      jugador.nombre_referidor = datos.nombre_referidor;
-      jugador.referido_por = datos.referido_por;
+      jugador.es_referido = referidor || jugador.referido_por ? 1 : datos.es_referido;
+      jugador.nombre_referidor = referidor
+        ? referidor.nick || referidor.nombre || referidor.codigo_referido
+        : datos.nombre_referidor;
+      jugador.referido_por = referidor
+        ? referidor.codigo_referido
+        : datos.referido_por;
       jugador.departamento = datos.departamento || '';
       jugador.ciudad = datos.ciudad || '';
       jugador.monedas = bonoRegistro;
@@ -393,6 +561,11 @@ export class AuthService {
         saldo_nuevo: bonoRegistro,
         descripcion: 'Bono de bienvenida por registro',
       });
+
+      if (referidor) {
+        await this.aplicarBonoReferido(manager, saved, referidor);
+        await manager.save(Jugador, saved);
+      }
 
       return {
         mensaje: 'Perfil completado',
@@ -419,7 +592,7 @@ export class AuthService {
     // 1. Validar API KEY
     const expectedKey = process.env.CUN_API_KEY;
     if (!expectedKey || apiKey !== expectedKey) {
-      throw new UnauthorizedException('API Key invalida.');
+      throw new UnauthorizedException('API Key inválida.');
     }
 
     // 2. Validar correo
@@ -458,7 +631,7 @@ export class AuthService {
         .replace(/[._-]/g, ' ')
         .replace(/\b\w/g, (l) => l.toUpperCase());
 
-    // Validar enums por si CUN envia algo distinto
+    // Validar enums por si CUN envía algo distinto
     const tiposValidos = ['natural', 'empresa', 'organizacion', 'explorar'];
     const relacionesValidas = ['cliente', 'escuchado', 'explorando', 'nuevo'];
     const tipojugador = tiposValidos.includes(datos.tipojugador || '')
@@ -506,7 +679,7 @@ export class AuthService {
           monto: bonoRegistro,
           saldo_anterior: 0,
           saldo_nuevo: bonoRegistro,
-          descripcion: 'Bono de bienvenida - acceso via CUN 360',
+          descripcion: 'Bono de bienvenida - acceso vía CUN 360',
         });
       } catch (err: any) {
         if (err?.code === 'ER_DUP_ENTRY') {
@@ -529,7 +702,7 @@ export class AuthService {
       jugador = await this.jugadorRepo.save(jugador);
     }
 
-    // 5. Generar token temporal de sesion (single-use, expira en 5 min)
+    // 5. Generar token temporal de sesión (single-use, expira en 5 min)
     const sessionToken = this.generarSessionToken();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -550,7 +723,7 @@ export class AuthService {
   // Cliente consume el session_token y obtiene JWT real
   async consumirSsoSession(sessionToken: string) {
     if (!sessionToken) {
-      throw new BadRequestException('Token de sesion requerido.');
+      throw new BadRequestException('Token de sesión requerido.');
     }
 
     const session = await this.ssoSessionRepo.findOne({
@@ -558,7 +731,7 @@ export class AuthService {
     });
 
     if (!session) {
-      throw new UnauthorizedException('Token invalido.');
+      throw new UnauthorizedException('Token inválido.');
     }
 
     if (session.used === 1) {
@@ -663,7 +836,7 @@ export class AuthService {
           monto: bonoRegistro,
           saldo_anterior: 0,
           saldo_nuevo: bonoRegistro,
-          descripcion: 'Bono de bienvenida - acceso via CUN 360',
+          descripcion: 'Bono de bienvenida - acceso vía CUN 360',
         });
       } catch (err: any) {
         // Race condition: si otra request creo el usuario al mismo tiempo,

@@ -23,7 +23,7 @@ export default function Ranking({ ranking }) {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ color: j.esYo ? "#FD7751" : "var(--texto)", fontWeight: 800, fontSize: 15 }}>
-              {j.nombre} {j.esYo ? "👈 Tú" : ""}
+              {j.nick ? `@${j.nick}` : j.nombre} {j.esYo ? "👈 Tú" : ""}
             </div>
             <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>
               {j.predicciones_acertadas || 0} aciertos · 🪙 {j.monedas}

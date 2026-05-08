@@ -7,7 +7,7 @@ const getCatalogoDefault = (empresa) => [
   {
     id: "descuento_10",
     nombre: `Descuento 10% en servicios ${empresa}`,
-    descripcion: `Aplica en cualquier servicio de ${empresa} por 30 dias`,
+    descripcion: `Aplica en cualquier servicio de ${empresa} por 30 días`,
     costo: 300,
     icono: "🏷️",
     categoria: "Descuentos",
@@ -15,31 +15,31 @@ const getCatalogoDefault = (empresa) => [
   {
     id: "descuento_25",
     nombre: `Descuento 25% en servicios ${empresa}`,
-    descripcion: `Aplica en cualquier servicio de ${empresa} por 30 dias`,
+    descripcion: `Aplica en cualquier servicio de ${empresa} por 30 días`,
     costo: 600,
     icono: "🔥",
     categoria: "Descuentos",
   },
   {
     id: "plan_basico",
-    nombre: `Plan Basico ${empresa} - 1 mes gratis`,
-    descripcion: "Acceso al plan basico sin costo por un mes",
+    nombre: `Plan Básico ${empresa} - 1 mes gratis`,
+    descripcion: "Acceso al plan básico sin costo por un mes",
     costo: 1000,
     icono: "⭐",
     categoria: "Planes",
   },
   {
     id: "consultoria",
-    nombre: "Consultoria gratuita",
-    descripcion: `Sesion de consultoria personalizada con un experto ${empresa}`,
+    nombre: "Consultoría gratuita",
+    descripcion: `Sesión de consultoría personalizada con un experto ${empresa}`,
     costo: 1500,
     icono: "💼",
     categoria: "Servicios",
   },
   {
     id: "diagnostico",
-    nombre: "Diagnostico empresarial",
-    descripcion: "Analisis completo de tu empresa o emprendimiento",
+    nombre: "Diagnóstico empresarial",
+    descripcion: "Análisis completo de tu empresa o emprendimiento",
     costo: 2500,
     icono: "📊",
     categoria: "Servicios",
@@ -88,7 +88,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
         categoria: modalConfirm.categoria,
         canal_contacto: canalContacto,
       });
-      setResultado({ tipo: "exito", mensaje: res.data.mensaje || "Canje registrado exitosamente" });
+      setResultado({ tipo: "exito", mensaje: res.data.mensaje || "Canje registrado correctamente" });
       cargarPerfil();
     } catch (err) {
       setResultado({ tipo: "error", mensaje: err.response?.data?.message || "Error al canjear" });
@@ -187,7 +187,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
 
       <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(64,141,255,0.08)", border: "1px solid rgba(64,141,255,0.2)", borderRadius: 12 }}>
         <div style={{ color: "var(--texto-sec)", fontSize: 11, lineHeight: 1.6 }}>
-          Para garantizar un juego justo, los beneficios estan pensados para jugadores activos. Un asesor de {empresa} se pondra en contacto contigo para activar tu beneficio.
+          Para garantizar un juego justo, los beneficios están pensados para jugadores activos. Un asesor de {empresa} se pondrá en contacto contigo para activar tu beneficio.
         </div>
       </div>
 
@@ -202,7 +202,7 @@ export default function Beneficios({ usuario, perfil, cargarPerfil }) {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8 }}>Como prefieres que te contactemos?</div>
+              <div style={{ color: "var(--texto-sec)", fontSize: 12, marginBottom: 8 }}>¿Cómo prefieres que te contactemos?</div>
               <div style={{ display: "flex", gap: 8 }}>
                 {[
                   { id: "whatsapp", label: "WhatsApp", icon: "📱" },

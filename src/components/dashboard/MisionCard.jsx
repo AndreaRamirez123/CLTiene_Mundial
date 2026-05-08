@@ -135,7 +135,7 @@ export default function MisionCard({ mision, reclamando, onReclamar, tituloPendi
               }
             }}
           >
-            {reclamando === mision.id ? "..." : mision.botonLabel || "Reclamar ->"}
+            {reclamando === mision.id ? "..." : mision.botonLabel || "Reclamar →"}
           </button>
         )}
       </div>

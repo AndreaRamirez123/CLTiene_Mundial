@@ -6,7 +6,7 @@ export default function VideoModal({
   tiempoVideo,
   videoVisto,
   segundosObjetivo,
-  MONEDAS_VIDEO = 20,
+  MONEDAS_VIDEO = 10,
   onVideoMetadata,
   onReclamarVideo,
   onCerrar,

@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
           const payload = this.jwtService.verify(token);
           uid = payload.uid;
         } catch {
-          throw new ForbiddenException('Token invalido');
+          throw new ForbiddenException('Token inválido');
         }
       }
     }

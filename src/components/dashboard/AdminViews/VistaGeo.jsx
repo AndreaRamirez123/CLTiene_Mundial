@@ -39,8 +39,8 @@ export default function VistaGeo({ client }) {
       {/* Toggle */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {[
-          { id: 'departamento', label: 'Por Departamento' },
-          { id: 'ciudad', label: 'Por Ciudad' },
+          { id: 'departamento', label: 'Por departamento' },
+          { id: 'ciudad', label: 'Por ciudad' },
         ].map((t) => (
           <button
             key={t.id}

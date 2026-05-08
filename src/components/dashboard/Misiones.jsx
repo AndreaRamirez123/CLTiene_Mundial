@@ -37,14 +37,14 @@ export default function Misiones({ usuario, cargarPerfil }) {
   // Video del día (rota entre los videos configurados por la empresa)
   const VIDEO_URL = getVideoDelDia();
   const SEGUNDOS_MINIMO = 20;
-  const MONEDAS_VIDEO = 20;
+  const MONEDAS_VIDEO = 10;
   const [segundosObjetivo, setSegundosObjetivo] = useState(SEGUNDOS_MINIMO);
   const [videoDisponible, setVideoDisponible] = useState(true);
 
-  const codigoReferido = usuario?.uid?.substring(0, 8).toUpperCase() || "";
-  const urlInvitacion = `${window.location.origin}?ref=${codigoReferido}`;
+  const claveReferido = usuario?.nick || usuario?.codigo_referido || usuario?.uid?.substring(0, 8).toUpperCase() || "";
+  const urlInvitacion = `${window.location.origin}?ref=${encodeURIComponent(claveReferido)}`;
   const empresa = getNombreMarca();
-  const mensajeInvitacion = `Unete a ${empresa}! Predice partidos, acumula monedas y gana premios. Registrate aqui: ${urlInvitacion}`;
+  const mensajeInvitacion = `¡Únete a ${empresa}! Predice partidos, acumula monedas y gana premios. Regístrate aquí: ${urlInvitacion}`;
 
   // Cargar preguntas de trivia dinámicas
   const cargarPreguntasTrivia = async () => {
@@ -76,16 +76,16 @@ export default function Misiones({ usuario, cargarPerfil }) {
         .filter((m) => m.id !== "ver_video" || !!VIDEO_URL)
         .map((m) => {
           if (m.id === "trivia_mundial" && disponible && m.ok) {
-            return { ...m, ok: false, desc: "Trivia diaria disponible! Juega hoy." };
+            return { ...m, ok: false, desc: "¡Trivia diaria disponible! Juega hoy." };
           }
           if (m.id === "runner_mascotas") {
             return {
               ...m,
               ok: !runnerDisponible,
               desc: runnerDisponible
-                ? "Juega el runner y completa la mision"
-                : "Ya jugaste hoy. Puedes jugar de nuevo sin ganar mas monedas.",
-              botonLabel: runnerDisponible ? "Jugar ->" : undefined,
+                ? "Juega el runner y completa la misión"
+                : "Ya jugaste hoy. Puedes jugar de nuevo sin ganar más monedas.",
+              botonLabel: runnerDisponible ? "Jugar →" : undefined,
               botonOkLabel: runnerDisponible ? undefined : "Jugar de nuevo",
             };
           }
@@ -176,7 +176,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
       await cargarMisiones(usuario.uid);
       await cargarPerfil();
     } catch (err) {
-      alert(err.response?.data?.message || "No se pudo completar la mision");
+      alert(err.response?.data?.message || "No se pudo completar la misión");
     } finally {
       setReclamando(null);
     }
@@ -196,7 +196,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
       await cargarMisiones(usuario.uid);
       if (!res.data.ya_visto) await cargarPerfil();
     } catch (err) {
-      alert(err.response?.data?.message || "No se pudo completar la mision");
+      alert(err.response?.data?.message || "No se pudo completar la misión");
     } finally {
       setReclamando(null);
     }
@@ -321,7 +321,7 @@ export default function Misiones({ usuario, cargarPerfil }) {
         />
       )}
 
-      {mostrarCompartir && <CompartirModal onCompartir={compartir} onCerrar={() => setMostrarCompartir(false)} redesSociales={redesSociales} />}
+      {mostrarCompartir && <CompartirModal onCompartir={compartir} onCerrar={() => setMostrarCompartir(false)} redesSociales={redesSociales} claveReferido={claveReferido} />}
 
       {mostrarVideo && (
         <VideoModal

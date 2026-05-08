@@ -6,13 +6,13 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 export default function VistaEstadisticas({ estadisticas }) {
   if (!estadisticas) {
-    return <div style={{ color: 'var(--texto-sec)', textAlign: 'center', padding: 40 }}>Cargando estadisticas...</div>;
+    return <div style={{ color: 'var(--texto-sec)', textAlign: 'center', padding: 40 }}>Cargando estadísticas...</div>;
   }
 
   const cards = [
-    { label: 'Total Jugadores', valor: estadisticas.total_jugadores, icono: '👥', color: C.azul, bg: 'rgba(64,141,255,0.1)' },
-    { label: 'Total Predicciones', valor: estadisticas.total_predicciones, icono: '🎯', color: C.naranja, bg: 'rgba(253,119,81,0.1)' },
-    { label: 'Monedas en Circulacion', valor: (estadisticas.total_monedas_en_circulacion || 0).toLocaleString(), icono: '🪙', color: C.dorado, bg: 'rgba(236,168,45,0.1)' },
+    { label: 'Total jugadores', valor: estadisticas.total_jugadores, icono: '👥', color: C.azul, bg: 'rgba(64,141,255,0.1)' },
+    { label: 'Total predicciones', valor: estadisticas.total_predicciones, icono: '🎯', color: C.naranja, bg: 'rgba(253,119,81,0.1)' },
+    { label: 'Monedas en circulación', valor: (estadisticas.total_monedas_en_circulacion || 0).toLocaleString(), icono: '🪙', color: C.dorado, bg: 'rgba(236,168,45,0.1)' },
     { label: 'Administradores', valor: estadisticas.admins, icono: '🛡️', color: C.verde, bg: 'rgba(22,199,132,0.1)' },
   ];
 
@@ -156,7 +156,7 @@ export default function VistaEstadisticas({ estadisticas }) {
         </div>
       </div>
 
-      {/* Graficas */}
+      {/* Gráficas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 24 }}>
         {/* Barras: Actividad de usuarios */}
         <div style={{
@@ -164,7 +164,7 @@ export default function VistaEstadisticas({ estadisticas }) {
           border: '1px solid rgba(255,255,255,0.08)',
         }}>
           <h3 style={{ color: 'var(--texto)', fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
-            Actividad de Usuarios
+            Actividad de usuarios
           </h3>
           <div style={{ height: 220 }}>
             <Bar data={dataActividad} options={actividadBarOptions} />
@@ -177,7 +177,7 @@ export default function VistaEstadisticas({ estadisticas }) {
           border: '1px solid rgba(255,255,255,0.08)',
         }}>
           <h3 style={{ color: 'var(--texto)', fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
-            Distribucion por Rol
+            Distribución por rol
           </h3>
           <div style={{ height: 220 }}>
             {porRol.length > 0 ? (
@@ -196,7 +196,7 @@ export default function VistaEstadisticas({ estadisticas }) {
           border: '1px solid rgba(255,255,255,0.08)', marginBottom: 24,
         }}>
           <h3 style={{ color: 'var(--texto)', fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
-            Jugadores y Monedas por Empresa
+            Jugadores y monedas por empresa
           </h3>
           <div style={{ height: Math.max(200, porEmpresa.length * 60) }}>
             <Bar data={dataEmpresa} options={barOptions} />
@@ -214,19 +214,19 @@ export default function VistaEstadisticas({ estadisticas }) {
         </h3>
         <div style={{ display: 'grid', gap: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 10 }}>
-            <span style={{ color: 'var(--texto-sec)', fontSize: 13 }}>Predicciones por Jugador</span>
+            <span style={{ color: 'var(--texto-sec)', fontSize: 13 }}>Predicciones por jugador</span>
             <span style={{ color: C.naranja, fontWeight: 700 }}>
               {estadisticas.total_jugadores > 0 ? (estadisticas.total_predicciones / estadisticas.total_jugadores).toFixed(1) : '0'}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 10 }}>
-            <span style={{ color: 'var(--texto-sec)', fontSize: 13 }}>Monedas Promedio por Jugador</span>
+            <span style={{ color: 'var(--texto-sec)', fontSize: 13 }}>Monedas promedio por jugador</span>
             <span style={{ color: C.dorado, fontWeight: 700 }}>
               {estadisticas.total_jugadores > 0 ? Math.round(estadisticas.total_monedas_en_circulacion / estadisticas.total_jugadores) : '0'}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--texto-sec)', fontSize: 13 }}>Ultima Actualizacion</span>
+            <span style={{ color: 'var(--texto-sec)', fontSize: 13 }}>Última actualización</span>
             <span style={{ color: C.verde, fontWeight: 700, fontSize: 13 }}>
               {new Date(estadisticas.fecha).toLocaleString()}
             </span>
