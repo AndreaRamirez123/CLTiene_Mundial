@@ -188,12 +188,11 @@ export class AuthService {
 
   private async aplicarBonoReferido(
     manager: EntityManager,
-    referido: Jugador,
     referidorBase: Jugador,
   ) {
-    // Hitos de bonus para el referidor (solo se gana en los conteos exactos)
+    // Solo el referidor gana monedas, por hito exacto
+    // El referido ya recibe 100 monedas de bienvenida al registrarse
     const HITOS: Record<number, number> = { 1: 60, 6: 40, 11: 20, 21: 10 };
-    const BONO_REFERIDO = 50;
 
     const referidor = await manager.findOne(Jugador, {
       where: { id: referidorBase.id },
@@ -202,38 +201,21 @@ export class AuthService {
       throw new BadRequestException('Jugador referidor no encontrado');
     }
 
-    // Bonus fijo para quien fue referido
-    const saldoReferido = referido.monedas || 0;
-    const saldoNuevoReferido = saldoReferido + BONO_REFERIDO;
-    await manager.save(Transaccion, {
-      jugador_id: referido.id,
-      tipo: 'bono_referido',
-      monto: BONO_REFERIDO,
-      saldo_anterior: saldoReferido,
-      saldo_nuevo: saldoNuevoReferido,
-      descripcion: `Bono por ser referido por @${referidor.nick || referidor.codigo_referido}`,
-    });
-    referido.monedas = saldoNuevoReferido;
-    referido.monedas_totales_ganadas =
-      (referido.monedas_totales_ganadas || 0) + BONO_REFERIDO;
-    await manager.save(Jugador, referido);
-
-    // Bonus por hito para el referidor
     const nuevoCount = (referidor.referidos_count || 0) + 1;
     const bonoReferidor = HITOS[nuevoCount] ?? 0;
 
     if (bonoReferidor > 0) {
-      const saldoReferidor = referidor.monedas || 0;
-      const saldoNuevoReferidor = saldoReferidor + bonoReferidor;
+      const saldoAnterior = referidor.monedas || 0;
+      const saldoNuevo = saldoAnterior + bonoReferidor;
       await manager.save(Transaccion, {
         jugador_id: referidor.id,
         tipo: 'bono_referido',
         monto: bonoReferidor,
-        saldo_anterior: saldoReferidor,
-        saldo_nuevo: saldoNuevoReferidor,
+        saldo_anterior: saldoAnterior,
+        saldo_nuevo: saldoNuevo,
         descripcion: `Hito referidos #${nuevoCount}: +${bonoReferidor} 🪙`,
       });
-      referidor.monedas = saldoNuevoReferidor;
+      referidor.monedas = saldoNuevo;
       referidor.monedas_totales_ganadas =
         (referidor.monedas_totales_ganadas || 0) + bonoReferidor;
     }
@@ -387,7 +369,7 @@ export class AuthService {
       });
 
       if (referidor) {
-        await this.aplicarBonoReferido(manager, saved, referidor);
+        await this.aplicarBonoReferido(manager, referidor);
         await manager.save(Jugador, saved);
       }
 
@@ -594,7 +576,7 @@ export class AuthService {
       });
 
       if (referidor) {
-        await this.aplicarBonoReferido(manager, saved, referidor);
+        await this.aplicarBonoReferido(manager, referidor);
         await manager.save(Jugador, saved);
       }
 
@@ -1018,6 +1000,10 @@ export class AuthService {
     jugador.reset_token = codigo;
     jugador.reset_token_expira = new Date(Date.now() + 15 * 60 * 1000);
     await this.jugadorRepo.save(jugador);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV] Código de reset para ${email}: ${codigo}`);
+    }
 
     try {
       await this.enviarEmail(

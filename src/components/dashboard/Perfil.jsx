@@ -143,7 +143,7 @@ export default function Perfil({ perfil, nombre, monedas, posicion, ranking, usu
       <div style={{ background: "linear-gradient(135deg, rgba(130,43,210,0.15) 0%, rgba(130,43,210,0.05) 100%)", border: "1.5px solid rgba(130,43,210,0.4)", borderRadius: 16, padding: "18px 16px", marginBottom: 22, display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 4px 16px rgba(130,43,210,0.1)", transition: "all 0.3s" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(130,43,210,0.2)" }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(130,43,210,0.1)" }}>
         <div>
           <div style={{ color: "var(--texto)", fontWeight: 800, fontSize: 14 }}>🤝 Amigos referidos</div>
-          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 3 }}>Cada referido te da 50 🪙</div>
+          <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 3 }}>#1: +60 🪙 · #6: +40 🪙 · #11: +20 🪙 · #21: +10 🪙</div>
         </div>
         <div style={{ color: "#822BD2", fontSize: 36, fontWeight: 900 }}>{referidos}</div>
       </div>

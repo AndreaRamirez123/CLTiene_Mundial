@@ -42,8 +42,8 @@ const MISIONES: Mision[] = [
     id: 'invita_amigo',
     icono: '🤝',
     titulo: 'Invita a un amigo',
-    desc: 'Un amigo se registró con tu código',
-    monedas: 50,
+    desc: 'Un amigo se registró con tu nick',
+    monedas: 0,
     tipo: 'auto',
   },
   {
