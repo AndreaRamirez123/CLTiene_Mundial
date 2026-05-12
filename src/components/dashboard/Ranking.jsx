@@ -26,7 +26,7 @@ export default function Ranking({ ranking }) {
               {j.nick ? `@${j.nick}` : j.nombre} {j.esYo ? "👈 Tú" : ""}
             </div>
             <div style={{ color: "var(--texto-ter)", fontSize: 12, marginTop: 2 }}>
-              {j.predicciones_acertadas || 0} aciertos · 🪙 {j.monedas}
+              {j.predicciones_acertadas || 0} aciertos
             </div>
           </div>
           <div style={{ color: "#16C784", fontWeight: 900, fontSize: 18 }}>⚽ {j.goles || 0}</div>

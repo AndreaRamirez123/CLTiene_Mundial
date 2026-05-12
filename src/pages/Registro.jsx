@@ -230,7 +230,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                         <div>
                             <PantallaInput
                                 titulo="¿Quién te refirió?"
-                                descripcion="Ingresa el nick de quien te invitó. Así ambos reciben el bono de 50 monedas."
+                                descripcion="Ingresa el nick de quien te invitó. Recibirás 50 🪙 de bienvenida y quien te refirió gana un bono según cuántos amigos lleva."
                                 placeholder="Ej: campeon2026"
                                 valor={form.nickReferidor}
                                 onChange={(v) => set("nickReferidor", v)}

@@ -57,6 +57,8 @@ CREATE TABLE jugadores (
 
   UNIQUE KEY uk_email_empresa (email, empresa_id),
   nombre VARCHAR(150) NOT NULL DEFAULT '',
+  nick VARCHAR(32) DEFAULT NULL COMMENT 'Nick público único por empresa',
+  nick_normalizado VARCHAR(32) DEFAULT NULL COMMENT 'Nick en minúsculas para búsqueda',
   telefono VARCHAR(30) DEFAULT '',
   correo VARCHAR(255) DEFAULT '',
 
@@ -111,6 +113,7 @@ CREATE TABLE jugadores (
   INDEX idx_nivel (nivel),
   INDEX idx_codigo_referido (codigo_referido),
   INDEX idx_referido_por (referido_por),
+  UNIQUE KEY uk_nick_empresa (empresa_id, nick_normalizado),
 
   FOREIGN KEY (empresa_id) REFERENCES empresas(id)
 ) ENGINE=InnoDB;

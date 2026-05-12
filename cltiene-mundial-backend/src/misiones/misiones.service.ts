@@ -27,7 +27,7 @@ const MISIONES: Mision[] = [
     icono: '✅',
     titulo: 'Perfil creado',
     desc: 'Completaste tu registro',
-    monedas: 50,
+    monedas: 100,
     tipo: 'auto',
   },
   {
@@ -462,6 +462,9 @@ export class MisionesService {
         for (const misionId of nuevas) {
           const mision = MISIONES.find((m) => m.id === misionId);
           if (!mision) continue;
+
+          // Las 100 monedas de perfil_creado ya se otorgaron al registrarse
+          if (misionId === 'perfil_creado') continue;
 
           const saldoAnterior = jug.monedas;
           const saldoNuevo = saldoAnterior + mision.monedas;

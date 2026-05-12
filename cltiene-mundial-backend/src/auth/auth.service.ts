@@ -117,6 +117,26 @@ export class AuthService {
     return { nick: limpio, nickNormalizado: limpio.toLowerCase() };
   }
 
+  private async generarNickUnico(
+    base: string,
+    empresaId: number,
+  ): Promise<string> {
+    const limpio = base
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]/g, '')
+      .substring(0, 15) || 'jugador';
+
+    let candidato = limpio;
+    for (let i = 1; i <= 99; i++) {
+      const existe = await this.jugadorRepo.findOne({
+        where: { empresa_id: empresaId, nick_normalizado: candidato },
+      });
+      if (!existe) return candidato;
+      candidato = `${limpio}${i}`;
+    }
+    return `${limpio}${Date.now().toString().slice(-4)}`;
+  }
+
   private async validarNickDisponible(
     empresaId: number,
     nickNormalizado: string | null,
@@ -171,7 +191,10 @@ export class AuthService {
     referido: Jugador,
     referidorBase: Jugador,
   ) {
-    const bono = 50;
+    // Hitos de bonus para el referidor (solo se gana en los conteos exactos)
+    const HITOS: Record<number, number> = { 1: 60, 6: 40, 11: 20, 21: 10 };
+    const BONO_REFERIDO = 50;
+
     const referidor = await manager.findOne(Jugador, {
       where: { id: referidorBase.id },
     });
@@ -179,36 +202,44 @@ export class AuthService {
       throw new BadRequestException('Jugador referidor no encontrado');
     }
 
+    // Bonus fijo para quien fue referido
     const saldoReferido = referido.monedas || 0;
-    const saldoNuevoReferido = saldoReferido + bono;
+    const saldoNuevoReferido = saldoReferido + BONO_REFERIDO;
     await manager.save(Transaccion, {
       jugador_id: referido.id,
       tipo: 'bono_referido',
-      monto: bono,
+      monto: BONO_REFERIDO,
       saldo_anterior: saldoReferido,
       saldo_nuevo: saldoNuevoReferido,
       descripcion: `Bono por ser referido por @${referidor.nick || referidor.codigo_referido}`,
     });
     referido.monedas = saldoNuevoReferido;
     referido.monedas_totales_ganadas =
-      (referido.monedas_totales_ganadas || 0) + bono;
+      (referido.monedas_totales_ganadas || 0) + BONO_REFERIDO;
+    await manager.save(Jugador, referido);
 
-    const saldoReferidor = referidor.monedas || 0;
-    const saldoNuevoReferidor = saldoReferidor + bono;
-    await manager.save(Transaccion, {
-      jugador_id: referidor.id,
-      tipo: 'bono_referido',
-      monto: bono,
-      saldo_anterior: saldoReferidor,
-      saldo_nuevo: saldoNuevoReferidor,
-      descripcion: `Bono por referir a @${referido.nick || referido.codigo_referido}`,
-    });
-    referidor.monedas = saldoNuevoReferidor;
-    referidor.monedas_totales_ganadas =
-      (referidor.monedas_totales_ganadas || 0) + bono;
-    referidor.referidos_count = (referidor.referidos_count || 0) + 1;
+    // Bonus por hito para el referidor
+    const nuevoCount = (referidor.referidos_count || 0) + 1;
+    const bonoReferidor = HITOS[nuevoCount] ?? 0;
+
+    if (bonoReferidor > 0) {
+      const saldoReferidor = referidor.monedas || 0;
+      const saldoNuevoReferidor = saldoReferidor + bonoReferidor;
+      await manager.save(Transaccion, {
+        jugador_id: referidor.id,
+        tipo: 'bono_referido',
+        monto: bonoReferidor,
+        saldo_anterior: saldoReferidor,
+        saldo_nuevo: saldoNuevoReferidor,
+        descripcion: `Hito referidos #${nuevoCount}: +${bonoReferidor} 🪙`,
+      });
+      referidor.monedas = saldoNuevoReferidor;
+      referidor.monedas_totales_ganadas =
+        (referidor.monedas_totales_ganadas || 0) + bonoReferidor;
+    }
+
+    referidor.referidos_count = nuevoCount;
     referidor.nivel = calcularNivelActividad(referidor);
-
     await manager.save(Jugador, referidor);
   }
 
@@ -649,6 +680,9 @@ export class AuthService {
       const randomPass = await bcrypt.hash(this.generarUid(), 10);
       const bonoRegistro = 100;
 
+      const nickBase = emailLimpio.split('@')[0];
+      const nickGenerado = await this.generarNickUnico(nickBase, empresaId);
+
       try {
         const nuevo = this.jugadorRepo.create({
           uid,
@@ -656,6 +690,8 @@ export class AuthService {
           password: randomPass,
           correo: emailLimpio,
           nombre: nombreFinal,
+          nick: nickGenerado,
+          nick_normalizado: nickGenerado,
           telefono: telLimpio,
           tipojugador,
           relacion_cltiene,
@@ -806,6 +842,9 @@ export class AuthService {
         .replace(/\b\w/g, (l) => l.toUpperCase());
       const bonoRegistro = 100;
 
+      const nickBase = emailLimpio.split('@')[0];
+      const nickGenerado = await this.generarNickUnico(nickBase, empresaId);
+
       try {
         const nuevo = this.jugadorRepo.create({
           uid,
@@ -813,6 +852,8 @@ export class AuthService {
           password: randomPass,
           correo: emailLimpio,
           nombre: nombreDesdeCorreo,
+          nick: nickGenerado,
+          nick_normalizado: nickGenerado,
           telefono: '',
           departamento: '',
           ciudad: '',
@@ -893,12 +934,18 @@ export class AuthService {
       const randomPass = await bcrypt.hash(this.generarUid(), 10);
       const esSuperadmin = !!superadminEnOtra;
 
+      const nickHeredado = superadminEnOtra?.nick || null;
+      const nickNormHeredado = superadminEnOtra?.nick_normalizado || null;
+      const nickFinal = nickHeredado ?? await this.generarNickUnico(email.split('@')[0], empresaId);
+
       jugador = this.jugadorRepo.create({
         uid,
         email,
         password: randomPass,
         correo: superadminEnOtra?.correo || email,
         nombre: superadminEnOtra?.nombre || '',
+        nick: nickFinal,
+        nick_normalizado: nickNormHeredado ?? nickFinal,
         telefono: superadminEnOtra?.telefono || '',
         departamento: superadminEnOtra?.departamento || '',
         ciudad: superadminEnOtra?.ciudad || '',
