@@ -30,15 +30,15 @@ export class ResultadosAutoService {
 
   @Cron('*/5 * * * *')
   async actualizarResultados() {
-    const apiKey = this.config.get<string>('OPENAI_API_KEY') || '';
+    const apiKey = this.config.get<string>('OPENAI_API_MUNDIAL') || '';
     if (!apiKey) {
       if (!this.warnedNoKey) {
         this.logger.warn(
-          'OPENAI_API_KEY no configurada; resultados IA desactivados',
+          'OPENAI_API_MUNDIAL no configurada; resultados IA desactivados',
         );
         this.warnedNoKey = true;
       }
-      return { mensaje: 'OPENAI_API_KEY no configurada', actualizados: 0 };
+      return { mensaje: 'OPENAI_API_MUNDIAL no configurada', actualizados: 0 };
     }
 
     const maxPorCiclo = Number(

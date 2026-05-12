@@ -8,17 +8,26 @@ export default function Noticias() {
   const [error, setError] = useState(null);
 
   const cargarNoticias = async (forzar = false) => {
-    setCargando(true);
-    setError(null);
-    try {
-      const data = await obtenerNoticiasMundial(forzar);
-      setNoticias(data);
-    } catch {
-      setError("No se pudieron cargar las noticias");
-    } finally {
-      setCargando(false);
-    }
-  };
+
+  setCargando(true);
+  setError(null);
+
+  try {
+    console.log("[NOTICIAS DEBUG] llamando obtenerNoticiasMundial...");
+    const data = await obtenerNoticiasMundial(forzar);
+
+    console.log("[NOTICIAS DEBUG] respuesta obtenerNoticiasMundial:", data);
+    console.log("[NOTICIAS DEBUG] cantidad noticias:", Array.isArray(data) ? data.length : "no es array");
+
+    setNoticias(data);
+  } catch (err) {
+    console.error("[NOTICIAS DEBUG] error cargando noticias:", err);
+    setError("No se pudieron cargar las noticias");
+  } finally {
+    console.log("[NOTICIAS DEBUG] terminó cargarNoticias");
+    setCargando(false);
+  }
+};
 
   useEffect(() => { cargarNoticias(); }, []);
 

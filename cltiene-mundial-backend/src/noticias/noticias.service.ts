@@ -20,7 +20,7 @@ export class NoticiasService {
   private readonly CACHE_TTL = 1000 * 60 * 5;
 
   constructor(private configService: ConfigService) {
-    this.openaiApiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
+    this.openaiApiKey = this.configService.get<string>('OPENAI_API_MUNDIAL') || '';
     this.openaiModel =
       this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
   }
@@ -38,7 +38,8 @@ export class NoticiasService {
     }
 
     if (!this.openaiApiKey) {
-      this.logger.warn('OPENAI_API_KEY no configurada');
+      this.logger.warn('OPENAI_API_MUNDIAL no configurada');
+      
       return [];
     }
 

@@ -1,18 +1,18 @@
 steps:
-  # Build imagen Docker (usando cltiene-mundial-backend como contexto)
+  # Build imagen Docker
   - name: 'gcr.io/cloud-builders/docker'
     dir: 'cltiene-mundial-backend'
     args:
       - 'build'
       - '-t'
-      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-mundial-backend'
       - '.'
 
   # Push imagen a Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-mundial-backend'
 
   # Deploy a Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -20,14 +20,18 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'cltiene-backend'
+      - 'cltiene-mundial-backend'
       - '--image'
-      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+      - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-mundial-backend'
       - '--region'
       - 'us-central1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--env-vars-file'
+      - 'cltiene-mundial-backend/.env.production'
+      - '--add-cloudsql-instances'
+      - 'desarrollo-investigaciones:us-central1:cltiene-mundial-db'
 
   # Redirigir trafico a la revision mas reciente
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -36,13 +40,13 @@ steps:
       - 'run'
       - 'services'
       - 'update-traffic'
-      - 'cltiene-backend'
+      - 'cltiene-mundial-backend'
       - '--to-latest'
       - '--region'
       - 'us-central1'
 
 images:
-  - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-backend'
+  - 'us-central1-docker.pkg.dev/desarrollo-investigaciones/backend-repo/cltiene-mundial-backend'
 
 options:
   logging: CLOUD_LOGGING_ONLY

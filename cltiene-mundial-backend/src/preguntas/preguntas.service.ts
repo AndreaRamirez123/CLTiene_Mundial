@@ -247,9 +247,9 @@ export class PreguntasService implements OnModuleInit {
     });
     if (!empresa) throw new BadRequestException('Empresa no encontrada.');
 
-    const apiKey = this.configService.get('OPENAI_API_KEY');
+    const apiKey = this.configService.get('OPENAI_API_MUNDIAL');
     if (!apiKey) {
-      throw new BadRequestException('OPENAI_API_KEY no configurada en el .env');
+      throw new BadRequestException('OPENAI_API_MUNDIAL no configurada en el .env');
     }
     const model =
       this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
@@ -301,7 +301,7 @@ Responde SOLO con un array JSON, sin texto adicional ni markdown. Ejemplo:
         this.logger.warn(`OpenAI trivia error ${response.status}: ${err}`);
         if (response.status === 401) {
           throw new Error(
-            'OPENAI_API_KEY inválida o revocada. Crea una key nueva y reinicia el backend.',
+            'OPENAI_API_MUNDIAL inválida o revocada. Crea una key nueva y reinicia el backend.',
           );
         }
         if (response.status === 429) {
