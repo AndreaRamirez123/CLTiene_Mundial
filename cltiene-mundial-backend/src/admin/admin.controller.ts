@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard } from './admin.guard';
 
@@ -57,5 +57,11 @@ export class AdminController {
   @Post('usuarios/:uid/revocar-admin')
   async revocarAdmin(@Param('uid') uid: string) {
     return this.adminService.revocarAdmin(uid);
+  }
+
+  // Eliminar jugador
+  @Delete('jugadores/:uid')
+  async eliminarJugador(@Param('uid') uid: string) {
+    return this.adminService.eliminarJugador(uid);
   }
 }

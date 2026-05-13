@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PartidosController } from './partidos.controller';
 import { PartidosService } from './partidos.service';
 import { ResultadosAutoService } from './resultados-auto.service';
+import { FootballScraperService } from './football-scraper.service';
 import { Partido } from '../entities/partido.entity';
 import { Empresa } from '../entities/empresa.entity';
 import { AdminModule } from '../admin/admin.module';
@@ -17,7 +18,7 @@ import { PrediccionesModule } from '../predicciones/predicciones.module';
     PrediccionesModule,
   ],
   controllers: [PartidosController],
-  providers: [PartidosService, ResultadosAutoService],
+  providers: [PartidosService, ResultadosAutoService, FootballScraperService],
   exports: [PartidosService],
 })
 export class PartidosModule {}

@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -40,6 +41,12 @@ export class EmpresasController {
   @UseGuards(SuperAdminGuard)
   editarEmpresa(@Param('id') id: string, @Body() body: Partial<any>) {
     return this.empresasService.editarEmpresa(parseInt(id, 10), body);
+  }
+
+  @Delete(':id')
+  @UseGuards(SuperAdminGuard)
+  eliminarEmpresa(@Param('id') id: string) {
+    return this.empresasService.eliminarEmpresa(parseInt(id, 10));
   }
 
   // SUPERADMIN: Crear admin para una empresa

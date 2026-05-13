@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Jugador } from '../entities/jugador.entity';
 import { Prediccion } from '../entities/prediccion.entity';
 import { Transaccion } from '../entities/transaccion.entity';
@@ -19,6 +19,7 @@ export class AdminService implements OnModuleInit {
     private prediccionRepo: Repository<Prediccion>,
     @InjectRepository(Transaccion)
     private transaccionRepo: Repository<Transaccion>,
+    private dataSource: DataSource,
   ) {}
 
   async onModuleInit() {
@@ -311,5 +312,34 @@ export class AdminService implements OnModuleInit {
 
     jugador.rol = 'jugador';
     return this.jugadorRepo.save(jugador);
+  }
+
+  // Eliminar jugador y todos sus datos
+  async eliminarJugador(uid: string) {
+    const jugador = await this.jugadorRepo.findOne({ where: { uid } });
+    if (!jugador) return { mensaje: 'Jugador no encontrado.' };
+
+    const runner = this.dataSource.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      await runner.query('SET FOREIGN_KEY_CHECKS = 0');
+      await runner.query(`DELETE FROM trivias_historial WHERE jugador_id = ?`, [jugador.id]);
+      await runner.query(`DELETE FROM transacciones WHERE jugador_id = ?`, [jugador.id]);
+      await runner.query(`DELETE FROM canjes WHERE jugador_id = ?`, [jugador.id]);
+      await runner.query(`DELETE FROM notificaciones_log WHERE jugador_id = ?`, [jugador.id]);
+      await runner.query(`DELETE FROM sso_sessions WHERE jugador_id = ?`, [jugador.id]);
+      await runner.query(`DELETE FROM predicciones WHERE jugador_id = ?`, [jugador.id]);
+      await runner.query(`DELETE FROM jugadores WHERE uid = ?`, [uid]);
+      await runner.query('SET FOREIGN_KEY_CHECKS = 1');
+      await runner.commitTransaction();
+    } catch (err) {
+      await runner.query('SET FOREIGN_KEY_CHECKS = 1').catch(() => {});
+      await runner.rollbackTransaction();
+      throw err;
+    } finally {
+      await runner.release();
+    }
+    return { mensaje: `Jugador "${jugador.nombre || jugador.correo}" eliminado.` };
   }
 }

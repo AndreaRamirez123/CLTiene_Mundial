@@ -1,6 +1,23 @@
+import { useState } from 'react';
 import { C } from '../constants';
 
-export default function VistaPrediciones({ predicciones }) {
+export default function VistaPrediciones({ predicciones, client }) {
+  const [actualizando, setActualizando] = useState(false);
+  const [logResultados, setLogResultados] = useState(null);
+
+  const actualizarResultados = async () => {
+    setActualizando(true);
+    setLogResultados(null);
+    try {
+      const res = await client.post('/partidos/actualizar-resultados');
+      setLogResultados(res.data);
+    } catch (err) {
+      setLogResultados({ mensaje: 'Error al actualizar: ' + (err.response?.data?.message || err.message) });
+    } finally {
+      setActualizando(false);
+    }
+  };
+
   const getResultadoColor = (prediccion) => {
     if (!prediccion.resultado) return 'var(--texto-sec)';
     if (prediccion.resultado === 'ganador') return C.verde;
@@ -15,9 +32,34 @@ export default function VistaPrediciones({ predicciones }) {
       padding: 20,
       border: `1px solid ${C.naranja}30`,
     }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--texto)' }}>
-        Predicciones sin validar ({predicciones.length})
-      </h2>
+      {/* Botón actualizar resultados */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--texto)', margin: 0 }}>
+          Predicciones sin validar ({predicciones.length})
+        </h2>
+        <button
+          onClick={actualizarResultados}
+          disabled={actualizando}
+          style={{
+            padding: '9px 16px', borderRadius: 10, border: 'none',
+            background: actualizando ? 'rgba(22,199,132,0.1)' : 'rgba(22,199,132,0.2)',
+            color: actualizando ? 'var(--texto-ter)' : C.verde,
+            fontWeight: 700, fontSize: 13, cursor: actualizando ? 'wait' : 'pointer',
+          }}
+        >
+          {actualizando ? '⏳ Buscando resultados...' : '🔄 Actualizar resultados ahora'}
+        </button>
+      </div>
+
+      {/* Log de resultados */}
+      {logResultados && (
+        <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 12 }}>
+          <div style={{ color: C.verde, fontWeight: 700, marginBottom: 6 }}>{logResultados.mensaje}</div>
+          {logResultados.resultados?.map((r, i) => (
+            <div key={i} style={{ color: 'var(--texto-sec)', marginTop: 3 }}>• {r}</div>
+          ))}
+        </div>
+      )}
 
       <div style={{ overflowX: 'auto' }}>
         <table style={{

@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { PartidosService } from './partidos.service';
 import { ResultadosAutoService } from './resultados-auto.service';
+import { FootballScraperService } from './football-scraper.service';
 import { AdminGuard } from '../admin/admin.guard';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -9,6 +10,7 @@ export class PartidosController {
   constructor(
     private readonly partidosService: PartidosService,
     private readonly resultadosAutoService: ResultadosAutoService,
+    private readonly scraperService: FootballScraperService,
   ) {}
 
   // Cualquier usuario autenticado puede ver partidos de su empresa
@@ -23,6 +25,25 @@ export class PartidosController {
   @UseGuards(AdminGuard)
   seedPartidos(@Request() req: any) {
     return this.partidosService.seedPartidos(req.jugador.empresa_id);
+  }
+
+  @Post()
+  @UseGuards(AdminGuard)
+  crearPartido(
+    @Request() req: any,
+    @Body() body: {
+      local_equipo: string;
+      visitante_equipo: string;
+      bandera_local: string;
+      bandera_visitante: string;
+      fecha: string;
+      hora: string;
+      fase: string;
+      grupo?: string;
+      estado?: string;
+    },
+  ) {
+    return this.partidosService.crearPartido(req.jugador.empresa_id, body);
   }
 
   @Put(':id/resultado')
@@ -46,5 +67,20 @@ export class PartidosController {
     @Body() body: { placeholder: string; nombre: string; bandera: string },
   ) {
     return this.partidosService.actualizarEquipoPlayoff(body.placeholder, body.nombre, body.bandera);
+  }
+
+  @Get('scraping')
+  @UseGuards(AdminGuard)
+  scrapingResultados() {
+    return this.scraperService.scrapingValidado();
+  }
+
+  @Get('scraping/buscar')
+  @UseGuards(AdminGuard)
+  buscarPartido(
+    @Query('equipo1') equipo1: string,
+    @Query('equipo2') equipo2: string,
+  ) {
+    return this.scraperService.buscarPartido(equipo1, equipo2);
   }
 }

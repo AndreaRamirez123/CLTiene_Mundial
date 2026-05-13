@@ -42,6 +42,20 @@ export default function VistaEmpresas({ client }) {
     }
   };
 
+  const eliminarEmpresa = async (empresa) => {
+    const confirmar = window.confirm(`¿Eliminar "${empresa.nombre}"? Se borrarán todos sus jugadores y datos. Esta acción NO se puede deshacer.`);
+    if (!confirmar) return;
+    const confirmar2 = window.confirm(`Segunda confirmación: ¿Estás seguro de eliminar "${empresa.nombre}" permanentemente?`);
+    if (!confirmar2) return;
+    try {
+      await client.delete(`/admin/empresas/${empresa.id}`);
+      setMensaje(`Empresa "${empresa.nombre}" eliminada.`);
+      cargarEmpresas();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al eliminar la empresa');
+    }
+  };
+
   const crearAdmin = async (e) => {
     e.preventDefault();
     setError('');
@@ -259,6 +273,12 @@ export default function VistaEmpresas({ client }) {
                 }}
               >
                 + Admin
+              </button>
+              <button
+                style={{ ...btnStyle, fontSize: 12, padding: '8px 14px', background: 'rgba(231,76,60,0.2)', color: '#e74c3c', border: '1px solid rgba(231,76,60,0.3)' }}
+                onClick={() => eliminarEmpresa(empresa)}
+              >
+                Eliminar
               </button>
             </div>
           </div>

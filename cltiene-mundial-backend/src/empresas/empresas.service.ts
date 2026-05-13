@@ -181,6 +181,45 @@ export class EmpresasService {
     return resultado;
   }
 
+  // Eliminar empresa y todos sus datos asociados
+  async eliminarEmpresa(id: number) {
+    const empresa = await this.empresaRepo.findOne({ where: { id } });
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada.');
+    }
+    const runner = this.dataSource.createQueryRunner();
+    await runner.connect();
+    await runner.startTransaction();
+    try {
+      await runner.query('SET FOREIGN_KEY_CHECKS = 0');
+      // Tablas que dependen de jugadores de esta empresa
+      await runner.query(`DELETE th FROM trivias_historial th INNER JOIN jugadores j ON th.jugador_id = j.id WHERE j.empresa_id = ?`, [id]);
+      await runner.query(`DELETE t FROM transacciones t INNER JOIN jugadores j ON t.jugador_id = j.id WHERE j.empresa_id = ?`, [id]);
+      await runner.query(`DELETE c FROM canjes c INNER JOIN jugadores j ON c.jugador_id = j.id WHERE j.empresa_id = ?`, [id]);
+      await runner.query(`DELETE nl FROM notificaciones_log nl INNER JOIN jugadores j ON nl.jugador_id = j.id WHERE j.empresa_id = ?`, [id]);
+      await runner.query(`DELETE s FROM sso_sessions s INNER JOIN jugadores j ON s.jugador_id = j.id WHERE j.empresa_id = ?`, [id]);
+      // Predicciones de jugadores o partidos de esta empresa
+      await runner.query(`DELETE p FROM predicciones p INNER JOIN jugadores j ON p.jugador_id = j.id WHERE j.empresa_id = ?`, [id]);
+      await runner.query(`DELETE FROM predicciones WHERE partido_id IN (SELECT id FROM partidos WHERE empresa_id = ?)`, [id]);
+      // Tablas directas de la empresa
+      await runner.query(`DELETE FROM jugadores WHERE empresa_id = ?`, [id]);
+      await runner.query(`DELETE FROM partidos WHERE empresa_id = ?`, [id]);
+      await runner.query(`DELETE FROM trivias_diarias WHERE empresa_id = ?`, [id]);
+      await runner.query(`DELETE FROM preguntas WHERE empresa_id = ?`, [id]);
+      await runner.query(`DELETE FROM config_marca WHERE empresa_id = ?`, [id]);
+      await runner.query(`DELETE FROM empresas WHERE id = ?`, [id]);
+      await runner.query('SET FOREIGN_KEY_CHECKS = 1');
+      await runner.commitTransaction();
+    } catch (err) {
+      await runner.query('SET FOREIGN_KEY_CHECKS = 1').catch(() => {});
+      await runner.rollbackTransaction();
+      throw err;
+    } finally {
+      await runner.release();
+    }
+    return { mensaje: `Empresa "${empresa.nombre}" eliminada correctamente.` };
+  }
+
   // Crear jugador para una empresa (usado por admin de empresa)
   async crearJugadorParaEmpresa(
     empresaId: number,

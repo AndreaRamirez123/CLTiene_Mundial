@@ -6,6 +6,20 @@ export default function VistaUsuarios({ usuarios, client }) {
   const [detalle, setDetalle] = useState(null);
   const [cargando, setCargando] = useState(false);
 
+  const eliminarJugador = async (u) => {
+    const ok = window.confirm(`¿Eliminar a "${u.nombre || u.email}"? Se borrarán todas sus predicciones y datos. Esta acción NO se puede deshacer.`);
+    if (!ok) return;
+    try {
+      await client.delete(`/admin/jugadores/${u.uid}`);
+      alert('Jugador eliminado correctamente.');
+      setDetalleUid(null);
+      // Recargar la página para reflejar el cambio en la lista
+      window.location.reload();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error al eliminar el jugador.');
+    }
+  };
+
   const verDetalles = async (uid) => {
     setCargando(true);
     try {
@@ -126,9 +140,17 @@ export default function VistaUsuarios({ usuarios, client }) {
                 </div>
 
                 {/* Info adicional */}
-                <div style={{ fontSize: 11, color: 'var(--texto-ter)', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, wordBreak: 'break-all', border: `1px solid rgba(255,255,255,0.06)` }}>
+                <div style={{ fontSize: 11, color: 'var(--texto-ter)', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, wordBreak: 'break-all', border: `1px solid rgba(255,255,255,0.06)`, marginBottom: 16 }}>
                   <strong>UID:</strong> {detalle.jugador.uid}
                 </div>
+
+                {/* Botón eliminar */}
+                <button
+                  onClick={() => eliminarJugador(detalle.jugador)}
+                  style={{ width: '100%', padding: '11px', borderRadius: 10, border: '1px solid rgba(231,76,60,0.4)', background: 'rgba(231,76,60,0.12)', color: '#e74c3c', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                >
+                  🗑️ Eliminar jugador permanentemente
+                </button>
               </>
             )}
           </div>
@@ -183,24 +205,20 @@ export default function VistaUsuarios({ usuarios, client }) {
                     </span>
                   </td>
                   <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                    <button
-                      onClick={() => verDetalles(u.uid)}
-                      style={{
-                        background: C.verde,
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 6,
-                        padding: '4px 10px',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                      👁️ Ver
-                    </button>
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                      <button
+                        onClick={() => verDetalles(u.uid)}
+                        style={{ background: C.verde, color: 'white', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        👁️ Ver
+                      </button>
+                      <button
+                        onClick={() => eliminarJugador(u)}
+                        style={{ background: 'rgba(231,76,60,0.15)', color: '#e74c3c', border: '1px solid rgba(231,76,60,0.3)', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

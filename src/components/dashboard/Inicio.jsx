@@ -14,71 +14,35 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
 
   const promosClTiene = [
     {
-      eyebrow: "PLAN SALUD CLTIENE",
-      titulo: "Salud al instante, sin filas ni copagos",
-      descripcion: "Explora el Plan Salud de CLTiene con orientación médica, traslados y atención pensada para acompañarte cuando más lo necesitas.",
-      items: [
-        { icono: "🩺", texto: "Orientación médica" },
-        { icono: "🚑", texto: "Traslado médico" },
-        { icono: "📞", texto: "Atención rápida" },
-      ],
+      imagen: "",
       cta: "Ver Plan Salud",
       url: "https://cltiene.com/",
-      heroIcon: "🩺",
-      gradient: "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14), rgba(255,255,255,0.04))",
-      border: "rgba(64,141,255,0.32)",
-      accent: "#7BC6FF",
+      eyebrow: "PLAN SALUD CLTIENE",  
+      titulo: "Salud al instante, sin filas ni copagos",
       button: "linear-gradient(135deg, #408DFF, #16C784)",
     },
     {
-      eyebrow: "PLAN MASCOTAS CLTIENE",
-      titulo: "Veterinario en casa, sin estrés ni carreras",
-      descripcion: "Conoce el respaldo para tus mascotas con orientación veterinaria, visitas a domicilio y servicios pensados para su bienestar.",
-      items: [
-        { icono: "🐾", texto: "Veterinario en casa" },
-        { icono: "💬", texto: "Orientación experta" },
-        { icono: "🛁", texto: "Cuidado integral" },
-      ],
+      imagen: "",
       cta: "Ver Plan Mascotas",
       url: "https://cltiene.com/",
-      heroIcon: "🐾",
-      gradient: "linear-gradient(135deg, rgba(253,119,81,0.18), rgba(236,168,45,0.16), rgba(255,255,255,0.04))",
-      border: "rgba(236,168,45,0.3)",
-      accent: "#FFD27F",
+      eyebrow: "PLAN MASCOTAS CLTIENE",
+      titulo: "Veterinario en casa, sin estrés ni carreras",
       button: "linear-gradient(135deg, #FD7751, #ECA82D)",
     },
     {
-      eyebrow: "PLAN MOVILIDAD CLTIENE",
-      titulo: "Listos para ayudarte en cualquier camino",
-      descripcion: "Descubre asistencias para carro o moto como grúa, batería, cerrajería y cambio de llanta con respaldo CLTiene.",
-      items: [
-        { icono: "🚗", texto: "Grúa y asistencia" },
-        { icono: "🔋", texto: "Batería y arranque" },
-        { icono: "🛞", texto: "Cambio de llanta" },
-      ],
+      imagen: "",
       cta: "Ver Plan Movilidad",
       url: "https://cltiene.com/",
-      heroIcon: "🚗",
-      gradient: "linear-gradient(135deg, rgba(130,43,210,0.18), rgba(64,141,255,0.14), rgba(255,255,255,0.04))",
-      border: "rgba(130,43,210,0.3)",
-      accent: "#C69BFF",
+      eyebrow: "PLAN MOVILIDAD CLTIENE",
+      titulo: "Listos para ayudarte en cualquier camino",
       button: "linear-gradient(135deg, #822BD2, #408DFF)",
     },
     {
-      eyebrow: "PLAN PREMIUM CLTIENE",
-      titulo: "Todo lo que necesitas, en un solo lugar",
-      descripcion: "Explora el Plan Premium con soluciones combinadas para salud, hogar, mascotas y asistencia integral 24/7.",
-      items: [
-        { icono: "⭐", texto: "Cobertura amplia" },
-        { icono: "🏠", texto: "Asistencia en casa" },
-        { icono: "🛡️", texto: "Respaldo 24/7" },
-      ],
+      imagen: "",
       cta: "Ver Plan Premium",
       url: "https://cltiene.com/",
-      heroIcon: "⭐",
-      gradient: "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.14), rgba(130,43,210,0.1))",
-      border: "rgba(253,119,81,0.28)",
-      accent: "#FFD27F",
+      eyebrow: "PLAN PREMIUM CLTIENE",
+      titulo: "Todo lo que necesitas, en un solo lugar",
       button: "linear-gradient(135deg, #FD7751, #ED1E28)",
     },
   ];
@@ -221,170 +185,68 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
 
       {promosFinal.length > 0 && promoActual && (
       <div
-        className="micro-card anim-stadium-glow"
+        className="micro-card"
         style={{
-          background: promoActual.gradient || "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14), rgba(255,255,255,0.04))",
-          border: `1px solid ${promoActual.border || "rgba(64,141,255,0.32)"}`,
           borderRadius: 16,
-          padding: "16px",
           marginBottom: 16,
-          position: "relative",
           overflow: "hidden",
-          transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+          border: `1px solid ${promoActual.border || "rgba(255,255,255,0.15)"}`,
+          position: "relative",
         }}
       >
-        <div style={{ position: "absolute", right: -12, top: -8, fontSize: 74, opacity: 0.1 }}>{promoActual.heroIcon || "⭐"}</div>
-        
-        {/* Botones de navegación del carrusel */}
-        <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 6, zIndex: 10 }}>
-          <button
-            onClick={() => setPromoIndex((prev) => (prev - 1 + promosClTiene.length) % promosClTiene.length)}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: 700,
-              transition: "all 0.3s",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "rgba(255,255,255,0.25)";
-              e.target.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "rgba(255,255,255,0.12)";
-              e.target.style.transform = "scale(1)";
-            }}
-          >
-            ‹
-          </button>
-          <button
-            onClick={() => setPromoIndex((prev) => (prev + 1) % promosClTiene.length)}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "rgba(255,255,255,0.12)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: 700,
-              transition: "all 0.3s",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "rgba(255,255,255,0.25)";
-              e.target.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "rgba(255,255,255,0.12)";
-              e.target.style.transform = "scale(1)";
-            }}
-          >
-            ›
-          </button>
-        </div>
+        {/* Contenedor con relación 2:1 */}
+        <div style={{ position: "relative", width: "100%", paddingTop: "50%", overflow: "hidden" }}>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <img src={getLogoMarca()} alt={getNombreMarca()} style={{ width: 28, height: 28, objectFit: "contain" }} />
-          </div>
-          <div>
-            <div style={{ color: promoActual.accent || "var(--brand-accent)", fontSize: 11, fontWeight: 800, letterSpacing: 0.6 }}>{promoActual.eyebrow || "PROMO"}</div>
-            <div className="anim-slide-up" style={{ color: "var(--texto)", fontSize: 17, fontWeight: 900 }}>{promoActual.titulo || "Beneficios para ti"}</div>
-          </div>
-        </div>
-        <div className="anim-slide-up" style={{ color: "var(--texto-sec)", fontSize: 13, lineHeight: 1.6, marginBottom: 12 }}>
-          {promoActual.descripcion || "Conoce los beneficios y servicios disponibles para tu empresa."}
-        </div>
-        {Array.isArray(promoActual.items) && promoActual.items.length > 0 && (
-          <CarruselItems items={promoActual.items} />
-        )}
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 10, marginBottom: 10 }}>
-          <a
-            href={promoActual.url || "https://cltiene.com/"}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              padding: "10px 12px",
-              background: promoActual.button || "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))",
-              border: "none",
-              borderRadius: 12,
-              color: "#fff",
-              fontWeight: 800,
-              fontSize: 13,
-              cursor: "pointer",
-              boxShadow: "0 8px 22px rgba(253,119,81,0.22)",
-              textDecoration: "none",
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-2px)";
-              e.target.style.boxShadow = "0 12px 28px rgba(253,119,81,0.32)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = "translateY(0)";
-              e.target.style.boxShadow = "0 8px 22px rgba(253,119,81,0.22)";
-            }}
-          >
-            {promoActual.cta || "Conocer más"}
-          </a>
-          <button
-            onClick={() => setTab("beneficios")}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 12,
-              color: "var(--texto)",
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "all 0.3s",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "rgba(255,255,255,0.15)";
-              e.target.style.borderColor = "rgba(255,255,255,0.25)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "rgba(255,255,255,0.08)";
-              e.target.style.borderColor = "rgba(255,255,255,0.12)";
-            }}
-          >
-            Ver en la app
-          </button>
-        </div>
-
-        {/* Indicadores del carrusel */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-          {promosFinal.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setPromoIndex(idx)}
-              style={{
-                width: promoIndex === idx ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                background: promoIndex === idx ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)",
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.3s",
-              }}
+          {/* Fondo: imagen o gradiente con icono */}
+          {promoActual.imagen ? (
+            <img
+              src={promoActual.imagen?.startsWith("http") ? promoActual.imagen : `${import.meta.env.VITE_API_BASE_URL || ""}${promoActual.imagen}`}
+              alt={promoActual.titulo || "Publicidad"}
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
-          ))}
+          ) : (
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, background: promoActual.gradient || "linear-gradient(135deg, rgba(64,141,255,0.2), rgba(22,199,132,0.14))" }}>
+              {promoActual.heroIcon ? (
+                <span style={{ fontSize: 72, lineHeight: 1, filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.5))" }}>{promoActual.heroIcon}</span>
+              ) : (
+                <img src={getLogoMarca()} alt={getNombreMarca()} style={{ width: 56, height: 56, objectFit: "contain", opacity: 0.45 }} />
+              )}
+            </div>
+          )}
+
+          {/* Overlay degradado + texto encima */}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 45%, transparent 72%)", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "16px" }}>
+            <div style={{ color: promoActual.accent || "rgba(255,255,255,0.7)", fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>{promoActual.eyebrow || "PROMO"}</div>
+            <div style={{ color: "#fff", fontSize: 17, fontWeight: 900, lineHeight: 1.2, marginBottom: promoActual.descripcion ? 4 : 10, textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>{promoActual.titulo || "Beneficios para ti"}</div>
+            {promoActual.descripcion && (
+              <div style={{ color: "rgba(255,255,255,0.78)", fontSize: 12, lineHeight: 1.4, marginBottom: 10 }}>{promoActual.descripcion}</div>
+            )}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <a href={promoActual.url || "https://cltiene.com/"} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", padding: "9px 20px", background: promoActual.button || "linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))", borderRadius: 10, color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", boxShadow: "0 4px 14px rgba(0,0,0,0.35)" }}>
+                {promoActual.cta || "Conocer más"}
+              </a>
+              {/* Indicadores */}
+              {promosFinal.length > 1 && (
+                <div style={{ display: "flex", gap: 5 }}>
+                  {promosFinal.map((_, idx) => (
+                    <button key={idx} onClick={() => setPromoIndex(idx)}
+                      style={{ width: promoIndex === idx ? 20 : 7, height: 7, borderRadius: 4, background: promoIndex === idx ? "#fff" : "rgba(255,255,255,0.35)", border: "none", cursor: "pointer", transition: "all 0.3s" }} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Flechas navegación */}
+          {promosFinal.length > 1 && (
+            <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 6, zIndex: 10 }}>
+              <button onClick={() => setPromoIndex((prev) => (prev - 1 + promosFinal.length) % promosFinal.length)}
+                style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.5)", border: "none", color: "white", cursor: "pointer", fontWeight: 700, fontSize: 15 }}>‹</button>
+              <button onClick={() => setPromoIndex((prev) => (prev + 1) % promosFinal.length)}
+                style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.5)", border: "none", color: "white", cursor: "pointer", fontWeight: 700, fontSize: 15 }}>›</button>
+            </div>
+          )}
         </div>
       </div>
       )}

@@ -118,7 +118,7 @@ export default function AdminPanel({ usuario, client }) {
         ) : (
           <>
             {tab === 'usuarios' && <VistaUsuarios usuarios={usuarios} client={client} />}
-            {tab === 'predicciones' && <VistaPrediciones predicciones={predicciones} />}
+            {tab === 'predicciones' && <VistaPrediciones predicciones={predicciones} client={client} />}
             {tab === 'estadisticas' && <VistaEstadisticas estadisticas={estadisticas} />}
             {tab === 'geo' && <VistaGeo client={client} />}
             {tab === 'empresas' && esSuperadmin && <VistaEmpresas client={client} />}

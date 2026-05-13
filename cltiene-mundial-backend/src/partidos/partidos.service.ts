@@ -148,6 +148,27 @@ export class PartidosService implements OnModuleInit {
     return { mensaje: `${partidos.length} partidos de fase de grupos creados para empresa ${empresaId}` };
   }
 
+  async crearPartido(empresaId: number, data: {
+    local_equipo: string;
+    visitante_equipo: string;
+    bandera_local: string;
+    bandera_visitante: string;
+    fecha: string;
+    hora: string;
+    fase: string;
+    grupo?: string;
+    estado?: string;
+  }) {
+    const partido = this.partidoRepo.create({
+      ...data,
+      grupo: data.grupo ?? null,
+      estado: data.estado ?? 'pendiente',
+      empresa_id: empresaId,
+    } as Partial<Partido>);
+    await this.partidoRepo.save(partido);
+    return { mensaje: 'Partido creado', partido };
+  }
+
   async actualizarResultado(id: string, goles_local: number, goles_visitante: number) {
     const partidoId = parseInt(id, 10);
     const resultado =

@@ -367,6 +367,9 @@ export default function VistaMarca({ client, usuario }) {
               key={empresaSeleccionada || "default"}
               value={form.publicidad_json}
               onChange={(json) => set("publicidad_json", json)}
+              client={client}
+              esSuperadmin={esSuperadmin}
+              empresaSeleccionada={empresaSeleccionada}
             />
 
             {/* Beneficios */}
@@ -580,6 +583,7 @@ function EmojiPicker({ value, onChange, compact }) {
 }
 
 const SLIDE_VACIO = {
+  imagen: "",
   eyebrow: "",
   titulo: "",
   descripcion: "",
@@ -602,9 +606,10 @@ function parsearSlides(json) {
   }
 }
 
-function EditorCarrusel({ value, onChange }) {
+function EditorCarrusel({ value, onChange, client, esSuperadmin, empresaSeleccionada }) {
   const [slides, setSlides] = useState(() => parsearSlides(value));
   const [abierto, setAbierto] = useState(null);
+  const [subiendoImagen, setSubiendoImagen] = useState(null);
 
   const sincronizar = (nuevoSlides) => {
     setSlides(nuevoSlides);
@@ -745,9 +750,71 @@ function EditorCarrusel({ value, onChange }) {
                   />
                 </div>
 
+                {/* Imagen del banner */}
+                <div>
+                  <span style={labelStyle}>Imagen del banner (800 × 400 px)</span>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: slide.imagen ? 8 : 0 }}>
+                    <label style={{
+                      padding: "9px 14px", borderRadius: 10, border: "none",
+                      background: subiendoImagen === idx ? "rgba(255,255,255,0.05)" : "rgba(64,141,255,0.15)",
+                      color: subiendoImagen === idx ? "var(--texto-ter)" : "#7BC6FF",
+                      fontWeight: 700, fontSize: 12, cursor: subiendoImagen === idx ? "wait" : "pointer",
+                      whiteSpace: "nowrap", flexShrink: 0,
+                    }}>
+                      {subiendoImagen === idx ? "Subiendo..." : "📁 Seleccionar imagen"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={subiendoImagen === idx}
+                        style={{ display: "none" }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 5 * 1024 * 1024) { alert("La imagen no debe superar 5 MB"); return; }
+                          setSubiendoImagen(idx);
+                          try {
+                            const formData = new FormData();
+                            formData.append("imagen", file);
+                            if (esSuperadmin && empresaSeleccionada) formData.append("empresa_id", empresaSeleccionada);
+                            const res = await client.post("/admin/config-marca/upload-imagen", formData, {
+                              headers: { "Content-Type": "multipart/form-data" },
+                            });
+                            actualizar(idx, "imagen", res.data.imagen_url);
+                          } catch { alert("Error al subir la imagen"); }
+                          finally { setSubiendoImagen(null); e.target.value = ""; }
+                        }}
+                      />
+                    </label>
+                    {slide.imagen && (
+                      <button
+                        type="button"
+                        onClick={() => actualizar(idx, "imagen", "")}
+                        style={{
+                          padding: "9px 12px", borderRadius: 10, border: "none",
+                          background: "rgba(231,76,60,0.12)", color: "#e74c3c",
+                          fontSize: 12, cursor: "pointer", fontWeight: 600, flexShrink: 0,
+                        }}
+                      >
+                        Quitar
+                      </button>
+                    )}
+                    <span style={{ color: "var(--texto-ter)", fontSize: 11, lineHeight: 1.3 }}>
+                      {slide.imagen ? slide.imagen.split("/").pop() : "Sin imagen — se usará el icono"}
+                    </span>
+                  </div>
+                  {slide.imagen && (
+                    <img
+                      src={slide.imagen.startsWith("http") ? slide.imagen : `${import.meta.env.VITE_API_BASE_URL || ""}${slide.imagen}`}
+                      alt="preview"
+                      style={{ width: "100%", aspectRatio: "2/1", objectFit: "cover", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)" }}
+                      onError={(e) => { e.target.style.display = "none"; }}
+                    />
+                  )}
+                </div>
+
                 {/* Icono principal */}
                 <div>
-                  <span style={labelStyle}>Icono del slide</span>
+                  <span style={labelStyle}>Icono del slide (si no hay imagen)</span>
                   <EmojiPicker value={slide.heroIcon || ""} onChange={(v) => actualizar(idx, "heroIcon", v)} />
                 </div>
 

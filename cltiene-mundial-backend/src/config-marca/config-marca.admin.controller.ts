@@ -97,4 +97,29 @@ export class ConfigMarcaAdminController {
     const url = `/uploads/videos/${file.filename}`;
     return { video_url: url };
   }
+
+  @Post('upload-imagen')
+  @UseInterceptors(
+    FileInterceptor('imagen', {
+      storage: diskStorage({
+        destination: './uploads/banners',
+        filename: (_req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          return cb(new Error('Solo se permiten imagenes'), false);
+        }
+        cb(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+    }),
+  )
+  uploadImagen(@UploadedFile() file: Express.Multer.File) {
+    const url = `/uploads/banners/${file.filename}`;
+    return { imagen_url: url };
+  }
 }
