@@ -18,6 +18,24 @@ import {
   calcularNivelActividad,
 } from '../users/nivel-actividad.util';
 
+const DEPARTAMENTOS_COLOMBIA = new Set([
+  'Amazonas','Antioquia','Arauca','Atlántico','Bolívar','Boyacá','Caldas',
+  'Caquetá','Casanare','Cauca','Cesar','Chocó','Córdoba','Cundinamarca',
+  'Guainía','Guaviare','Huila','La Guajira','Magdalena','Meta','Nariño',
+  'Norte de Santander','Putumayo','Quindío','Risaralda','San Andrés y Providencia',
+  'Santander','Sucre','Tolima','Valle del Cauca','Vaupés','Vichada',
+  'Bogotá D.C.','Bogotá','Distrito Capital',
+]);
+
+function esDepartamentoValido(dep: string): boolean {
+  if (!dep) return false;
+  const norm = dep.trim().toLowerCase();
+  for (const d of DEPARTAMENTOS_COLOMBIA) {
+    if (d.toLowerCase() === norm) return true;
+  }
+  return false;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -677,8 +695,8 @@ export class AuthService {
           telefono: telLimpio,
           tipojugador,
           relacion_cltiene,
-          departamento: datos.departamento || '',
-          ciudad: datos.ciudad || '',
+          departamento: esDepartamentoValido(datos.departamento ?? '') ? (datos.departamento ?? '').trim() : '',
+          ciudad: esDepartamentoValido(datos.departamento ?? '') ? (datos.ciudad ?? '') : '',
           monedas: bonoRegistro,
           monedas_totales_ganadas: bonoRegistro,
           codigo_referido: uid.substring(0, 8).toUpperCase(),
@@ -714,8 +732,10 @@ export class AuthService {
       actualizarRachaDeAcceso(jugador);
       if (datos.nombre) jugador.nombre = datos.nombre;
       if (telLimpio) jugador.telefono = telLimpio;
-      if (datos.departamento) jugador.departamento = datos.departamento;
-      if (datos.ciudad) jugador.ciudad = datos.ciudad;
+      if (esDepartamentoValido(datos.departamento ?? '')) {
+        jugador.departamento = (datos.departamento ?? '').trim();
+        jugador.ciudad = datos.ciudad ?? '';
+      }
       jugador.nivel = calcularNivelActividad(jugador);
       jugador = await this.jugadorRepo.save(jugador);
     }
