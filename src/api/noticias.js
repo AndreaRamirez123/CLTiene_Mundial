@@ -51,7 +51,7 @@ export async function obtenerNoticiasMundial(forzar = false) {
 
 export async function obtenerInicioMundial() {
   const fallback = {
-    targetDate: "2026-06-11T00:00:00-05:00",
+    targetDate: "2026-06-11T21:00:00-05:00",
     titulo: "USA - México - Canadá 2026",
     fuente: "FIFA",
     url: "https://inside.fifa.com",
@@ -64,7 +64,7 @@ export async function obtenerInicioMundial() {
       const vigente =
         cache.savedAt &&
         Date.now() - cache.savedAt < WORLD_CUP_START_CACHE_TTL_MS;
-      if (vigente && cache.data?.targetDate) return cache.data;
+      if (vigente && cache.data?.targetDate && !cache.data.targetDate.includes('T00:00:00')) return cache.data;
     }
   } catch {}
 

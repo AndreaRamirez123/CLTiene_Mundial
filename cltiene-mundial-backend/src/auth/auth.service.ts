@@ -172,33 +172,26 @@ export class AuthService {
   private async buscarReferidorPorNickOCodigo(
     empresaId: number,
     referencia: string,
-    nickPropioNormalizado?: string | null,
+    _nickPropioNormalizado?: string | null,
     jugadorId?: number,
   ) {
-    const limpio = String(referencia || '').trim().replace(/^@+/, '');
+    const limpio = String(referencia || '').trim().toLowerCase();
     if (!limpio) {
-      throw new BadRequestException('Ingresa el nick de quien te refirió.');
+      throw new BadRequestException('Ingresa el correo de quien te refirió.');
     }
 
     const referidor = await this.jugadorRepo.findOne({
-      where: [
-        { empresa_id: empresaId, nick_normalizado: limpio.toLowerCase() },
-        { empresa_id: empresaId, codigo_referido: limpio.toUpperCase() },
-      ],
+      where: { empresa_id: empresaId, correo: limpio },
     });
 
     if (!referidor) {
       throw new BadRequestException(
-        'No encontramos un jugador con ese nick de referido.',
+        'No encontramos un jugador con ese correo.',
       );
     }
 
-    if (
-      referidor.id === jugadorId ||
-      (nickPropioNormalizado &&
-        referidor.nick_normalizado === nickPropioNormalizado)
-    ) {
-      throw new BadRequestException('No puedes usar tu propio nick como referido.');
+    if (referidor.id === jugadorId) {
+      throw new BadRequestException('No puedes usar tu propio correo como referido.');
     }
 
     return referidor;

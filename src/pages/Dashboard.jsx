@@ -27,7 +27,8 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const estaAntesDeMundial = ahora < MUNDIAL_INICIO;
   const estaEnMundial = ahora >= MUNDIAL_INICIO && ahora <= MUNDIAL_FIN;
   const estaDespuesDeMundial = ahora > MUNDIAL_FIN;
-  const diasAlMundial = Math.floor((MUNDIAL_INICIO - ahora) / (1000 * 60 * 60 * 24));
+  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  const diasAlMundial = Math.round((MUNDIAL_INICIO - hoy) / (1000 * 60 * 60 * 24));
 
   const mostrarToast = (mensaje, tipo = "exito") => {
     setToast({ mensaje, tipo });

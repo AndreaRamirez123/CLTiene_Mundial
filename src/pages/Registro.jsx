@@ -47,18 +47,11 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
         if (step === 2 && !form.relacionCLTiene) e.relacionCLTiene = "Selecciona una opción";
         if (step === 3 && form.esReferido === null) e.esReferido = "Selecciona una opción";
         if (step === 4 && form.esReferido) {
-            if (!limpiarNick(form.nickReferidor)) e.nickReferidor = "Ingresa el nick";
-            else if (!nickValido(form.nickReferidor)) e.nickReferidor = "Usa 3 a 20 caracteres: letras, números, punto, guion o guion bajo";
+            if (!form.emailReferidor?.trim()) e.emailReferidor = "Ingresa el correo";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.emailReferidor.trim())) e.emailReferidor = "Ingresa un correo válido";
         }
         if ((step === 4 && !form.esReferido) || step === 5)
             if (!form.nombre.trim()) e.nombre = "Ingresa tu nombre";
-        if (step === 6) {
-            if (!limpiarNick(form.nick)) e.nick = "Ingresa tu nick";
-            else if (!nickValido(form.nick)) e.nick = "Usa 3 a 20 caracteres: letras, números, punto, guion o guion bajo";
-            else if (form.esReferido && limpiarNick(form.nick).toLowerCase() === limpiarNick(form.nickReferidor).toLowerCase()) {
-                e.nick = "Tu nick no puede ser igual al nick de quien te refirió";
-            }
-        }
         if (step === 7) {
             if (!form.telefono.trim()) {
                 e.telefono = "Ingresa tu número";
@@ -90,13 +83,13 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                     password: preRegistro.password,
                     empresa_slug: preRegistro.empresa_slug,
                     nombre: datos.nombre,
-                    nick: limpiarNick(datos.nick),
+                    nick: datos.nombre.trim().toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '').substring(0, 20) || "jugador",
                     telefono: datos.telefono,
                     tipojugador: datos.tipojugador,
                     relacion_cltiene: datos.relacionCLTiene,
                     es_referido: datos.esReferido ? 1 : 0,
-                    nombre_referidor: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
-                    referido_por: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
+                    nombre_referidor: (datos.emailReferidor || datos.codigoReferidor || "").trim().toLowerCase(),
+                    referido_por: (datos.emailReferidor || datos.codigoReferidor || "").trim().toLowerCase(),
                     departamento: datos.departamento || "",
                     ciudad: datos.ciudad || "",
                 });
@@ -108,13 +101,13 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                 res = await client.post("/auth/completar-perfil", {
                     uid: usuario.uid,
                     nombre: datos.nombre,
-                    nick: limpiarNick(datos.nick),
+                    nick: datos.nombre.trim().toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, '').substring(0, 20) || "jugador",
                     telefono: datos.telefono,
                     tipojugador: datos.tipojugador,
                     relacion_cltiene: datos.relacionCLTiene,
                     es_referido: datos.esReferido ? 1 : 0,
-                    nombre_referidor: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
-                    referido_por: limpiarNick(datos.nickReferidor || datos.codigoReferidor),
+                    nombre_referidor: (datos.emailReferidor || datos.codigoReferidor || "").trim().toLowerCase(),
+                    referido_por: (datos.emailReferidor || datos.codigoReferidor || "").trim().toLowerCase(),
                     departamento: datos.departamento || "",
                     ciudad: datos.ciudad || "",
                 });
@@ -134,6 +127,7 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
     const siguiente = async () => {
         if (!validar()) return;
         if (step === 3 && form.esReferido === false) { setStep(5); return; }
+        if (step === 5) { setStep(7); return; }
         if (step === 8) {
             const resultado = await guardarPerfil(form);
             if (!resultado) return;
@@ -146,11 +140,12 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
 
     const anterior = () => {
         if (step === 5 && form.esReferido === false) { setStep(3); return; }
+        if (step === 7) { setStep(5); return; }
         setStep((s) => Math.max(0, s - 1));
     };
 
-    const pasoActual = form.esReferido === false && step >= 5 ? step - 1 : step;
-    const totalPasos = form.esReferido === false ? 7 : 8;
+    const pasoActual = step >= 7 ? step - (form.esReferido === false ? 2 : 1) : (form.esReferido === false && step >= 5 ? step - 1 : step);
+    const totalPasos = form.esReferido === false ? 6 : 7;
     const progreso = step === 0 ? 0 : Math.round((pasoActual / totalPasos) * 100);
 
     if (completado) return <PantallaFinal nombre={form.nombre} />;
@@ -230,16 +225,17 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                         <div>
                             <PantallaInput
                                 titulo="¿Quién te refirió?"
-                                descripcion="Ingresa el nick de quien te invitó. Recibirás 50 🪙 de bienvenida y quien te refirió gana un bono según cuántos amigos lleva."
-                                placeholder="Ej: campeon2026"
-                                valor={form.nickReferidor}
-                                onChange={(v) => set("nickReferidor", v)}
-                                error={errores.nickReferidor}
+                                descripcion="Ingresa el correo de quien te invitó. Quien te refirió gana un bono según cuántos amigos lleva."
+                                placeholder="correo@ejemplo.com"
+                                tipo="email"
+                                valor={form.emailReferidor}
+                                onChange={(v) => set("emailReferidor", v)}
+                                error={errores.emailReferidor}
                             />
                             {codigoRefUrl && (
                                 <div style={{ marginTop: 12, padding: "10px 14px", background: `${C.dorado}18`, border: `1px solid ${C.dorado}40`, borderRadius: 10, display: "flex", alignItems: "center", gap: 8 }}>
                                     <span style={{ fontSize: 16 }}>🎟️</span>
-                                    <span style={{ color: C.dorado, fontSize: 13, fontWeight: 600 }}>Referido detectado: @{codigoRefUrl}</span>
+                                    <span style={{ color: C.dorado, fontSize: 13, fontWeight: 600 }}>Referido detectado: {codigoRefUrl}</span>
                                 </div>
                             )}
                         </div>
