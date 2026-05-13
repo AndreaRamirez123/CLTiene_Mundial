@@ -20,14 +20,14 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
   const [toast, setToast] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
 
-  // Fechas del Mundial 2026: 15 de junio - 13 de julio
-  const MUNDIAL_INICIO = new Date(2026, 5, 15); // Junio 15
-  const MUNDIAL_FIN = new Date(2026, 6, 13); // Julio 13
+  // Fechas del Mundial 2026: 11 de junio - 19 de julio
+  const MUNDIAL_INICIO = new Date(2026, 5, 11); // Junio 11
+  const MUNDIAL_FIN = new Date(2026, 6, 19); // Julio 19
   const ahora = new Date();
   const estaAntesDeMundial = ahora < MUNDIAL_INICIO;
   const estaEnMundial = ahora >= MUNDIAL_INICIO && ahora <= MUNDIAL_FIN;
   const estaDespuesDeMundial = ahora > MUNDIAL_FIN;
-  const diasAlMundial = Math.ceil((MUNDIAL_INICIO - ahora) / (1000 * 60 * 60 * 24));
+  const diasAlMundial = Math.floor((MUNDIAL_INICIO - ahora) / (1000 * 60 * 60 * 24));
 
   const mostrarToast = (mensaje, tipo = "exito") => {
     setToast({ mensaje, tipo });
