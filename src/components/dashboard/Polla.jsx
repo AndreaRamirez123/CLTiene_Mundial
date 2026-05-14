@@ -68,7 +68,17 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
     }
   };
 
+  const esBloqueado = (partido) => {
+    if (!partido?.fecha || !partido?.hora) return false;
+    const inicio = new Date(`${partido.fecha}T${partido.hora}:00`);
+    return new Date() >= new Date(inicio.getTime() - 5 * 60 * 1000);
+  };
+
   const abrirEdicion = (pred) => {
+    if (esBloqueado(pred.partido)) {
+      alert("Las predicciones se cierran 5 minutos antes del inicio del partido.");
+      return;
+    }
     setEditando({
       partido_id: pred.partido_id,
       partido: pred.partido,
@@ -79,6 +89,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
   };
 
   const guardarEdicion = async () => {
+    if (esBloqueado(editando?.partido)) {
+      alert("Las predicciones se cierran 5 minutos antes del inicio del partido.");
+      setEditando(null);
+      return;
+    }
     if (!editando?.resultado) {
       alert("Selecciona un resultado");
       return;
@@ -439,22 +454,26 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                   {pred.estado === "pendiente" && (
                     <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                       <div style={{ color: "var(--texto-ter)", fontSize: 11 }}>⏳ Esperando resultado del partido</div>
-                      <button
-                        onClick={() => abrirEdicion(pred)}
-                        style={{
-                          background: "rgba(64,141,255,0.15)",
-                          border: "1px solid rgba(64,141,255,0.4)",
-                          color: "#408DFF",
-                          borderRadius: 8,
-                          padding: "5px 12px",
-                          fontWeight: 700,
-                          fontSize: 11,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        ✏️ Editar
-                      </button>
+                      {esBloqueado(partido) ? (
+                        <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>🔒 Cerrada</span>
+                      ) : (
+                        <button
+                          onClick={() => abrirEdicion(pred)}
+                          style={{
+                            background: "rgba(64,141,255,0.15)",
+                            border: "1px solid rgba(64,141,255,0.4)",
+                            color: "#408DFF",
+                            borderRadius: 8,
+                            padding: "5px 12px",
+                            fontWeight: 700,
+                            fontSize: 11,
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ✏️ Editar
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
