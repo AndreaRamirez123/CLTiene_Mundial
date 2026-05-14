@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Post,
@@ -55,16 +56,11 @@ export class ConfigMarcaAdminController {
   @UseInterceptors(
     FileInterceptor('logo', {
       storage: memoryStorage(),
-      fileFilter: (_req, file, cb) => {
-        if (!file.mimetype.startsWith('image/')) {
-          return cb(new Error('Solo se permiten imagenes'), false);
-        }
-        cb(null, true);
-      },
       limits: { fileSize: 2 * 1024 * 1024 },
     }),
   )
   async uploadLogo(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No se recibió ningún archivo de imagen');
     const url = await this.gcsService.uploadFile(file, 'logos');
     return { logo_url: url };
   }
@@ -73,16 +69,11 @@ export class ConfigMarcaAdminController {
   @UseInterceptors(
     FileInterceptor('video', {
       storage: memoryStorage(),
-      fileFilter: (_req, file, cb) => {
-        if (!file.mimetype.startsWith('video/')) {
-          return cb(new Error('Solo se permiten videos'), false);
-        }
-        cb(null, true);
-      },
       limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
   async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No se recibió ningún archivo de video');
     const url = await this.gcsService.uploadFile(file, 'videos');
     return { video_url: url };
   }
@@ -91,16 +82,11 @@ export class ConfigMarcaAdminController {
   @UseInterceptors(
     FileInterceptor('imagen', {
       storage: memoryStorage(),
-      fileFilter: (_req, file, cb) => {
-        if (!file.mimetype.startsWith('image/')) {
-          return cb(new Error('Solo se permiten imagenes'), false);
-        }
-        cb(null, true);
-      },
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async uploadImagen(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No se recibió ningún archivo de imagen');
     const url = await this.gcsService.uploadFile(file, 'banners');
     return { imagen_url: url };
   }
