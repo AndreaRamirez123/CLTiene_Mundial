@@ -48,7 +48,7 @@ export class PartidosService implements OnModuleInit {
       // === JORNADA 1 ===
       // Jun 11
       { grupo: 'A', local_equipo: 'México', bandera_local: 'mx', visitante_equipo: 'Sudáfrica', bandera_visitante: 'za', fecha: '2026-06-11', hora: '12:00', fase: f, estado: e },
-      { grupo: 'A', local_equipo: 'Corea del Sur', bandera_local: 'kr', visitante_equipo: 'Playoff UEFA D', bandera_visitante: 'eu', fecha: '2026-06-11', hora: '15:00', fase: f, estado: e },
+      { grupo: 'A', local_equipo: 'Corea del Sur', bandera_local: 'kr', visitante_equipo: 'Chequia', bandera_visitante: 'cz', fecha: '2026-06-11', hora: '15:00', fase: f, estado: e },
       // Jun 12
       { grupo: 'D', local_equipo: 'Estados Unidos', bandera_local: 'us', visitante_equipo: 'Paraguay', bandera_visitante: 'py', fecha: '2026-06-12', hora: '21:00', fase: f, estado: e },
       { grupo: 'B', local_equipo: 'Canadá', bandera_local: 'ca', visitante_equipo: 'Playoff UEFA A', bandera_visitante: 'eu', fecha: '2026-06-12', hora: '15:00', fase: f, estado: e },
@@ -68,7 +68,7 @@ export class PartidosService implements OnModuleInit {
       { grupo: 'H', local_equipo: 'Arabia Saudita', bandera_local: 'sa', visitante_equipo: 'Uruguay', bandera_visitante: 'uy', fecha: '2026-06-15', hora: '18:00', fase: f, estado: e },
       { grupo: 'G', local_equipo: 'Bélgica', bandera_local: 'be', visitante_equipo: 'Egipto', bandera_visitante: 'eg', fecha: '2026-06-15', hora: '21:00', fase: f, estado: e },
       // Jun 16
-      { grupo: 'A', local_equipo: 'Playoff UEFA D', bandera_local: 'eu', visitante_equipo: 'Sudáfrica', bandera_visitante: 'za', fecha: '2026-06-16', hora: '12:00', fase: f, estado: e },
+      { grupo: 'A', local_equipo: 'Chequia', bandera_local: 'cz', visitante_equipo: 'Sudáfrica', bandera_visitante: 'za', fecha: '2026-06-16', hora: '12:00', fase: f, estado: e },
       { grupo: 'I', local_equipo: 'Playoff Intercont. 2', bandera_local: 'un', visitante_equipo: 'Noruega', bandera_visitante: 'no', fecha: '2026-06-16', hora: '12:00', fase: f, estado: e },
       { grupo: 'J', local_equipo: 'Argentina', bandera_local: 'ar', visitante_equipo: 'Argelia', bandera_visitante: 'dz', fecha: '2026-06-16', hora: '15:00', fase: f, estado: e },
       { grupo: 'I', local_equipo: 'Francia', bandera_local: 'fr', visitante_equipo: 'Senegal', bandera_visitante: 'sn', fecha: '2026-06-16', hora: '18:00', fase: f, estado: e },
@@ -117,7 +117,7 @@ export class PartidosService implements OnModuleInit {
       { grupo: 'B', local_equipo: 'Playoff UEFA A', bandera_local: 'eu', visitante_equipo: 'Qatar', bandera_visitante: 'qa', fecha: '2026-06-24', hora: '18:00', fase: f, estado: e },
       { grupo: 'B', local_equipo: 'Suiza', bandera_local: 'ch', visitante_equipo: 'Canadá', bandera_visitante: 'ca', fecha: '2026-06-24', hora: '18:00', fase: f, estado: e },
       { grupo: 'A', local_equipo: 'Sudáfrica', bandera_local: 'za', visitante_equipo: 'Corea del Sur', bandera_visitante: 'kr', fecha: '2026-06-24', hora: '21:00', fase: f, estado: e },
-      { grupo: 'A', local_equipo: 'Playoff UEFA D', bandera_local: 'eu', visitante_equipo: 'México', bandera_visitante: 'mx', fecha: '2026-06-24', hora: '21:00', fase: f, estado: e },
+      { grupo: 'A', local_equipo: 'Chequia', bandera_local: 'cz', visitante_equipo: 'México', bandera_visitante: 'mx', fecha: '2026-06-24', hora: '21:00', fase: f, estado: e },
       // Jun 25
       { grupo: 'F', local_equipo: 'Japón', bandera_local: 'jp', visitante_equipo: 'Playoff UEFA B', bandera_visitante: 'eu', fecha: '2026-06-25', hora: '12:00', fase: f, estado: e },
       { grupo: 'F', local_equipo: 'Túnez', bandera_local: 'tn', visitante_equipo: 'Países Bajos', bandera_visitante: 'nl', fecha: '2026-06-25', hora: '12:00', fase: f, estado: e },
