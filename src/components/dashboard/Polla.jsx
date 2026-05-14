@@ -70,8 +70,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
 
   const esBloqueado = (partido) => {
     if (!partido?.fecha || !partido?.hora) return false;
-    const inicio = new Date(`${partido.fecha}T${partido.hora}:00`);
-    return new Date() >= new Date(inicio.getTime() - 5 * 60 * 1000);
+    const [year, month, day] = partido.fecha.split('-').map(Number);
+    const [hour, minute] = (partido.hora || '00:00').split(':').map(Number);
+    // La hora se almacena en hora colombiana (UTC-5), igual que el backend
+    const inicio = new Date(Date.UTC(year, month - 1, day, hour + 5, minute));
+    return Date.now() >= inicio.getTime() - 5 * 60 * 1000;
   };
 
   const abrirEdicion = (pred) => {
