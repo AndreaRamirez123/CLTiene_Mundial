@@ -8,12 +8,14 @@ import { ConfigMarcaController } from './config-marca.controller';
 import { ConfigMarcaAdminController } from './config-marca.admin.controller';
 import { AdminModule } from '../admin/admin.module';
 import { AuthModule } from '../auth/auth.module';
+import { GcsModule } from '../gcs/gcs.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ConfigMarca, Jugador, Empresa]),
     AdminModule,
     AuthModule,
+    GcsModule,
   ],
   controllers: [ConfigMarcaController, ConfigMarcaAdminController],
   providers: [ConfigMarcaService],

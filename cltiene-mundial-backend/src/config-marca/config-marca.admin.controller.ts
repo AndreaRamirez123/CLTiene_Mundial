@@ -9,15 +9,18 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { ConfigMarcaService } from './config-marca.service';
 import { AdminGuard } from '../admin/admin.guard';
+import { GcsService } from '../gcs/gcs.service';
 
 @Controller('admin/config-marca')
 @UseGuards(AdminGuard)
 export class ConfigMarcaAdminController {
-  constructor(private readonly configService: ConfigMarcaService) {}
+  constructor(
+    private readonly configService: ConfigMarcaService,
+    private readonly gcsService: GcsService,
+  ) {}
 
   @Put()
   actualizarConfig(
@@ -51,75 +54,54 @@ export class ConfigMarcaAdminController {
   @Post('upload-logo')
   @UseInterceptors(
     FileInterceptor('logo', {
-      storage: diskStorage({
-        destination: './uploads/logos',
-        filename: (_req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, uniqueSuffix + extname(file.originalname));
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.startsWith('image/')) {
           return cb(new Error('Solo se permiten imagenes'), false);
         }
         cb(null, true);
       },
-      limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
+      limits: { fileSize: 2 * 1024 * 1024 },
     }),
   )
-  uploadLogo(@UploadedFile() file: Express.Multer.File) {
-    const url = `/uploads/logos/${file.filename}`;
+  async uploadLogo(@UploadedFile() file: Express.Multer.File) {
+    const url = await this.gcsService.uploadFile(file, 'logos');
     return { logo_url: url };
   }
 
   @Post('upload-video')
   @UseInterceptors(
     FileInterceptor('video', {
-      storage: diskStorage({
-        destination: './uploads/videos',
-        filename: (_req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, uniqueSuffix + extname(file.originalname));
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.startsWith('video/')) {
           return cb(new Error('Solo se permiten videos'), false);
         }
         cb(null, true);
       },
-      limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
-  uploadVideo(@UploadedFile() file: Express.Multer.File) {
-    const url = `/uploads/videos/${file.filename}`;
+  async uploadVideo(@UploadedFile() file: Express.Multer.File) {
+    const url = await this.gcsService.uploadFile(file, 'videos');
     return { video_url: url };
   }
 
   @Post('upload-imagen')
   @UseInterceptors(
     FileInterceptor('imagen', {
-      storage: diskStorage({
-        destination: './uploads/banners',
-        filename: (_req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, uniqueSuffix + extname(file.originalname));
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.startsWith('image/')) {
           return cb(new Error('Solo se permiten imagenes'), false);
         }
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  uploadImagen(@UploadedFile() file: Express.Multer.File) {
-    const url = `/uploads/banners/${file.filename}`;
+  async uploadImagen(@UploadedFile() file: Express.Multer.File) {
+    const url = await this.gcsService.uploadFile(file, 'banners');
     return { imagen_url: url };
   }
 }
