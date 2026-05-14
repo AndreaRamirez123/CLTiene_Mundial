@@ -267,9 +267,7 @@ export default function VistaMarca({ client, usuario }) {
                           formData.append("empresa_id", empresaSeleccionada);
                         }
                         try {
-                          const res = await client.post("/admin/config-marca/upload-logo", formData, {
-                            headers: { "Content-Type": "multipart/form-data" },
-                          });
+                          const res = await client.post("/admin/config-marca/upload-logo", formData);
                           set("logo_url", res.data.logo_url);
                         } catch {
                           alert("Error al subir la imagen");
@@ -776,9 +774,7 @@ function EditorCarrusel({ value, onChange, client, esSuperadmin, empresaSeleccio
                             const formData = new FormData();
                             formData.append("imagen", file);
                             if (esSuperadmin && empresaSeleccionada) formData.append("empresa_id", empresaSeleccionada);
-                            const res = await client.post("/admin/config-marca/upload-imagen", formData, {
-                              headers: { "Content-Type": "multipart/form-data" },
-                            });
+                            const res = await client.post("/admin/config-marca/upload-imagen", formData);
                             actualizar(idx, "imagen", res.data.imagen_url);
                           } catch { alert("Error al subir la imagen"); }
                           finally { setSubiendoImagen(null); e.target.value = ""; }
@@ -1178,9 +1174,7 @@ function EditorVideos({ value, onChange, client, esSuperadmin, empresaSelecciona
       if (esSuperadmin && empresaSeleccionada) {
         formData.append("empresa_id", empresaSeleccionada);
       }
-      const res = await client.post("/admin/config-marca/upload-video", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await client.post("/admin/config-marca/upload-video", formData);
       const nuevo = {
         id: `video_${Date.now()}_${Math.round(Math.random() * 1e6)}`,
         url: res.data.video_url,
