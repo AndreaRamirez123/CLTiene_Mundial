@@ -15,7 +15,6 @@ export class GcsService {
     const blob = this.storage.bucket(this.bucket).file(filename);
     await blob.save(file.buffer, {
       contentType: file.mimetype,
-      public: true,
     });
 
     return `https://storage.googleapis.com/${this.bucket}/${filename}`;
