@@ -169,6 +169,11 @@ export class PartidosService implements OnModuleInit {
     return { mensaje: 'Partido creado', partido };
   }
 
+  async eliminarPartido(id: string) {
+    await this.partidoRepo.delete(parseInt(id, 10));
+    return { mensaje: 'Partido eliminado' };
+  }
+
   async actualizarResultado(id: string, goles_local: number, goles_visitante: number) {
     const partidoId = parseInt(id, 10);
     const resultado =

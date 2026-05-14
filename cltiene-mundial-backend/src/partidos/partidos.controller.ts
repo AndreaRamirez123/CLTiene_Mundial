@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { PartidosService } from './partidos.service';
 import { ResultadosAutoService } from './resultados-auto.service';
 import { FootballScraperService } from './football-scraper.service';
@@ -44,6 +44,12 @@ export class PartidosController {
     },
   ) {
     return this.partidosService.crearPartido(req.jugador.empresa_id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminGuard)
+  eliminarPartido(@Param('id') id: string) {
+    return this.partidosService.eliminarPartido(id);
   }
 
   @Put(':id/resultado')
