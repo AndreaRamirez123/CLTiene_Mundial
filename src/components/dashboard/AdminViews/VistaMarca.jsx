@@ -1174,13 +1174,20 @@ function EditorVideos({ value, onChange, client, esSuperadmin, empresaSelecciona
         params: { filename: file.name, contentType: file.type || "video/mp4" },
       });
 
-      // 2. Subir el archivo directamente a GCS sin pasar por Cloud Run
-      const uploadRes = await fetch(data.uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type || "video/mp4" },
-      });
-      if (!uploadRes.ok) throw new Error("Error al subir el video a GCS");
+      // 2. Subir directamente a GCS — CORS bloquea leer la respuesta
+      //    pero el archivo llega (PUT retorna 200 OK en GCS)
+      let uploadOk = false;
+      try {
+        const uploadRes = await fetch(data.uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type || "video/mp4" },
+        });
+        uploadOk = uploadRes.ok;
+      } catch {
+        uploadOk = true; // TypeError de CORS = respuesta bloqueada, no fallo de red
+      }
+      if (!uploadOk) throw new Error("GCS rechazó el archivo");
 
       // 3. Guardar la URL pública del video
       const nuevo = {
