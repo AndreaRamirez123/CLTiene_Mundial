@@ -367,7 +367,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                         <button
                             onClick={manejarEmailPassword}
                             disabled={cargando}
-                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
+                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "var(--brand-primary)"}, ${marcaActual?.color_secundario || "var(--brand-secondary)"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FD7751") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
                             {cargando ? "Cargando..." : modo === "login" ? "✓ Ingresar" : "✓ Crear cuenta"} { }
                         </button>
@@ -440,7 +440,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                         <button
                             onClick={solicitarCodigo}
                             disabled={cargando}
-                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
+                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "var(--brand-primary)"}, ${marcaActual?.color_secundario || "var(--brand-secondary)"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FD7751") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
                             {cargando ? "Enviando..." : "Enviar código de recuperación"}
                         </button>
@@ -493,7 +493,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                         <button
                             onClick={resetearPassword}
                             disabled={cargando}
-                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "#FC3276"}, ${marcaActual?.color_secundario || "#822BD2"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FC3276") + "66"}`, opacity: cargando ? 0.8 : 1 }}
+                            style={{ ...s.btnPrimario, background: `linear-gradient(135deg, ${marcaActual?.color_primario || "var(--brand-primary)"}, ${marcaActual?.color_secundario || "var(--brand-secondary)"})`, boxShadow: `0 6px 24px ${(marcaActual?.color_primario || "#FD7751") + "66"}`, opacity: cargando ? 0.8 : 1 }}
                         >
                             {cargando ? "Cambiando..." : "Cambiar contraseña"}
                         </button>

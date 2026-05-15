@@ -169,7 +169,7 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
         textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.06)",
       }}>
         <p style={{ color: "var(--texto-ter)", fontSize: 11 }}>
-          Powered by <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>Divergency</span>
+          Powered by <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>CLTiene</span>
         </p>
         <p style={{ color: "var(--texto-ter)", fontSize: 10, marginTop: 4, opacity: 0.6 }}>
           {new Date().getFullYear()} Todos los derechos reservados.
