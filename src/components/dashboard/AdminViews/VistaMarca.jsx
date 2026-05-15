@@ -469,6 +469,7 @@ const BUTTON_PRESETS = [
 // --- Emojis organizados por categoria ---
 const EMOJI_CATEGORIAS = [
   { label: "Salud", emojis: ["🩺", "💊", "🏥", "❤️", "🧑‍⚕️", "🩹", "💉", "🦷", "👁️", "🧬"] },
+  { label: "Mascotas", emojis: ["🐶", "🐱", "🐰", "🐹", "🐾", "🦮", "🐩", "🦴", "🐠", "🐦", "🐢", "🐇", "🦜", "🐈", "🐕"] },
   { label: "Vehiculos", emojis: ["🚗", "🏍️", "🚕", "🚙", "🛞", "🔧", "⛽", "🅿️", "🚨", "🛣️"] },
   { label: "Agua", emojis: ["💧", "🚿", "🌊", "🪠", "🧊", "💦", "🌧️", "☔", "🏗️", "🔩"] },
   { label: "Hogar", emojis: ["🏠", "🔑", "💡", "🔌", "🧹", "🛠️", "🧰", "🪛", "🏢", "🪜"] },
