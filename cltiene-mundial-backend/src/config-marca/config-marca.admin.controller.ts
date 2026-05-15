@@ -2,8 +2,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
   Put,
+  Query,
   UseGuards,
   Request,
   UseInterceptors,
@@ -65,11 +67,19 @@ export class ConfigMarcaAdminController {
     return { logo_url: url };
   }
 
+  @Get('video-upload-url')
+  async getVideoUploadUrl(
+    @Query('filename') filename: string,
+    @Query('contentType') contentType: string,
+  ) {
+    return this.gcsService.getResumableUploadUrl('videos', contentType || 'video/mp4', filename || 'video.mp4');
+  }
+
   @Post('upload-video')
   @UseInterceptors(
     FileInterceptor('video', {
       storage: memoryStorage(),
-      limits: { fileSize: 50 * 1024 * 1024 },
+      limits: { fileSize: 30 * 1024 * 1024 },
     }),
   )
   async uploadVideo(@UploadedFile() file: Express.Multer.File) {

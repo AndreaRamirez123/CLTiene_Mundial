@@ -1169,20 +1169,28 @@ function EditorVideos({ value, onChange, client, esSuperadmin, empresaSelecciona
     }
     setSubiendo(true);
     try {
-      const formData = new FormData();
-      formData.append("video", file);
-      if (esSuperadmin && empresaSeleccionada) {
-        formData.append("empresa_id", empresaSeleccionada);
-      }
-      const res = await client.post("/admin/config-marca/upload-video", formData);
+      // 1. Pedir URL de sesión de carga directa a GCS (bypassa Cloud Run)
+      const { data } = await client.get("/admin/config-marca/video-upload-url", {
+        params: { filename: file.name, contentType: file.type || "video/mp4" },
+      });
+
+      // 2. Subir el archivo directamente a GCS sin pasar por Cloud Run
+      const uploadRes = await fetch(data.uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type || "video/mp4" },
+      });
+      if (!uploadRes.ok) throw new Error("Error al subir el video a GCS");
+
+      // 3. Guardar la URL pública del video
       const nuevo = {
         id: `video_${Date.now()}_${Math.round(Math.random() * 1e6)}`,
-        url: res.data.video_url,
+        url: data.publicUrl,
         nombre: file.name,
       };
       sincronizar([...videos, nuevo]);
     } catch (err) {
-      alert(err.response?.data?.message || "Error al subir el video");
+      alert(err.response?.data?.message || err.message || "Error al subir el video");
     } finally {
       setSubiendo(false);
     }
