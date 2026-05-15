@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Param, Body, Headers } from '@nestjs/common';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -6,26 +7,31 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // Endpoints publicos (sin auth)
+  @SkipThrottle()
   @Get('empresas-activas')
   empresasActivas() {
     return this.authService.listarEmpresasActivas();
   }
 
+  @SkipThrottle()
   @Get('config-publica/:slug')
   configPublica(@Param('slug') slug: string) {
     return this.authService.obtenerConfigPublica(slug);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('registro')
   registro(@Body() body: { email: string; password: string; empresa_slug?: string }) {
     return this.authService.registro(body.email, body.password, body.empresa_slug);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('login')
   login(@Body() body: { email: string; password: string; empresa_slug?: string }) {
     return this.authService.login(body.email, body.password, body.empresa_slug);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @Post('google')
   loginConGoogle(@Body() body: { credential: string; empresa_slug?: string }) {
     return this.authService.loginConGoogle(body.credential, body.empresa_slug);
@@ -66,6 +72,7 @@ export class AuthController {
     return this.authService.consumirSsoSession(body.session_token);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
   @Post('solicitar-reset')
   solicitarReset(@Body() body: { email: string; empresa_slug?: string }) {
     return this.authService.solicitarResetPassword(body.email, body.empresa_slug);
@@ -78,6 +85,7 @@ export class AuthController {
     return this.authService.resetPassword(body.email, body.codigo, body.nueva_password, body.empresa_slug);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('registro-completo')
   registroCompleto(
     @Body()

@@ -1,12 +1,17 @@
-import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('jugadores')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(AuthGuard)
   @Get(':uid')
-  getByUid(@Param('uid') uid: string, @Query('email') email?: string) {
+  getByUid(@Param('uid') uid: string, @Query('email') email?: string, @Request() req?: any) {
+    const esPropio = req?.jugador?.uid === uid;
+    const esAdmin = req?.jugador?.rol === 'admin' || req?.jugador?.rol === 'superadmin';
+    if (!esPropio && !esAdmin) throw new ForbiddenException('Solo puedes ver tu propio perfil');
     return this.usersService.getByUid(uid, email);
   }
 
