@@ -96,6 +96,10 @@ export default function App() {
       const user = JSON.parse(usuarioGuardado)
       setUsuario(user)
       setPerfilCompleto(!!user.nombre)
+      // Refrescar config de marca en segundo plano para asegurar que sea la correcta
+      client.get('/config-marca')
+        .then((res) => { if (res?.data) guardarConfigMarca(res.data) })
+        .catch(() => {})
     }
     setCargando(false)
   }, [])
@@ -106,6 +110,10 @@ export default function App() {
     localStorage.removeItem('cun360_return_url')
     setUsuario(user)
     setPerfilCompleto(!!user.nombre)
+    // Cargar la config de marca correcta para la empresa del usuario
+    client.get('/config-marca')
+      .then((res) => { if (res?.data) guardarConfigMarca(res.data) })
+      .catch(() => {})
   }
 
   const handleRegistroCompleto = (userActualizado) => {

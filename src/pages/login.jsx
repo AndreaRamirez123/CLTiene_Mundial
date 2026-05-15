@@ -64,7 +64,8 @@ function PasswordStrength({ password }) {
 }
 
 export default function Login({ onLoginExitoso, onPreRegistro }) {
-    const [modo, setModo] = useState("login");
+    const params = new URLSearchParams(window.location.search);
+    const [modo, setModo] = useState(params.get('registro') !== null ? "registro" : "login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [cargando, setCargando] = useState(false);
