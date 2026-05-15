@@ -36,7 +36,13 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
   };
 
   const cargarPerfil = () =>
-    client.get(`/jugadores/${usuario.uid}`).then((r) => setPerfil(r.data)).catch(() => { });
+    client.get(`/jugadores/${usuario.uid}`)
+      .then((r) => setPerfil(r.data))
+      .catch((err) => {
+        if (err.response?.status === 404 || err.response?.status === 401) {
+          onCerrarSesion?.();
+        }
+      });
 
   const cargarPartidos = () =>
     client.get("/partidos").then((r) =>
