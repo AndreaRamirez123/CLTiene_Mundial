@@ -11,7 +11,7 @@ import Perfil from "../components/dashboard/Perfil";
 import Beneficios from "../components/dashboard/Beneficios";
 import AdminPanel from "../components/dashboard/AdminPanel";
 import { useTheme, ThemeToggle } from "../store/useTheme";
-export default function Dashboard({ usuario, onCerrarSesion }) {
+export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) {
   useTheme();
   const [perfil, setPerfil] = useState(null);
   const [tab, setTab] = useState("inicio");
@@ -108,6 +108,7 @@ export default function Dashboard({ usuario, onCerrarSesion }) {
           <div id="tutorial-tema" style={{ display: "flex", alignItems: "center" }}>
             <ThemeToggle />
           </div>
+          <button onClick={onAbrirTutorial} title="Ver tutorial" style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 8px", cursor: "pointer", fontSize: 13, lineHeight: 1 }}>?</button>
           <button onClick={cerrar} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.15)", color: C.gris, borderRadius: 8, padding: "5px 10px", cursor: "pointer", fontSize: 12 }}>Salir</button>
         </div>
       </div>

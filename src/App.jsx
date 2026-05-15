@@ -154,7 +154,7 @@ export default function App() {
 
   return (
     <>
-      <Dashboard usuario={usuario} onCerrarSesion={handleCerrarSesion} />
+      <Dashboard usuario={usuario} onCerrarSesion={handleCerrarSesion} onAbrirTutorial={() => setMostrarTutorial(true)} />
       {mostrarTutorial && (
         <TutorialDemo
           onTerminar={() => setMostrarTutorial(false)}
