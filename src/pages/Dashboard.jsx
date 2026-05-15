@@ -39,7 +39,8 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
     client.get(`/jugadores/${usuario.uid}`)
       .then((r) => setPerfil(r.data))
       .catch((err) => {
-        if (err.response?.status === 404 || err.response?.status === 401) {
+        const s = err.response?.status;
+        if (s === 404 || s === 401 || s === 403) {
           onCerrarSesion?.();
         }
       });

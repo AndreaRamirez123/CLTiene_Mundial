@@ -23,13 +23,18 @@ client.interceptors.request.use((config) => {
   return config
 })
 
-// Interceptor: si el token expiró, limpiar sesión
+// Interceptor: si el token expiró o es inválido, limpiar sesión
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    const url = error.config?.url || ''
+    // 401 = token inválido; 403 en rutas de usuario = token expirado o usuario eliminado
+    const esRutaAuth = url.includes('/jugadores/') || url.includes('/config-marca') || url.includes('/partidos') || url.includes('/ranking')
+    if (status === 401 || (status === 403 && esRutaAuth)) {
       localStorage.removeItem('token')
       localStorage.removeItem('usuario')
+      localStorage.removeItem('config_marca')
     }
     return Promise.reject(error)
   }
