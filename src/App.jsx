@@ -96,9 +96,18 @@ export default function App() {
       const user = JSON.parse(usuarioGuardado)
       setUsuario(user)
       setPerfilCompleto(!!user.nombre)
-      // Refrescar config de marca en segundo plano para asegurar que sea la correcta
+      // Refrescar config de marca; si cambió de empresa recargar para re-renderizar logo
       client.get('/config-marca')
-        .then((res) => { if (res?.data) guardarConfigMarca(res.data) })
+        .then((res) => {
+          if (res?.data) {
+            const cached = localStorage.getItem('config_marca')
+            const cachedId = cached ? JSON.parse(cached)?.empresa_id : null
+            guardarConfigMarca(res.data)
+            if (cachedId && cachedId !== res.data.empresa_id) {
+              window.location.reload()
+            }
+          }
+        })
         .catch(() => {})
     }
     setCargando(false)
