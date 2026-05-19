@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, Requ
 import { PartidosService } from './partidos.service';
 import { ResultadosAutoService } from './resultados-auto.service';
 import { FootballScraperService } from './football-scraper.service';
+import { EliminatoriasService } from './eliminatorias.service';
 import { AdminGuard } from '../admin/admin.guard';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -11,6 +12,7 @@ export class PartidosController {
     private readonly partidosService: PartidosService,
     private readonly resultadosAutoService: ResultadosAutoService,
     private readonly scraperService: FootballScraperService,
+    private readonly eliminatoriasService: EliminatoriasService,
   ) {}
 
   // Cualquier usuario autenticado puede ver partidos de su empresa
@@ -88,5 +90,19 @@ export class PartidosController {
     @Query('equipo2') equipo2: string,
   ) {
     return this.scraperService.buscarPartido(equipo1, equipo2);
+  }
+
+  // Generar Dieciseisavos manualmente (por si el cron falla)
+  @Post('generar-dieciseisavos')
+  @UseGuards(AdminGuard)
+  generarDieciseisavos(@Request() req: any) {
+    return this.eliminatoriasService.generarDieciseisavos(req.jugador.empresa_id);
+  }
+
+  // Ver clasificados actuales de grupos
+  @Get('clasificados')
+  @UseGuards(AdminGuard)
+  obtenerClasificados(@Request() req: any) {
+    return this.eliminatoriasService.obtenerClasificados(req.jugador.empresa_id);
   }
 }

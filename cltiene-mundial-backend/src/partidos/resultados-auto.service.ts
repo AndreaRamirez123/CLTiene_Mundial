@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Partido } from '../entities/partido.entity';
 import { PartidosService } from './partidos.service';
 import { PrediccionesService } from '../predicciones/predicciones.service';
+import { EliminatoriasService } from './eliminatorias.service';
 
 type ResultadoIA = {
   goles_local: number;
@@ -25,6 +26,7 @@ export class ResultadosAutoService {
     private readonly partidoRepo: Repository<Partido>,
     private readonly partidosService: PartidosService,
     private readonly prediccionesService: PrediccionesService,
+    private readonly eliminatoriasService: EliminatoriasService,
     private readonly config: ConfigService,
   ) {}
 
@@ -88,6 +90,7 @@ export class ResultadosAutoService {
       );
 
       await this.prediccionesService.resolverPrediccionesPartido(partido.id);
+      await this.eliminatoriasService.verificarYGenerarSiguienteFase(partido.empresa_id);
 
       const msg = `${partido.local_equipo} ${resultado.goles_local}-${resultado.goles_visitante} ${partido.visitante_equipo}`;
       resultados.push(msg);
