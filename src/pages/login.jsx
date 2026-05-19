@@ -3,10 +3,11 @@ import { Capacitor } from "@capacitor/core";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import client from "../api/client";
 import { guardarConfigMarca } from "../utils/marca";
-import logoDefault from "../assets/logo.png";
+import logoBlanco from "../assets/logob.png";
+import logoColor from "../assets/logo.png";
 import Terminos from "./Terminos";
 import Privacidad from "./Privacidad";
-import { ThemeToggle } from "../store/useTheme";
+import { ThemeToggle, useTheme } from "../store/useTheme";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const esNativo = Capacitor.isNativePlatform();
@@ -64,6 +65,7 @@ function PasswordStrength({ password }) {
 }
 
 export default function Login({ onLoginExitoso, onPreRegistro }) {
+    const { tema } = useTheme();
     const params = new URLSearchParams(window.location.search);
     const [modo, setModo] = useState(params.get('registro') !== null ? "registro" : "login");
     const [email, setEmail] = useState("");
@@ -266,7 +268,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                 {/* Logo */}
                 <div style={{ textAlign: "center", marginBottom: "16px" }}>
                     <img
-                        src={marcaActual?.logo_url ? (marcaActual.logo_url.startsWith("http") ? marcaActual.logo_url : `${import.meta.env.VITE_API_BASE_URL || ''}${marcaActual.logo_url}`) : logoDefault}
+                        src={marcaActual?.logo_url?.startsWith("http") ? marcaActual.logo_url : (tema === "oscuro" ? logoBlanco : logoColor)}
                         alt={marcaActual?.nombre_app || "CLTiene Mundial"}
                         style={{ width: "200px", height: "auto", display: "block", margin: "0 auto" }}
                     />

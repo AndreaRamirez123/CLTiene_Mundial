@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getLogoMarca, getNombreMarca } from "../utils/marca";
+import logoBlanco from "../assets/logob.png";
 import client from "../api/client";
 import { C } from "../components/dashboard/constants";
 import Inicio from "../components/dashboard/Inicio";
@@ -12,7 +13,7 @@ import Beneficios from "../components/dashboard/Beneficios";
 import AdminPanel from "../components/dashboard/AdminPanel";
 import { useTheme, ThemeToggle } from "../store/useTheme";
 export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) {
-  useTheme();
+  const { tema } = useTheme();
   const [perfil, setPerfil] = useState(null);
   const [tab, setTab] = useState("inicio");
   const [partidos, setPartidos] = useState([]);
@@ -102,7 +103,7 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)", overflowX: "hidden", maxWidth: "100vw" }}>
       <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease", gap: 8, overflow: "hidden" }}>
-        <img src={getLogoMarca()} className="logo-header" style={{ height: 28, flexShrink: 0, maxWidth: 100, objectFit: "contain" }} alt={getNombreMarca()} />
+        <img src={tema === "oscuro" ? logoBlanco : getLogoMarca()} className="logo-header" style={{ height: 28, flexShrink: 0, maxWidth: 100, objectFit: "contain" }} alt={getNombreMarca()} />
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           <div id="tutorial-monedas" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 10px" }}>
             <span className="anim-coin" style={{ fontSize: 14 }}>🪙</span>
