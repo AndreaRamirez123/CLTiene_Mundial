@@ -105,4 +105,11 @@ export class PartidosController {
   obtenerClasificados(@Request() req: any) {
     return this.eliminatoriasService.obtenerClasificados(req.jugador.empresa_id);
   }
+
+  // TEST: simula resultados de grupos y genera el bracket de Dieciseisavos
+  @Post('test-eliminatorias')
+  @UseGuards(AdminGuard)
+  testEliminatorias(@Request() req: any) {
+    return this.eliminatoriasService.testGenerarEliminatorias(req.jugador.empresa_id);
+  }
 }

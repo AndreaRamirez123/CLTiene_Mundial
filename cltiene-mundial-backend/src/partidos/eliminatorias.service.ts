@@ -273,4 +273,47 @@ export class EliminatoriasService {
   async obtenerClasificados(empresaId: number) {
     return this.calcularClasificados(empresaId);
   }
+
+  async testGenerarEliminatorias(empresaId: number) {
+    const grupos = await this.partidoRepo.find({
+      where: { empresa_id: empresaId, fase: 'Grupos' },
+    });
+
+    if (grupos.length === 0) {
+      return { mensaje: 'No hay partidos de grupos para esta empresa', creados: 0 };
+    }
+
+    // Simular todos los partidos de grupos: gana el local 1-0
+    for (const p of grupos) {
+      if (p.estado !== 'finalizado') {
+        await this.partidoRepo.save({
+          ...p,
+          goles_local: 1,
+          goles_visitante: 0,
+          resultado: 'local',
+          estado: 'finalizado',
+        });
+      }
+    }
+
+    // Borrar dieciseisavos previos del test si existen
+    const previos = await this.partidoRepo.find({
+      where: { empresa_id: empresaId, fase: 'Dieciseisavos' },
+    });
+    if (previos.length > 0) {
+      await this.partidoRepo.remove(previos);
+    }
+
+    const resultado = await this.generarDieciseisavos(empresaId);
+    const partidos = await this.partidoRepo.find({
+      where: { empresa_id: empresaId, fase: 'Dieciseisavos' },
+      order: { fecha: 'ASC', hora: 'ASC' },
+    });
+
+    return {
+      ...resultado,
+      partidos,
+      advertencia: 'TEST: resultados de grupos fueron sobreescritos con 1-0 local. Revierte manualmente si es necesario.',
+    };
+  }
 }
