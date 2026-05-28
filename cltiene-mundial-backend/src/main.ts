@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 
 const DEFAULT_CORS_ORIGINS = [
   'https://mundial-2.web.app',
+  'https://mundial-2026-app.web.app',
   'https://cltiene-mundial-backend-293865702055.us-central1.run.app',
 ];
 
