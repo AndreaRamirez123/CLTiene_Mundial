@@ -32,7 +32,7 @@ export default function Terminos({ onVolver }) {
     );
   }
 
-  // Terminos por defecto de CLTiene
+  // Terminos por defecto de Divergency AI
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #0f0a1e 0%, #1a1035 100%)", color: "#fff" }}>
       {/* Header fijo */}
@@ -50,25 +50,24 @@ export default function Terminos({ onVolver }) {
           <div style={{ fontSize: 40, marginBottom: 8 }}>📋</div>
           <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Términos y Condiciones</h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-            Predicciones CLTiene - Mundial 2026
+            Plataforma de Predicciones - Mundial 2026 · Desarrollado por Divergency AI
           </p>
           <div style={{ display: "inline-block", marginTop: 10, background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: "4px 14px" }}>
-            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>Última actualización: Marzo 2026</span>
+            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>Última actualización: Junio 2026</span>
           </div>
         </div>
 
         {/* Secciones */}
         <Section icono="🎯" titulo="1. Objeto" color={C.naranja}>
-          La aplicación <b style={{ color: C.naranja }}>CLTiene Mundial 2026</b> es una plataforma digital de interacción
-          y gamificación diseñada para captar, conocer y fidelizar potenciales clientes de la empresa
-
-          MULTISERVICIOS CL TIENE, aprovechando el Mundial de Fútbol 2026.
-          La App funciona como un sistema de <b>"predicciones deportivas con monedas virtuales"</b> donde los usuarios participan
-          haciendo predicciones sobre partidos del torneo, <b>sin apostar dinero real</b>.
+          Esta aplicación es una plataforma digital de gamificación y predicciones deportivas desarrollada por{" "}
+          <b style={{ color: C.naranja }}>Divergency AI</b>, diseñada para interactuar y fidelizar usuarios
+          durante el Mundial de Fútbol 2026. Funciona como un sistema de{" "}
+          <b>"predicciones deportivas con monedas virtuales"</b> donde los usuarios participan haciendo
+          predicciones sobre partidos del torneo, <b>sin apostar dinero real</b>.
         </Section>
 
-        <Section icono="🪙" titulo="2. Monedas Virtuales CLTiene" color={C.dorado}>
-          <Item>Las monedas CLTiene son puntos virtuales que <b>solo existen dentro del ecosistema</b> de la App.</Item>
+        <Section icono="🪙" titulo="2. Monedas Virtuales" color={C.dorado}>
+          <Item>Las monedas son puntos virtuales que <b>solo existen dentro del ecosistema</b> de la App.</Item>
           <Item>No son convertibles en dinero real bajo ninguna circunstancia.</Item>
           <Item>Funcionan exclusivamente como puntos de fidelización y recompensa.</Item>
           <Item>No constituyen apuestas reales ni juegos de azar regulados.</Item>
@@ -91,12 +90,11 @@ export default function Terminos({ onVolver }) {
           <BonusCard icono="🎯" titulo="Misiones" desc="Actividades como ver videos, jugar trivia o invitar amigos que otorgan monedas y goles." />
         </Section>
 
-        <Section icono="🏷️" titulo="5. Canje de Monedas" color={C.naranja}>
-          <Item>Las monedas acumuladas podrán redimirse por beneficios reales de CLTiene <b>al finalizar el Mundial</b>.</Item>
-          <Item>Los beneficios incluyen: descuentos en servicios, planes especiales, consultorías y beneficios exclusivos.</Item>
+        <Section icono="🏷️" titulo="5. Canje de Beneficios" color={C.naranja}>
+          <Item>Las monedas acumuladas podrán redimirse por beneficios reales <b>al finalizar el Mundial</b>, según lo defina la empresa organizadora.</Item>
           <Item>Para canjear, el usuario debe cumplir al menos <b>una condición de participación activa</b>.</Item>
-          <Item>Un asesor de CLTiene se pondrá en contacto con el usuario para activar su beneficio.</Item>
-          <Item>CLTiene se reserva el derecho de modificar el catálogo de beneficios disponibles.</Item>
+          <Item>Divergency AI, como desarrolladora de la plataforma, no es responsable directa de los beneficios ofrecidos por cada empresa cliente.</Item>
+          <Item>La empresa organizadora se reserva el derecho de modificar el catálogo de beneficios disponibles.</Item>
         </Section>
 
         <Section icono="🏆" titulo="6. Ranking" color={C.dorado}>
@@ -108,33 +106,32 @@ export default function Terminos({ onVolver }) {
         <Section icono="🔒" titulo="7. Tratamiento de Datos Personales" color="#408DFF" subtitulo="Habeas Data - Ley 1581 de 2012">
           <div style={{ background: "rgba(64,141,255,0.08)", border: "1px solid rgba(64,141,255,0.15)", borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
             <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 16 }}>
-              En cumplimiento de la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b>, CLTiene informa:
+              En cumplimiento de la <b>Ley 1581 de 2012</b> y el <b>Decreto 1377 de 2013</b>, Divergency AI informa:
             </span>
           </div>
-          <Item><b>Responsable:</b> MULTISERVICIOS CL TIENE.</Item>
-          <Item><b>Finalidad:</b> Registro y gestión de la cuenta, personalización de la experiencia, comunicaciones relacionadas con la App, segmentación comercial y ofertas personalizadas.</Item>
+          <Item><b>Responsable:</b> Divergency AI (divergencyai.com).</Item>
+          <Item><b>Finalidad:</b> Registro y gestión de la cuenta, personalización de la experiencia, comunicaciones relacionadas con la App y segmentación para la empresa organizadora.</Item>
           <Item><b>Derechos del titular:</b> El usuario tiene derecho a conocer, actualizar, rectificar y solicitar la supresión de sus datos personales, así como revocar la autorización otorgada.</Item>
-          <Item><b>Datos recopilados:</b> Nombre, correo electrónico, número de teléfono, tipo de perfil, relación con CLTiene y datos de uso de la App.</Item>
-          <Item>La información recopilada en la encuesta inicial se percibe como parte del "perfil de jugador" y no como una encuesta comercial.</Item>
+          <Item><b>Datos recopilados:</b> Nombre, correo electrónico, número de teléfono, tipo de perfil y datos de uso de la App.</Item>
         </Section>
 
         <Section icono="©️" titulo="8. Propiedad Intelectual" color="rgba(255,255,255,0.5)">
-          Todos los contenidos de la App, incluyendo pero no limitado a diseño, logotipos, textos, imágenes
-          y código fuente, son propiedad de CLTiene o de sus licenciantes y están protegidos por las leyes
-          de propiedad intelectual aplicables.
+          Todos los contenidos de la App, incluyendo diseño, logotipos, textos, imágenes, modelos de IA
+          y código fuente, son propiedad de <b>Divergency AI</b> o de sus licenciantes y están protegidos
+          por las leyes de propiedad intelectual de Colombia y tratados internacionales aplicables.
         </Section>
 
         <Section icono="⚖️" titulo="9. Limitación de Responsabilidad" color="rgba(255,255,255,0.5)">
-          <Item>CLTiene no garantiza la disponibilidad continua e ininterrumpida de la App.</Item>
+          <Item>Divergency AI no garantiza la disponibilidad continua e ininterrumpida de la App.</Item>
           <Item>La App <b>no constituye un juego de azar</b> ni una plataforma de apuestas reales.</Item>
-          <Item>CLTiene no será responsable por daños derivados del uso o la imposibilidad de uso de la App.</Item>
+          <Item>Divergency AI no será responsable por daños derivados del uso o la imposibilidad de uso de la App.</Item>
           <Item>Las monedas virtuales <b>no tienen valor monetario real</b>.</Item>
         </Section>
 
         <Section icono="📝" titulo="10. Modificaciones" color="rgba(255,255,255,0.5)">
-          CLTiene se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento.
+          Divergency AI se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento.
           Los cambios serán notificados a los usuarios a través de la App. El uso continuado de la App
-          despúes de la publicación de cambios constituye la aceptación de los mismos.
+          después de la publicación de cambios constituye la aceptación de los mismos.
         </Section>
 
         <Section icono="🇨🇴" titulo="11. Legislación Aplicable" color="rgba(255,255,255,0.5)">
@@ -149,7 +146,7 @@ export default function Terminos({ onVolver }) {
             <p style={{ fontWeight: 800, color: C.naranja, fontSize: 18, marginBottom: 6 }}>Importante</p>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", lineHeight: 1.8 }}>
               Al registrarse y utilizar la App, el usuario declara que ha leído, entendido y aceptado estos
-              Términos y Condiciones, así como la Política de Tratamiento de Datos Personales de CLTiene.
+              Términos y Condiciones, así como la Política de Privacidad de Divergency AI.
             </p>
           </div>
         </div>
@@ -174,7 +171,7 @@ export default function Terminos({ onVolver }) {
         <div style={{ textAlign: "center", marginTop: 32, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 32, opacity: 0.4 }} />
           <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, marginTop: 8 }}>
-            MULTISERVICIOS CL TIENE - Todos los derechos reservados 2026
+            Divergency AI · Todos los derechos reservados 2026
           </p>
         </div>
       </div>

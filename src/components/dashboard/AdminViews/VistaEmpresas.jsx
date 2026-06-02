@@ -5,7 +5,9 @@ export default function VistaEmpresas({ client }) {
   const [empresas, setEmpresas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarFormEmpresa, setMostrarFormEmpresa] = useState(false);
-  const [mostrarFormAdmin, setMostrarFormAdmin] = useState(null); // empresaId
+  const [mostrarFormAdmin, setMostrarFormAdmin] = useState(null);
+  const [adminsEmpresa, setAdminsEmpresa] = useState({}); // { empresaId: [jugadores] }
+  const [mostrarAdmins, setMostrarAdmins] = useState(null); // empresaId
   const [formEmpresa, setFormEmpresa] = useState({ nombre: '', slug: '' });
   const [formAdmin, setFormAdmin] = useState({ email: '', password: '', nombre: '' });
   const [mensaje, setMensaje] = useState('');
@@ -72,6 +74,28 @@ export default function VistaEmpresas({ client }) {
     }
   };
 
+  const cargarAdmins = async (empresaId) => {
+    try {
+      const res = await client.get('/admin/jugadores');
+      const todos = res.data?.jugadores || [];
+      const admins = todos.filter(j => j.empresa_id === empresaId && (j.rol === 'admin' || j.rol === 'superadmin'));
+      setAdminsEmpresa(prev => ({ ...prev, [empresaId]: admins }));
+    } catch {
+      setAdminsEmpresa(prev => ({ ...prev, [empresaId]: [] }));
+    }
+  };
+
+  const quitarAdmin = async (uid, nombre) => {
+    if (!window.confirm(`¿Quitar permisos de admin a "${nombre}"? Pasará a ser jugador normal.`)) return;
+    try {
+      await client.patch(`/admin/jugadores/${uid}/rol`, { rol: 'jugador' });
+      setMensaje(`Admin "${nombre}" degradado a jugador.`);
+      if (mostrarAdmins) cargarAdmins(mostrarAdmins);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al quitar admin');
+    }
+  };
+
   const generarSlug = (nombre) => {
     return nombre
       .toLowerCase()
@@ -85,8 +109,8 @@ export default function VistaEmpresas({ client }) {
     width: '100%',
     padding: '10px 14px',
     borderRadius: 8,
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid var(--input-border)',
+    background: 'var(--input-bg)',
     color: 'var(--texto)',
     fontSize: 14,
     outline: 'none',
@@ -102,6 +126,17 @@ export default function VistaEmpresas({ client }) {
     cursor: 'pointer',
     background: C.naranja,
     color: 'white',
+  };
+
+  const btnCancelar = {
+    padding: '10px 20px',
+    borderRadius: 8,
+    border: '1px solid var(--input-border)',
+    fontWeight: 600,
+    fontSize: 14,
+    cursor: 'pointer',
+    background: 'transparent',
+    color: 'var(--texto)',
   };
 
   if (cargando) {
@@ -167,7 +202,7 @@ export default function VistaEmpresas({ client }) {
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button type="submit" style={btnStyle}>Crear</button>
-              <button type="button" style={{ ...btnStyle, background: 'rgba(255,255,255,0.1)' }} onClick={() => setMostrarFormEmpresa(false)}>
+              <button type="button" style={btnCancelar} onClick={() => setMostrarFormEmpresa(false)}>
                 Cancelar
               </button>
             </div>
@@ -223,7 +258,7 @@ export default function VistaEmpresas({ client }) {
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button type="submit" style={btnStyle}>Crear admin</button>
-              <button type="button" style={{ ...btnStyle, background: 'rgba(255,255,255,0.1)' }} onClick={() => setMostrarFormAdmin(null)}>
+              <button type="button" style={btnCancelar} onClick={() => setMostrarFormAdmin(null)}>
                 Cancelar
               </button>
             </div>
@@ -262,7 +297,7 @@ export default function VistaEmpresas({ client }) {
                 Creada: {new Date(empresa.created_at).toLocaleDateString()}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
                 style={{ ...btnStyle, fontSize: 12, padding: '8px 14px' }}
                 onClick={() => {
@@ -275,12 +310,50 @@ export default function VistaEmpresas({ client }) {
                 + Admin
               </button>
               <button
+                style={{ ...btnStyle, fontSize: 12, padding: '8px 14px', background: 'rgba(64,141,255,0.15)', color: '#408DFF', border: '1px solid rgba(64,141,255,0.3)' }}
+                onClick={() => {
+                  if (mostrarAdmins === empresa.id) {
+                    setMostrarAdmins(null);
+                  } else {
+                    setMostrarAdmins(empresa.id);
+                    cargarAdmins(empresa.id);
+                  }
+                }}
+              >
+                👥 Admins
+              </button>
+              <button
                 style={{ ...btnStyle, fontSize: 12, padding: '8px 14px', background: 'rgba(231,76,60,0.2)', color: '#e74c3c', border: '1px solid rgba(231,76,60,0.3)' }}
                 onClick={() => eliminarEmpresa(empresa)}
               >
                 Eliminar
               </button>
             </div>
+            {mostrarAdmins === empresa.id && (
+              <div style={{ width: '100%', marginTop: 12, padding: '12px 14px', background: 'var(--input-bg)', borderRadius: 8, border: '1px solid var(--input-border)' }}>
+                <div style={{ color: 'var(--texto-sec)', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>ADMINS DE {empresa.nombre.toUpperCase()}</div>
+                {(() => { const lista = Array.isArray(adminsEmpresa[empresa.id]) ? adminsEmpresa[empresa.id] : null; return lista === null ? (
+                  <div style={{ color: 'var(--texto-ter)', fontSize: 13 }}>Cargando...</div>
+                ) : lista.length === 0 ? (
+                  <div style={{ color: 'var(--texto-ter)', fontSize: 13 }}>Sin admins asignados</div>
+                ) : (
+                  lista.map(admin => (
+                    <div key={admin.uid} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--input-border)' }}>
+                      <div>
+                        <div style={{ color: 'var(--texto)', fontSize: 13, fontWeight: 600 }}>{admin.nombre}</div>
+                        <div style={{ color: 'var(--texto-ter)', fontSize: 12 }}>{admin.email}</div>
+                      </div>
+                      <button
+                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(231,76,60,0.4)', background: 'rgba(231,76,60,0.1)', color: '#e74c3c', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => quitarAdmin(admin.uid, admin.nombre)}
+                      >
+                        Quitar admin
+                      </button>
+                    </div>
+                  ))
+                ); })()}
+              </div>
+            )}
           </div>
         ))}
 

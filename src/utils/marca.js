@@ -1,8 +1,9 @@
 import logoDefault from "../assets/logo.png";
+import { sGet, sSet, getEmpresaSlug } from "./storage";
 
 export const leerConfigMarca = () => {
   try {
-    const raw = localStorage.getItem("config_marca");
+    const raw = sGet("config_marca");
     if (!raw) return null;
     return JSON.parse(raw);
   } catch {
@@ -33,35 +34,45 @@ const resolverUrlLogo = (url) => {
   return null;
 };
 
+const DEFAULTS_MARCA = {
+  color_primario: "#FD7751",
+  color_secundario: "#ED1E28",
+  color_acento: "#ECA82D",
+  color_fondo: "#0f0a1e",
+};
+
 export const aplicarConfigMarca = (config) => {
   if (!config || typeof document === "undefined") return;
   const root = document.documentElement;
 
   if (config.nombre_app) document.title = config.nombre_app;
 
- 
   // El favicon lo controla index.html — no se toca desde JS
-  if (config.color_primario) root.style.setProperty("--brand-primary", config.color_primario);
-  if (config.color_secundario) root.style.setProperty("--brand-secondary", config.color_secundario);
-  if (config.color_acento) root.style.setProperty("--brand-accent", config.color_acento);
-  if (config.color_fondo) {
-    root.style.setProperty("--brand-bg", config.color_fondo);
-    root.style.setProperty("--bg", config.color_fondo);
-  }
+  // Siempre aplica (usa default si el valor viene null/vacío)
+  const primario = config.color_primario || DEFAULTS_MARCA.color_primario;
+  const secundario = config.color_secundario || DEFAULTS_MARCA.color_secundario;
+  const acento = config.color_acento || DEFAULTS_MARCA.color_acento;
+  const fondo = config.color_fondo || DEFAULTS_MARCA.color_fondo;
 
-  const rgbPrimario = hexToRgb(config.color_primario);
+  root.style.setProperty("--brand-primary", primario);
+  root.style.setProperty("--brand-secondary", secundario);
+  root.style.setProperty("--brand-accent", acento);
+  root.style.setProperty("--brand-bg", fondo);
+  root.style.setProperty("--bg", fondo);
+
+  const rgbPrimario = hexToRgb(primario);
   if (rgbPrimario) {
     root.style.setProperty("--brand-primary-rgb", rgbPrimario);
     root.style.setProperty("--nav-border", `rgba(${rgbPrimario}, 0.2)`);
   }
 
-  const rgbAcento = hexToRgb(config.color_acento);
+  const rgbAcento = hexToRgb(acento);
   if (rgbAcento) root.style.setProperty("--brand-accent-rgb", rgbAcento);
 };
 
 export const guardarConfigMarca = (config) => {
   if (!config) return;
-  localStorage.setItem("config_marca", JSON.stringify(config));
+  sSet("config_marca", JSON.stringify({ ...config, _slug: getEmpresaSlug() }));
   aplicarConfigMarca(config);
 };
 

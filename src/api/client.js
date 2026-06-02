@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { sGet, sRemove } from '../utils/storage'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 if (import.meta.env.MODE === 'production' && !import.meta.env.VITE_API_BASE_URL) {
@@ -13,7 +14,7 @@ const client = axios.create({
 
 // Interceptor: agregar token JWT a cada request
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = sGet('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -32,9 +33,9 @@ client.interceptors.response.use(
     // 401 = token inválido; 403 en rutas de usuario = token expirado o usuario eliminado
     const esRutaAuth = url.includes('/jugadores/') || url.includes('/config-marca') || url.includes('/partidos') || url.includes('/ranking')
     if (status === 401 || (status === 403 && esRutaAuth)) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('usuario')
-      localStorage.removeItem('config_marca')
+      sRemove('token')
+      sRemove('usuario')
+      sRemove('config_marca')
     }
     return Promise.reject(error)
   }

@@ -48,18 +48,18 @@ export default function Privacidad({ onVolver }) {
           <div style={{ fontSize: 40, marginBottom: 8 }}>🔒</div>
           <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Política de Privacidad</h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>
-            Protección de Datos Personales - CLTiene Mundial 2026
+            Protección de Datos Personales · Divergency AI - Mundial 2026
           </p>
           <div style={{ display: "inline-block", marginTop: 10, background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: "4px 14px" }}>
-            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>Última actualización: Marzo 2026</span>
+            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>Última actualización: Junio 2026</span>
           </div>
         </div>
 
         {/* Secciones */}
         <Section icono="🏢" titulo="1. Responsable del Tratamiento" color={C.azul}>
-          <Item><b>Empresa:</b> MULTISERVICIOS CL TIENE</Item>
-          <Item><b>Aplicación:</b> Predicciones CLTiene - Mundial 2026</Item>
-          <Item>CLTiene actúa como responsable del tratamiento de los datos personales recopilados a través de la aplicación.</Item>
+          <Item><b>Empresa:</b> Divergency AI</Item>
+          <Item><b>Sitio web:</b> https://divergencyai.com</Item>
+          <Item>Divergency AI actúa como responsable del tratamiento de los datos personales recopilados a través de esta plataforma.</Item>
         </Section>
 
         <Section icono="📋" titulo="2. Datos que Recopilamos" color={C.naranja}>
@@ -68,7 +68,6 @@ export default function Privacidad({ onVolver }) {
           <Item>Correo electrónico</Item>
           <Item>Número de teléfono</Item>
           <Item>Tipo de perfil (persona natural, empresa, organización)</Item>
-          <Item>Relación con CLTiene (cliente, explorador, nuevo)</Item>
           <Item>Información de referidos</Item>
 
           <SubTitle>Datos generados por el uso de la App:</SubTitle>
@@ -85,8 +84,7 @@ export default function Privacidad({ onVolver }) {
           <Item>Personalización de la experiencia de juego.</Item>
           <Item>Envío de notificaciones relacionadas con partidos y predicciones.</Item>
           <Item>Gestión del sistema de monedas, ranking y beneficios.</Item>
-          <Item>Segmentación comercial para ofertas personalizadas de CLTiene.</Item>
-          <Item>Comunicaciones comerciales sobre productos y servicios de CLTiene.</Item>
+          <Item>Segmentación para la empresa cliente organizadora de la experiencia.</Item>
           <Item>Análisis estadístico del comportamiento de los usuarios.</Item>
           <Item>Cumplimiento de obligaciones legales.</Item>
         </Section>
@@ -115,29 +113,28 @@ export default function Privacidad({ onVolver }) {
         <Section icono="📧" titulo="6. Ejercicio de Derechos" color={C.naranja}>
           Para ejercer sus derechos como titular de datos personales, puede comunicarse a través de:
           <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-            <ContactCard icono="📧" tipo="Correo electrónico" valor="privacidad@cltiene.com" />
-            <ContactCard icono="📱" tipo="WhatsApp" valor="Línea de atención CLTiene" />
+            <ContactCard icono="🌐" tipo="Sitio web" valor="https://divergencyai.com" />
           </div>
           <div style={{ marginTop: 12, color: "rgba(255,255,255,0.5)", fontSize: 15 }}>
-            CLTiene dará respuesta a su solicitud en un plazo máximo de <b>quince (15) días hábiles</b> contados
+            Divergency AI dará respuesta a su solicitud en un plazo máximo de <b>quince (15) días hábiles</b> contados
             a partir de la fecha de recibo de la solicitud.
           </div>
         </Section>
 
         <Section icono="🔐" titulo="7. Seguridad de los Datos" color={C.morado}>
-          <Item>CLTiene implementa medidas técnicas, humanas y administrativas para proteger los datos personales.</Item>
-          <Item>Los datos se almacenan en servidores seguros con cifrado y acceso restringido.</Item>
+          <Item>Divergency AI implementa medidas técnicas, humanas y administrativas para proteger los datos personales.</Item>
+          <Item>Los datos se almacenan en servidores seguros con cifrado End-to-End y acceso restringido.</Item>
           <Item>La autenticación se realiza mediante JWT (JSON Web Tokens).</Item>
           <Item>Se realizan respaldos periódicos de la información.</Item>
-          <Item>El acceso a los datos está limitado al personal autorizado.</Item>
+          <Item>Los datos empresariales no se comparten ni se usan para entrenar modelos públicos de IA.</Item>
         </Section>
 
         <Section icono="🤝" titulo="8. Compartición de Datos" color={C.azul}>
-          CLTiene <b>no vende ni comparte</b> datos personales con terceros, excepto en los siguientes casos:
+          Divergency AI <b>no vende ni comparte</b> datos personales con terceros, excepto en los siguientes casos:
           <div style={{ marginTop: 10 }}>
-            <Item>Proveedores de servicios tecnológicos necesarios para el funcionamiento de la App (servidores).</Item>
+            <Item>Proveedores de servicios tecnológicos necesarios para el funcionamiento de la App (servidores), bajo acuerdos de confidencialidad.</Item>
             <Item>Cuando sea requerido por autoridad judicial o administrativa competente.</Item>
-            <Item>Para la gestión de beneficios canjeados (contacto con asesores CLTiene).</Item>
+            <Item>Con la empresa cliente organizadora, para gestión de los beneficios canjeados por el usuario.</Item>
           </div>
         </Section>
 
@@ -154,7 +151,7 @@ export default function Privacidad({ onVolver }) {
         </Section>
 
         <Section icono="📝" titulo="11. Modificaciones" color="rgba(255,255,255,0.5)">
-          CLTiene se reserva el derecho de modificar esta Política de Privacidad. Los cambios serán
+          Divergency AI se reserva el derecho de modificar esta Política de Privacidad. Los cambios serán
           notificados a través de la App. El uso continuado después de las modificaciones constituye
           la aceptación de la nueva política.
         </Section>
@@ -163,9 +160,9 @@ export default function Privacidad({ onVolver }) {
         <div style={{ marginTop: 32, background: "linear-gradient(135deg, rgba(64,141,255,0.1), rgba(130,43,210,0.08))", border: "1px solid rgba(64,141,255,0.25)", borderRadius: 16, padding: "20px 22px", display: "flex", gap: 14, alignItems: "flex-start" }}>
           <span style={{ fontSize: 28, flexShrink: 0 }}>🛡️</span>
           <div>
-            <p style={{ fontWeight: 800, color: C.azul, fontSize: 18, marginBottom: 6 }}>Compromiso CLTiene</p>
+            <p style={{ fontWeight: 800, color: C.azul, fontSize: 18, marginBottom: 6 }}>Compromiso Divergency AI</p>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", lineHeight: 1.8 }}>
-              En CLTiene nos comprometemos a proteger tu información personal y a utilizarla
+              En Divergency AI nos comprometemos a proteger tu información personal y a utilizarla
               únicamente para brindarte la mejor experiencia durante el Mundial 2026.
               Tu confianza es nuestra prioridad.
             </p>
@@ -192,7 +189,7 @@ export default function Privacidad({ onVolver }) {
         <div style={{ textAlign: "center", marginTop: 32, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <img src={getLogoMarca()} alt={getNombreMarca()} style={{ height: 32, opacity: 0.4 }} />
           <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, marginTop: 8 }}>
-            MULTISERVICIOS CL TIENE - Todos los derechos reservados 2026
+            Divergency AI · Todos los derechos reservados 2026
           </p>
         </div>
       </div>

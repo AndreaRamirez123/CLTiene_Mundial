@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import client from "../api/client";
 import { guardarConfigMarca } from "../utils/marca";
+import { sSet, getEmpresaSlug } from "../utils/storage";
 import logoBlanco from "../assets/logob.png";
 import logoColor from "../assets/logo.png";
 import Terminos from "./Terminos";
@@ -67,6 +68,9 @@ function PasswordStrength({ password }) {
 export default function Login({ onLoginExitoso, onPreRegistro }) {
     const { tema } = useTheme();
     const params = new URLSearchParams(window.location.search);
+    const slugFromPath = window.location.pathname.match(/^\/([a-z0-9_-]+)/)?.[1] || null;
+    const slugFromUrl = params.get('empresa') || params.get('org') || slugFromPath || null;
+    const slugByHost = window.location.hostname.includes('mundial-2.') ? 'cltiene' : 'divergencyai';
     const [modo, setModo] = useState(params.get('registro') !== null ? "registro" : "login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -79,8 +83,13 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
     const [verTerminos, setVerTerminos] = useState(false);
     const [verPrivacidad, setVerPrivacidad] = useState(false);
     const [empresas, setEmpresas] = useState([]);
-    const [empresaSlug, setEmpresaSlug] = useState("default");
-    const [marcaActual, setMarcaActual] = useState(null);
+    const [empresaSlug, setEmpresaSlug] = useState(slugFromUrl || slugByHost);
+    const [marcaActual, setMarcaActual] = useState(() => {
+        try {
+            const raw = localStorage.getItem("config_marca");
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    });
     const googleBtnRef = useRef(null);
     const empresaSlugRef = useRef(empresaSlug);
 
@@ -91,7 +100,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
     useEffect(() => {
         client.get("/auth/empresas-activas")
             .then((res) => {
-                setEmpresas(res.data || [])
+                setEmpresas(res.data || []);
             })
             .catch(() => { });
     }, []);
@@ -188,8 +197,8 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
         try {
             const res = await client.post("/auth/google", { credential: response.credential, empresa_slug: empresaSlugRef.current });
             const usuario = { ...res.data.usuario, googleNombre: res.data.googleNombre };
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("usuario", JSON.stringify(usuario));
+            sSet("token", res.data.token);
+            sSet("usuario", JSON.stringify(usuario));
             onLoginExitoso(usuario);
         } catch (e) {
             setError(obtenerMensajeError(e, "Error al iniciar con Google"));
@@ -213,8 +222,8 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
         setCargando(true); setError("");
         try {
             const res = await client.post("/auth/login", { email, password, empresa_slug: empresaSlug });
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
+            sSet("token", res.data.token);
+            sSet("usuario", JSON.stringify(res.data.usuario));
             onLoginExitoso(res.data.usuario);
         } catch (e) {
             setError(obtenerMensajeError(e, "Ocurrió un error. Intenta de nuevo"));
@@ -270,7 +279,7 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                     <img
                         src={marcaActual?.logo_url?.startsWith("http") ? marcaActual.logo_url : (tema === "oscuro" ? logoBlanco : logoColor)}
                         alt={marcaActual?.nombre_app || "CLTiene Mundial"}
-                        style={{ width: "200px", height: "auto", display: "block", margin: "0 auto" }}
+                        style={{ width: "200px", height: "auto", display: "block", margin: "0 auto", filter: (marcaActual?.logo_url?.startsWith("http") && tema === "claro") ? "brightness(0)" : "none" }}
                     />
                     <div style={{ color: marcaActual?.color_acento || "var(--brand-accent)", fontWeight: 700, fontSize: "14px", marginTop: "6px" }}>
                         {marcaActual?.subtitulo || "Mundial 2026"} ⚽
@@ -284,8 +293,8 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
                     {modo === "reset-codigo" && "Ingresa el código que recibiste en tu correo"}
                 </p>
 
-                {/* Selector de empresa */}
-                {empresas.length >= 1 && (
+                {/* Selector de empresa — solo si no viene slug por URL */}
+                {!slugFromUrl && empresas.length >= 1 && (
                     <div style={{ marginBottom: "16px" }}>
                         <label style={{ display: "block", color: "var(--texto-sec)", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
                             Selecciona tu organización

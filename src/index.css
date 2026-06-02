@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --brand-primary: #FD7751;
-  --brand-secondary: #ED1E28;
-  --brand-accent: #ECA82D;
-  --brand-bg: #0f0a1e;
-  --brand-primary-rgb: 253, 119, 81;
-  --brand-accent-rgb: 236, 168, 45;
-  --bg: #0f0a1e;
+  --brand-primary: #02f3fe;
+  --brand-secondary: #03052c;
+  --brand-accent: #02f3fe;
+  --brand-bg: #010d73;
+  --brand-primary-rgb: 2, 243, 254;
+  --brand-accent-rgb: 2, 243, 254;
+  --bg: #010d73;
   --bg-gradient: linear-gradient(135deg, #1a0033 0%, var(--bg) 50%, #001a33 100%);
   --card: rgba(255,255,255,0.04);
   --card-border: rgba(255,255,255,0.06);
@@ -36,6 +36,12 @@
   --input-bg: rgba(0,0,0,0.04);
   --input-border: rgba(0,0,0,0.12);
   --overlay: rgba(0,0,0,0.5);
+  /* En modo claro, primario y acento usan el secundario (más oscuro) para mejor legibilidad */
+  --brand-primary: var(--brand-secondary);
+  --brand-accent: var(--brand-secondary);
+  --brand-primary-rgb: var(--brand-secondary-rgb, 3, 5, 44);
+  --brand-accent-rgb: var(--brand-secondary-rgb, 3, 5, 44);
+  --nav-border: rgba(0, 0, 0, 0.12);
 }
 
 /* Tutorial spotlight */

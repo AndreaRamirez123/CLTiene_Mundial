@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getLogoMarca, getNombreMarca } from "../utils/marca";
+import { getLogoMarca, getNombreMarca, leerConfigMarca } from "../utils/marca";
 import logoBlanco from "../assets/logob.png";
 import client from "../api/client";
 import { C } from "../components/dashboard/constants";
@@ -103,7 +103,12 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Segoe UI', sans-serif", paddingBottom: 80, transition: "background 0.3s ease", color: "var(--texto)", overflowX: "hidden", maxWidth: "100vw" }}>
       <div style={{ background: "var(--navbar)", borderBottom: `2px solid ${C.naranja}`, padding: "10px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, transition: "background 0.3s ease", gap: 8, overflow: "hidden" }}>
-        <img src={tema === "oscuro" ? logoBlanco : getLogoMarca()} className="logo-header" style={{ height: 28, flexShrink: 0, maxWidth: 100, objectFit: "contain" }} alt={getNombreMarca()} />
+        <img
+          src={leerConfigMarca()?.logo_url?.startsWith("http") ? leerConfigMarca().logo_url : (tema === "oscuro" ? logoBlanco : getLogoMarca())}
+          className="logo-header"
+          style={{ height: 28, flexShrink: 0, maxWidth: 120, objectFit: "contain", filter: leerConfigMarca()?.logo_url?.startsWith("http") && tema === "claro" ? "brightness(0)" : "none" }}
+          alt={getNombreMarca()}
+        />
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           <div id="tutorial-monedas" className="anim-glow micro-card" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(236,168,45,0.15)", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 20, padding: "5px 10px" }}>
             <span className="anim-coin" style={{ fontSize: 14 }}>🪙</span>
@@ -177,7 +182,7 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
         textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.06)",
       }}>
         <p style={{ color: "var(--texto-ter)", fontSize: 11 }}>
-          Powered by <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>CLTiene</span>
+          Powered by <span style={{ color: "var(--brand-primary)", fontWeight: 700 }}>DivergencyAI</span>
         </p>
         <p style={{ color: "var(--texto-ter)", fontSize: 10, marginTop: 4, opacity: 0.6 }}>
           {new Date().getFullYear()} Todos los derechos reservados.

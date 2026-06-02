@@ -6,6 +6,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>cltiene-mundial-frontend</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      (function () {
+        try {
+          var path = window.location.pathname;
+          var match = path.match(/^\/([a-z0-9_-]+)/);
+          var prefix = (match && match[1]) ? match[1] : (window.location.hostname.includes("mundial-2.") ? "cltiene" : "divergencyai");
+
+          // Colores por defecto por empresa — se aplican ANTES del primer pintado
+          var defaults = {
+            cltiene:     { p: "#FD7751", s: "#ED1E28", a: "#ECA82D", bg: "#0f0a1e", rgb: "253, 119, 81",  rgbA: "236, 168, 45" },
+            divergencyai:{ p: "#02f3fe", s: "#03052c", a: "#02f3fe", bg: "#010d73", rgb: "2, 243, 254",   rgbA: "2, 243, 254"  }
+          };
+          var d = defaults[prefix] || defaults.divergencyai;
+          var r = document.documentElement;
+          r.style.setProperty("--brand-primary",     d.p);
+          r.style.setProperty("--brand-secondary",   d.s);
+          r.style.setProperty("--brand-accent",      d.a);
+          r.style.setProperty("--brand-bg",          d.bg);
+          r.style.setProperty("--bg",                d.bg);
+          r.style.setProperty("--brand-primary-rgb", d.rgb);
+          r.style.setProperty("--brand-accent-rgb",  d.rgbA);
+          r.style.setProperty("--nav-border", "rgba("+d.rgb+", 0.2)");
+
+          // Si hay config personalizada en localStorage, sobreescribir los defaults
+          function toRgb(hex) {
+            if (!hex) return null;
+            var h = hex.replace("#", "");
+            if (h.length === 3) h = h.split("").map(function(x){return x+x;}).join("");
+            var n = parseInt(h, 16);
+            return ((n>>16)&255)+", "+((n>>8)&255)+", "+(n&255);
+          }
+          var raw = localStorage.getItem(prefix + "_config_marca");
+          if (!raw) return;
+          try {
+            var check = JSON.parse(raw);
+            // Si la config tiene _slug y no coincide con el prefix, es datos de otra empresa — eliminar
+            if (check._slug && check._slug !== prefix) {
+              localStorage.removeItem(prefix + "_config_marca");
+              return; // Usar solo los defaults ya aplicados arriba
+            }
+          } catch(e) { return; }
+          var c = JSON.parse(raw);
+          if (c.color_primario) r.style.setProperty("--brand-primary", c.color_primario);
+          if (c.color_secundario) r.style.setProperty("--brand-secondary", c.color_secundario);
+          if (c.color_acento) r.style.setProperty("--brand-accent", c.color_acento);
+          if (c.color_fondo) { r.style.setProperty("--brand-bg", c.color_fondo); r.style.setProperty("--bg", c.color_fondo); }
+          var rgb = toRgb(c.color_primario);
+          if (rgb) { r.style.setProperty("--brand-primary-rgb", rgb); r.style.setProperty("--nav-border", "rgba("+rgb+", 0.2)"); }
+          var rgbA = toRgb(c.color_acento);
+          if (rgbA) r.style.setProperty("--brand-accent-rgb", rgbA);
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

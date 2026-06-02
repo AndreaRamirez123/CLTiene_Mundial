@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { aplicarConfigMarca, guardarConfigMarca } from './utils/marca'
+import { sGet, sSet, sRemove, getEmpresaSlug } from './utils/storage'
 import client from './api/client'
 import Login from './pages/login'
 import Registro from './pages/Registro'
@@ -15,7 +16,7 @@ export default function App() {
   const ssoEjecutado = useRef(false)
 
   useEffect(() => {
-    const cache = localStorage.getItem('config_marca')
+    const cache = sGet('config_marca')
     if (cache) {
       try { aplicarConfigMarca(JSON.parse(cache)) } catch { /* ignore */ }
     }
@@ -24,6 +25,13 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     const ssoUser = params.get('user')
     const ssoSession = params.get('session')
+
+    // Ruta por empresa: si viene ?empresa=slug mostrar siempre el login de esa empresa
+    const empresaParam = params.get('empresa') || params.get('org')
+    if (empresaParam) {
+      setCargando(false)
+      return
+    }
 
     // Opcion C (preferida): token de sesion temporal server-to-server
     if (ssoSession) {
@@ -89,18 +97,18 @@ export default function App() {
       return
     }
 
-    const token = localStorage.getItem('token')
-    const usuarioGuardado = localStorage.getItem('usuario')
+    const token = sGet('token')
+    const usuarioGuardado = sGet('usuario')
 
     if (token && usuarioGuardado) {
       const user = JSON.parse(usuarioGuardado)
+      // El storage ya está aislado por prefijo de empresa — nada adicional que verificar
       setUsuario(user)
       setPerfilCompleto(!!user.nombre)
-      // Refrescar config de marca; si cambió de empresa recargar para re-renderizar logo
       client.get('/config-marca')
         .then((res) => {
           if (res?.data) {
-            const cached = localStorage.getItem('config_marca')
+            const cached = sGet('config_marca')
             const cachedId = cached ? JSON.parse(cached)?.empresa_id : null
             guardarConfigMarca(res.data)
             if (cachedId && cachedId !== res.data.empresa_id) {
@@ -114,12 +122,16 @@ export default function App() {
   }, [])
 
   const handleLogin = (user) => {
-    // Limpiar flags de CUN 360: este login NO viene desde CUN 360
-    localStorage.removeItem('cun360_origen')
-    localStorage.removeItem('cun360_return_url')
+    sRemove('cun360_origen')
+    sRemove('cun360_return_url')
+    // Navegar al path de la empresa para aislar el localStorage
+    const slug = getEmpresaSlug()
+    const targetPath = `/${slug}`
+    if (window.location.pathname !== targetPath) {
+      window.history.replaceState({}, document.title, targetPath)
+    }
     setUsuario(user)
     setPerfilCompleto(!!user.nombre)
-    // Cargar la config de marca correcta para la empresa del usuario
     client.get('/config-marca')
       .then((res) => { if (res?.data) guardarConfigMarca(res.data) })
       .catch(() => {})
@@ -139,14 +151,16 @@ export default function App() {
   }
 
   const handleCerrarSesion = () => {
-    const origenCun = localStorage.getItem('cun360_origen')
-    const returnUrl = localStorage.getItem('cun360_return_url')
+    const origenCun = sGet('cun360_origen')
+    const returnUrl = sGet('cun360_return_url')
+    const slug = getEmpresaSlug()
 
-    localStorage.removeItem('token')
-    localStorage.removeItem('usuario')
-    localStorage.removeItem('config_marca')
-    localStorage.removeItem('cun360_origen')
-    localStorage.removeItem('cun360_return_url')
+    sRemove('token')
+    sRemove('usuario')
+    sRemove('config_marca')
+    sRemove('cun360_origen')
+    sRemove('cun360_return_url')
+    sRemove('empresa_slug_login')
 
     // Si vino desde CUN 360, redirigir alla en vez de mostrar login
     if (origenCun === 'true' && returnUrl) {
@@ -154,9 +168,8 @@ export default function App() {
       return
     }
 
-    setUsuario(null)
-    setPerfilCompleto(false)
-    setMostrarTutorial(false)
+    // Redirigir al path de la empresa para ver su login
+    window.location.href = `/${slug}`
   }
 
   if (cargando) return (
