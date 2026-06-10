@@ -15,6 +15,9 @@ const client = axios.create({
 // Interceptor: agregar token JWT a cada request
 client.interceptors.request.use((config) => {
   const token = sGet('token')
+
+  console.log("TOKEN ENCONTRADO:", token)
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }

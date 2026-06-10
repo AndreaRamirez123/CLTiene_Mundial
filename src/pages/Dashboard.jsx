@@ -73,11 +73,16 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
             monedas: j.monedas || 0,
             predicciones: j.predicciones || 0,
             predicciones_acertadas: j.predicciones_acertadas || 0,
-            esYo: j.uid === usuario.uid,
+            esYo: 
+            j.uid === usuario.uid ||
+            j.id === usuario.id ||
+            j.email === usuario.email ||
+            j.correo === usuario.email,
           };
         }),
       ),
-    ).catch(() => { });
+    ).catch((err) =>
+       {console.error("Error al cargar el ranking:", err) });
 
   useEffect(() => {
     if (!usuario?.uid) return;
