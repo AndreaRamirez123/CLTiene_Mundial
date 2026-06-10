@@ -40,16 +40,16 @@ export default function App() {
       if (!ssoEjecutado.current) {
         ssoEjecutado.current = true
         // Limpiar sesion previa antes de iniciar SSO
-        localStorage.removeItem('token')
-        localStorage.removeItem('usuario')
-        localStorage.removeItem('config_marca')
+        sRemove('token')
+        sRemove('usuario')
+        sRemove('config_marca')
         client.post('/auth/sso-session', { session_token: ssoSession })
           .then(({ data }) => {
-            localStorage.setItem('token', data.token)
-            localStorage.setItem('usuario', JSON.stringify(data.usuario))
-            localStorage.setItem('cun360_origen', 'true')
+            sSet('token', data.token)
+            sSet('usuario', JSON.stringify(data.usuario))
+            sSet('cun360_origen', 'true')
             const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
-            localStorage.setItem('cun360_return_url', returnUrl)
+            sSet('cun360_return_url', returnUrl)
             setUsuario(data.usuario)
             setPerfilCompleto(true)
             window.history.replaceState({}, document.title, window.location.pathname)
@@ -71,16 +71,16 @@ export default function App() {
       if (!ssoEjecutado.current) {
         ssoEjecutado.current = true
         // Limpiar sesion previa antes de iniciar SSO
-        localStorage.removeItem('token')
-        localStorage.removeItem('usuario')
-        localStorage.removeItem('config_marca')
+        sRemove('token')
+        sRemove('usuario')
+        sRemove('config_marca')
         client.post('/auth/sso-cun', { email: ssoUser, empresa_slug: 'cun' })
           .then(({ data }) => {
-            localStorage.setItem('token', data.token)
-            localStorage.setItem('usuario', JSON.stringify(data.usuario))
-            localStorage.setItem('cun360_origen', 'true')
+            sSet('token', data.token)
+            sSet('usuario', JSON.stringify(data.usuario))
+            sSet('cun360_origen', 'true')
             const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
-            localStorage.setItem('cun360_return_url', returnUrl)
+            sSet('cun360_return_url', returnUrl)
             setUsuario(data.usuario)
             setPerfilCompleto(true)
             window.history.replaceState({}, document.title, window.location.pathname)
@@ -139,10 +139,10 @@ export default function App() {
 
   const handleRegistroCompleto = (userActualizado) => {
     const user = { ...(usuario || {}), ...userActualizado }
-    localStorage.setItem('usuario', JSON.stringify(user))
+    sSet('usuario', JSON.stringify(user))
     // Limpiar flags de CUN 360: registro tradicional NO viene desde CUN 360
-    localStorage.removeItem('cun360_origen')
-    localStorage.removeItem('cun360_return_url')
+    sRemove('cun360_origen')
+    sRemove('cun360_return_url')
     setUsuario(user)
     setPerfilCompleto(true)
     setPreRegistro(null)

@@ -38,7 +38,7 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
 
   const cargarPerfil = () =>
     client.get(`/jugadores/${usuario.uid}`)
-      .then((r) => setPerfil(r.data))
+      .then((r) => setPerfil(r.data || null))
       .catch((err) => {
         const s = err.response?.status;
         if (s === 404 || s === 401 || s === 403) {
@@ -62,16 +62,20 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
   const cargarRanking = () =>
     client.get("/ranking?limit=10").then((r) =>
       setRanking(
-        r.data.map((j) => ({
-          pos: j.posicion,
-          nick: j.nick || "",
-          nombre: j.nick ? `@${j.nick}` : j.nombre || "Jugador",
-          goles: j.goles || 0,
-          monedas: j.monedas || 0,
-          predicciones: j.predicciones || 0,
-          predicciones_acertadas: j.predicciones_acertadas || 0,
-          esYo: j.uid === usuario.uid,
-        })),
+        r.data.map((j, index) => {
+          const pos = j.posicion ?? j.pos ?? j.rank ?? index + 1;
+          const nombreBase = j.nombre || j.name || j.nick || j.full_name || "Jugador";
+          return {
+            pos,
+            nick: j.nick || "",
+            nombre: j.nick ? `@${j.nick}` : nombreBase,
+            goles: j.goles || 0,
+            monedas: j.monedas || 0,
+            predicciones: j.predicciones || 0,
+            predicciones_acertadas: j.predicciones_acertadas || 0,
+            esYo: j.uid === usuario.uid,
+          };
+        }),
       ),
     ).catch(() => { });
 
@@ -96,7 +100,24 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
     }
   };
 
-  const nombre = perfil?.nombre || usuario?.displayName?.split(" ")[0] || "Jugador";
+  const nombre = (() => {
+    const candidatos = [
+      perfil?.nombre,
+      perfil?.name,
+      perfil?.full_name,
+      usuario?.nombre,
+      usuario?.name,
+      usuario?.full_name,
+      usuario?.displayName,
+      usuario?.googleNombre,
+      perfil?.nick,
+      usuario?.nick,
+      usuario?.email?.split("@")[0],
+    ];
+    const valor = candidatos.find((v) => typeof v === "string" && v.trim());
+    if (!valor) return "Jugador";
+    return valor.trim().split(/\s+/)[0];
+  })();
   const monedas = perfil?.monedas || 0;
   const posicion = ranking.find((r) => r.esYo)?.pos || "—";
 

@@ -6,6 +6,22 @@ export const getEmpresaSlug = () => {
   return window.location.hostname.includes('mundial-2.') ? 'cltiene' : 'divergencyai';
 };
 
-export const sGet = (key) => localStorage.getItem(`${getEmpresaSlug()}_${key}`);
-export const sSet = (key, value) => localStorage.setItem(`${getEmpresaSlug()}_${key}`, value);
-export const sRemove = (key) => localStorage.removeItem(`${getEmpresaSlug()}_${key}`);
+const buildStorageKey = (key) => `${getEmpresaSlug()}_${key}`;
+
+export const sGet = (key) => {
+  const prefixedKey = buildStorageKey(key);
+  const legacyValue = localStorage.getItem(key);
+  return localStorage.getItem(prefixedKey) ?? legacyValue;
+};
+
+export const sSet = (key, value) => {
+  const prefixedKey = buildStorageKey(key);
+  localStorage.setItem(prefixedKey, value);
+  localStorage.setItem(key, value);
+};
+
+export const sRemove = (key) => {
+  const prefixedKey = buildStorageKey(key);
+  localStorage.removeItem(prefixedKey);
+  localStorage.removeItem(key);
+};

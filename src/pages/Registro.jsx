@@ -1,6 +1,7 @@
 import { useState } from "react";
 import client from "../api/client";
 import { getLogoMarca, getNombreMarca, getSubtituloMarca } from "../utils/marca";
+import { sSet } from "../utils/storage";
 import Terminos from "./Terminos";
 
 const C = {
@@ -94,8 +95,8 @@ export default function Registro({ usuario, preRegistro, onRegistroCompleto, onV
                     ciudad: datos.ciudad || "",
                 });
                 // Guardar token y usuario en localStorage
-                localStorage.setItem("token", res.data.token);
-                localStorage.setItem("usuario", JSON.stringify(res.data.usuario));
+                sSet("token", res.data.token);
+                sSet("usuario", JSON.stringify(res.data.usuario));
             } else if (usuario?.uid) {
                 // Completar perfil de usuario existente (Google login)
                 res = await client.post("/auth/completar-perfil", {
