@@ -11,6 +11,7 @@ import VistaEmpresas from './AdminViews/VistaEmpresas';
 export default function AdminPanel({ usuario, client }) {
   const [tab, setTab] = useState('usuarios');
   const [usuarios, setUsuarios] = useState([]);
+  const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [predicciones, setPrediciones] = useState([]);
   const [estadisticas, setEstadisticas] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -25,8 +26,9 @@ export default function AdminPanel({ usuario, client }) {
     setCargando(true);
     try {
       if (tab === 'usuarios') {
-        const res = await client.get('/admin/jugadores');
+        const res = await client.get('/admin/jugadores?limit=1000');
         setUsuarios(res.data.jugadores || []);
+        setTotalUsuarios(res.data.total || 0);
       }
       if (tab === 'predicciones') {
         const res = await client.get('/admin/predicciones/sin-validar');
@@ -74,7 +76,7 @@ export default function AdminPanel({ usuario, client }) {
             onClick={() => setTab('usuarios')}
             style={btnTabStyle(tab === 'usuarios')}
           >
-            👥 Usuarios ({usuarios.length})
+            👥 Usuarios ({totalUsuarios})
           </button>
           <button
             onClick={() => setTab('predicciones')}

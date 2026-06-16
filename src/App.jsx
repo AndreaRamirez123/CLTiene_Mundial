@@ -45,22 +45,13 @@ export default function App() {
         sRemove('config_marca')
         client.post('/auth/sso-session', { session_token: ssoSession })
           .then(({ data }) => {
-            sSet('token', data.token)
-            sSet('usuario', JSON.stringify(data.usuario || data.user || data.jugador))
-            sSet('cun360_origen', 'true')
-            const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
-            sSet('cun360_return_url', returnUrl)
             const usuarioData = data.usuario || data.user || data.jugador
-
+            const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
             sSet('token', data.token)
             sSet('usuario', JSON.stringify(usuarioData))
             sSet('cun360_origen', 'true')
-
-            const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
             sSet('cun360_return_url', returnUrl)
-
             setUsuario(usuarioData)
-            setPerfilCompleto(true)
             setPerfilCompleto(true)
             window.history.replaceState({}, document.title, window.location.pathname)
             return client.get('/auth/config-publica/cun')
