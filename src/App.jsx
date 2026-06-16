@@ -46,11 +46,21 @@ export default function App() {
         client.post('/auth/sso-session', { session_token: ssoSession })
           .then(({ data }) => {
             sSet('token', data.token)
-            sSet('usuario', JSON.stringify(data.usuario))
+            sSet('usuario', JSON.stringify(data.usuario || data.user || data.jugador))
             sSet('cun360_origen', 'true')
             const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
             sSet('cun360_return_url', returnUrl)
-            setUsuario(data.usuario)
+            const usuarioData = data.usuario || data.user || data.jugador
+
+            sSet('token', data.token)
+            sSet('usuario', JSON.stringify(usuarioData))
+            sSet('cun360_origen', 'true')
+
+            const returnUrl = params.get('return') || document.referrer || 'https://cun360.cun.edu.co'
+            sSet('cun360_return_url', returnUrl)
+
+            setUsuario(usuarioData)
+            setPerfilCompleto(true)
             setPerfilCompleto(true)
             window.history.replaceState({}, document.title, window.location.pathname)
             return client.get('/auth/config-publica/cun')
@@ -116,7 +126,7 @@ export default function App() {
             }
           }
         })
-        .catch(() => {})
+        .catch(() => { })
     }
     setCargando(false)
   }, [])
@@ -134,7 +144,7 @@ export default function App() {
     setPerfilCompleto(!!user.nombre)
     client.get('/config-marca')
       .then((res) => { if (res?.data) guardarConfigMarca(res.data) })
-      .catch(() => {})
+      .catch(() => { })
   }
 
   const handleRegistroCompleto = (userActualizado) => {
@@ -188,7 +198,7 @@ export default function App() {
       {mostrarTutorial && (
         <TutorialDemo
           onTerminar={() => setMostrarTutorial(false)}
-          onIrA={() => {}}
+          onIrA={() => { }}
         />
       )}
     </>

@@ -197,7 +197,11 @@ export default function Login({ onLoginExitoso, onPreRegistro }) {
         try {
             const res = await client.post("/auth/google", { credential: response.credential, empresa_slug: empresaSlugRef.current });
             const usuario = { ...res.data.usuario, googleNombre: res.data.googleNombre };
-            sSet("token", res.data.token);
+            const usuarioData = res.data.usuario || res.data.user || res.data.jugador
+
+            sSet("token", res.data.token)
+            sSet("usuario", JSON.stringify(usuarioData))
+            onLoginExitoso(usuarioData)
             sSet("usuario", JSON.stringify(usuario));
             onLoginExitoso(usuario);
         } catch (e) {

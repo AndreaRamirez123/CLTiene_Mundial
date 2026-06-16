@@ -60,7 +60,7 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
     ).catch(() => { });
 
   const cargarRanking = () =>
-    client.get("/ranking?limit=10").then((r) =>
+    client.get("/ranking?limit=10000").then((r) =>
       setRanking(
         r.data.map((j, index) => {
           const pos = j.posicion ?? j.pos ?? j.rank ?? index + 1;
