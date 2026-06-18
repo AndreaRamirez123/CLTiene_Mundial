@@ -251,6 +251,38 @@ export class PrediccionesService {
     };
   }
 
+  async reEvaluarPrediccionesPartido(partidoId: number, goles_local: number, goles_visitante: number) {
+    const resultado =
+      goles_local > goles_visitante ? 'local'
+        : goles_visitante > goles_local ? 'visitante'
+          : 'empate';
+
+    // 1. Deshacer evaluaciones anteriores
+    const predicciones = await this.prediccionRepo.find({ where: { partido_id: partidoId } });
+    for (const pred of predicciones) {
+      if (pred.estado !== 'pendiente') {
+        await this.dataSource.transaction(async (manager) => {
+          const jugador = await manager.findOne(Jugador, { where: { id: pred.jugador_id } });
+          if (!jugador) return;
+          if (pred.goles_ganados > 0) {
+            jugador.goles = Math.max(0, (jugador.goles || 0) - pred.goles_ganados);
+            jugador.predicciones_acertadas = Math.max(0, (jugador.predicciones_acertadas || 0) - 1);
+            await manager.save(Jugador, jugador);
+          }
+          pred.estado = 'pendiente';
+          pred.goles_ganados = 0;
+          await manager.save(Prediccion, pred);
+        });
+      }
+    }
+
+    // 2. Actualizar resultado del partido
+    await this.partidoRepo.update(partidoId, { goles_local, goles_visitante, resultado, estado: 'finalizado' });
+
+    // 3. Re-evaluar con el resultado correcto
+    return this.resolverPrediccionesPartido(partidoId);
+  }
+
   async simularResultado(
     partidoId: number,
     golesLocal: number,

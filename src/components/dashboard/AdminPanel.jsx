@@ -7,6 +7,7 @@ import VistaEstadisticas from './AdminViews/VistaEstadisticas';
 import VistaGeo from './AdminViews/VistaGeo';
 import VistaMarca from './AdminViews/VistaMarca';
 import VistaEmpresas from './AdminViews/VistaEmpresas';
+import VistaPartidos from './AdminViews/VistaPartidos';
 
 export default function AdminPanel({ usuario, client }) {
   const [tab, setTab] = useState('usuarios');
@@ -105,6 +106,12 @@ export default function AdminPanel({ usuario, client }) {
             </button>
           )}
           <button
+            onClick={() => setTab('partidos')}
+            style={btnTabStyle(tab === 'partidos')}
+          >
+            ⚽ Partidos
+          </button>
+          <button
             onClick={() => setTab('marca')}
             style={btnTabStyle(tab === 'marca')}
           >
@@ -124,6 +131,7 @@ export default function AdminPanel({ usuario, client }) {
             {tab === 'estadisticas' && <VistaEstadisticas estadisticas={estadisticas} />}
             {tab === 'geo' && <VistaGeo client={client} />}
             {tab === 'empresas' && esSuperadmin && <VistaEmpresas client={client} />}
+            {tab === 'partidos' && <VistaPartidos client={client} />}
             {tab === 'marca' && <VistaMarca client={client} usuario={usuario} />}
           </>
         )}

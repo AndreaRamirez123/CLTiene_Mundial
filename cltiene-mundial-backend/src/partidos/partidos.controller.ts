@@ -3,6 +3,7 @@ import { PartidosService } from './partidos.service';
 import { ResultadosAutoService } from './resultados-auto.service';
 import { FootballScraperService } from './football-scraper.service';
 import { EliminatoriasService } from './eliminatorias.service';
+import { PrediccionesService } from '../predicciones/predicciones.service';
 import { AdminGuard } from '../admin/admin.guard';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -13,6 +14,7 @@ export class PartidosController {
     private readonly resultadosAutoService: ResultadosAutoService,
     private readonly scraperService: FootballScraperService,
     private readonly eliminatoriasService: EliminatoriasService,
+    private readonly prediccionesService: PrediccionesService,
   ) {}
 
   // Cualquier usuario autenticado puede ver partidos de su empresa
@@ -61,6 +63,19 @@ export class PartidosController {
     @Body() body: { goles_local: number; goles_visitante: number },
   ) {
     return this.partidosService.actualizarResultado(id, body.goles_local, body.goles_visitante);
+  }
+
+  @Post(':id/re-evaluar')
+  @UseGuards(AdminGuard)
+  reEvaluarPredicciones(
+    @Param('id') id: string,
+    @Body() body: { goles_local: number; goles_visitante: number },
+  ) {
+    return this.prediccionesService.reEvaluarPrediccionesPartido(
+      parseInt(id, 10),
+      body.goles_local,
+      body.goles_visitante,
+    );
   }
 
   @Post('actualizar-resultados')
