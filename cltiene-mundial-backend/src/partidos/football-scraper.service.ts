@@ -12,15 +12,85 @@ export interface ResultadoPartido {
 export class FootballScraperService {
   private readonly logger = new Logger(FootballScraperService.name);
 
+  // Mapeo español → variantes en inglés/francés usadas por ESPN y Sofascore
+  private readonly ALIASES: Record<string, string[]> = {
+    'costa de marfil': ['ivory coast', "cote d'ivoire", 'côte d\'ivoire'],
+    'paises bajos': ['netherlands', 'holland'],
+    'brasil': ['brazil'],
+    'alemania': ['germany'],
+    'francia': ['france'],
+    'espana': ['spain'],
+    'belgica': ['belgium'],
+    'suecia': ['sweden'],
+    'suiza': ['switzerland'],
+    'noruega': ['norway'],
+    'dinamarca': ['denmark'],
+    'estados unidos': ['usa', 'united states', 'us'],
+    'eeuu': ['usa', 'united states'],
+    'japon': ['japan'],
+    'corea del sur': ['south korea'],
+    'marruecos': ['morocco'],
+    'camerun': ['cameroon'],
+    'rumania': ['romania'],
+    'turquia': ['turkey', 'turkiye'],
+    'grecia': ['greece'],
+    'ucrania': ['ukraine'],
+    'polonia': ['poland'],
+    'hungria': ['hungary'],
+    'croacia': ['croatia'],
+    'eslovenia': ['slovenia'],
+    'eslovaquia': ['slovakia'],
+    'serbia': ['serbia'],
+    'portugal': ['portugal'],
+    'argentina': ['argentina'],
+    'colombia': ['colombia'],
+    'mexico': ['mexico'],
+    'ecuador': ['ecuador'],
+    'paraguay': ['paraguay'],
+    'uruguay': ['uruguay'],
+    'chile': ['chile'],
+    'peru': ['peru'],
+    'sudafrica': ['south africa'],
+    'canada': ['canada'],
+    'nueva zelanda': ['new zealand'],
+    'arabia saudita': ['saudi arabia'],
+    'iran': ['iran'],
+    'senegal': ['senegal'],
+    'nigeria': ['nigeria'],
+    'ghana': ['ghana'],
+    'egipto': ['egypt'],
+    'argelia': ['algeria'],
+    'tunez': ['tunisia'],
+    'indonesia': ['indonesia'],
+    'rep. democratica del congo': ['dr congo', 'congo dr', 'democratic republic of congo'],
+    'rd congo': ['dr congo', 'congo dr', 'democratic republic of congo'],
+    'bosnia y herzegovina': ['bosnia', 'bosnia & herzegovina', 'bosnia and herzegovina'],
+    'inglaterra': ['england'],
+    'escocia': ['scotland'],
+    'gales': ['wales'],
+    'irlanda': ['ireland', 'republic of ireland'],
+    'irlanda del norte': ['northern ireland'],
+  };
+
   private normalizar(texto: string): string {
     return (texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
   }
 
+  private obtenerVariantes(nombre: string): string[] {
+    const n = this.normalizar(nombre);
+    return [n, ...(this.ALIASES[n] || [])];
+  }
+
   private equiposCoinciden(a: string, b: string): boolean {
-    const na = this.normalizar(a);
-    const nb = this.normalizar(b);
-    if (!na || !nb) return false;
-    return na === nb || na.includes(nb) || nb.includes(na);
+    const varA = this.obtenerVariantes(a);
+    const varB = this.obtenerVariantes(b);
+    for (const va of varA) {
+      for (const vb of varB) {
+        if (!va || !vb) continue;
+        if (va === vb || va.includes(vb) || vb.includes(va)) return true;
+      }
+    }
+    return false;
   }
 
   // ── ESPN API pública (sin auth, sin navegador) ────────────────────────────
