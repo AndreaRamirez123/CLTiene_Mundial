@@ -56,7 +56,9 @@ export class ResultadosAutoService {
 
     const candidatos = pendientes.filter((p) => {
       if (!p.fecha || !p.hora) return false;
-      const fechaHora = new Date(`${p.fecha}T${p.hora}:00`);
+      // La hora se almacena en hora colombiana (UTC-5); agregar el offset evita
+      // que el servidor (UTC) intente buscar resultados 5 horas antes del inicio real.
+      const fechaHora = new Date(`${p.fecha}T${p.hora}:00-05:00`);
       if (isNaN(fechaHora.getTime())) return false;
       if (fechaHora > umbral) return false;
       const local = (p.local_equipo || '').toLowerCase();

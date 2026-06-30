@@ -122,7 +122,9 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
   };
 
   const idsPredichos = new Set(misPredicciones.map((p) => p.partido_id));
-  const pendientes = partidos.filter((p) => p.estado === "pendiente" && !idsPredichos.has(p.id));
+  const pendientes = partidos.filter(
+    (p) => p.estado === "pendiente" && !idsPredichos.has(p.id) && !esBloqueado(p),
+  );
   const fechasDisponibles = [...new Set(pendientes.map((p) => p.fecha))].sort();
   const partidosFiltrados = fechaSeleccionada
     ? pendientes.filter((p) => p.fecha === fechaSeleccionada)
@@ -258,7 +260,11 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
 
           {partidosFiltrados.length === 0 ? (
             <div style={{ color: "var(--texto-ter)", fontSize: 14, textAlign: "center", padding: "40px 0" }}>
-              {partidos.length === 0 ? "Cargando partidos..." : "Ya predijiste todos los partidos disponibles"}
+              {partidos.length === 0
+                ? "Cargando partidos..."
+                : partidos.filter((p) => p.estado === "pendiente" && !idsPredichos.has(p.id)).length > 0
+                ? "No hay partidos con predicción abierta en esta fecha"
+                : "Ya predijiste todos los partidos disponibles"}
             </div>
           ) : (
             partidosFiltrados.map((p, idx) => (
@@ -277,7 +283,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
                   <span style={{ background: "rgba(253,119,81,0.2)", color: "#FD7751", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20 }}>
-                    Grupo {p.grupo}
+                    {p.grupo ? `Grupo ${p.grupo}` : (p.fase || "Partido")}
                   </span>
                   <span style={{ color: "var(--texto-ter)", fontSize: 12 }}>
                     📅 {formatearFecha(p.fecha)} · {p.hora}
@@ -409,7 +415,7 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <span style={{ color: "var(--texto-ter)", fontSize: 11 }}>
-                      Grupo {partido.grupo} · {formatearFecha(partido.fecha)}
+                      {partido.grupo ? `Grupo ${partido.grupo}` : (partido.fase || "Partido")} · {formatearFecha(partido.fecha)}
                     </span>
                     {pred.goles_ganados > 0 && (
                       <span className="anim-goal-flash" style={{ color: C.verde, fontWeight: 900, fontSize: 14 }}>
