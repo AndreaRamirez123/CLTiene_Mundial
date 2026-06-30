@@ -205,8 +205,8 @@ export class PrediccionesService {
         const aciertoSimple = pred.resultado === partido.resultado;
         const aciertoEspecial =
           aciertoSimple &&
-          pred.goles_local === partido.goles_local &&
-          pred.goles_visitante === partido.goles_visitante;
+          Number(pred.goles_local) === Number(partido.goles_local) &&
+          Number(pred.goles_visitante) === Number(partido.goles_visitante);
 
         let golesGanados = 0;
         let estado: string;
