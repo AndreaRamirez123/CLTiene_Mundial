@@ -1,390 +1,185 @@
 import { Injectable, Logger } from '@nestjs/common';
-import puppeteer, { Browser } from 'puppeteer';
 
 export interface ResultadoPartido {
   equipo1: string;
   equipo2: string;
   marcador: string;
-  hora: string;
+  estado: string;
   fuente: string;
-}
-
-export interface ResultadoValidado extends ResultadoPartido {
-  validado: boolean;
-  confianza: number;
-  fuentesQueCoinciden: string[];
 }
 
 @Injectable()
 export class FootballScraperService {
   private readonly logger = new Logger(FootballScraperService.name);
 
-  private async crearBrowser(): Promise<Browser> {
-    return puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-  }
-
   private normalizar(texto: string): string {
-    return texto?.toLowerCase().trim().replace(/\s+/g, ' ') ?? '';
+    return (texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
   }
 
   private equiposCoinciden(a: string, b: string): boolean {
-    if (!a || !b) return false;
     const na = this.normalizar(a);
     const nb = this.normalizar(b);
+    if (!na || !nb) return false;
     return na === nb || na.includes(nb) || nb.includes(na);
   }
 
-  async scrapearFlashScore(): Promise<ResultadoPartido[]> {
-    let browser: Browser | undefined;
+  // ── ESPN API pública (sin auth, sin navegador) ────────────────────────────
+  async scrapearESPN(fecha?: string): Promise<ResultadoPartido[]> {
     try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto('https://www.flashscore.com/football/', { waitUntil: 'networkidle2', timeout: 30000 });
-      await page.waitForSelector('div.event__match', { timeout: 10000 });
+      const dia = fecha || new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dia}`;
 
-      return await page.evaluate(() =>
-        Array.from(document.querySelectorAll('div.event__match'))
-          .slice(0, 20)
-          .map(el => ({
-            equipo1: el.querySelectorAll('span.event__participant')[0]?.textContent?.trim() ?? '',
-            equipo2: el.querySelectorAll('span.event__participant')[1]?.textContent?.trim() ?? '',
-            marcador: el.querySelector('span.event__score')?.textContent?.trim() || 'EN VIVO',
-            hora: el.querySelector('span.event__time')?.textContent?.trim() ?? '',
-            fuente: 'FlashScore',
-          })),
-      );
-    } catch (error) {
-      this.logger.warn(`FlashScore error: ${(error as Error).message}`);
-      return [];
-    } finally {
-      if (browser) await browser.close();
-    }
-  }
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+      });
 
-  async scrapearSofascore(): Promise<ResultadoPartido[]> {
-    let browser: Browser | undefined;
-    try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto('https://www.sofascore.com/football', { waitUntil: 'networkidle2', timeout: 30000 });
-      await page.waitForSelector('[data-testid="event_cell"]', { timeout: 10000 });
-
-      return await page.evaluate(() =>
-        Array.from(document.querySelectorAll('[data-testid="event_cell"]'))
-          .slice(0, 20)
-          .map(el => ({
-            equipo1: el.querySelector('[data-testid="event_cell_home_team_name"]')?.textContent?.trim() ?? '',
-            equipo2: el.querySelector('[data-testid="event_cell_away_team_name"]')?.textContent?.trim() ?? '',
-            marcador: el.querySelector('[data-testid="event_cell_score"]')?.textContent?.trim() || 'EN VIVO',
-            hora: el.querySelector('[data-testid="event_cell_start_time"]')?.textContent?.trim() ?? '',
-            fuente: 'Sofascore',
-          })),
-      );
-    } catch (error) {
-      this.logger.warn(`Sofascore error: ${(error as Error).message}`);
-      return [];
-    } finally {
-      if (browser) await browser.close();
-    }
-  }
-
-  async scrapearESPN(): Promise<ResultadoPartido[]> {
-    let browser: Browser | undefined;
-    try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto('https://www.espn.com/soccer/scoreboard', { waitUntil: 'networkidle2', timeout: 30000 });
-      await page.waitForSelector('.ScoreCell', { timeout: 10000 });
-
-      return await page.evaluate(() =>
-        Array.from(document.querySelectorAll('.ScoreCell'))
-          .slice(0, 20)
-          .map(el => ({
-            equipo1: el.querySelectorAll('.ScoreCell__TeamName')[0]?.textContent?.trim() ?? '',
-            equipo2: el.querySelectorAll('.ScoreCell__TeamName')[1]?.textContent?.trim() ?? '',
-            marcador: el.querySelector('.ScoreCell__Score')?.textContent?.trim() || 'EN VIVO',
-            hora: el.querySelector('.ScoreCell__Time')?.textContent?.trim() ?? '',
-            fuente: 'ESPN',
-          })),
-      );
-    } catch (error) {
-      this.logger.warn(`ESPN error: ${(error as Error).message}`);
-      return [];
-    } finally {
-      if (browser) await browser.close();
-    }
-  }
-
-  async scrapearLivescore(): Promise<ResultadoPartido[]> {
-    let browser: Browser | undefined;
-    try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto('https://www.livescore.com/en/football/', { waitUntil: 'networkidle2', timeout: 30000 });
-      await page.waitForSelector('[data-testid="match-row"]', { timeout: 10000 });
-
-      return await page.evaluate(() =>
-        Array.from(document.querySelectorAll('[data-testid="match-row"]'))
-          .slice(0, 20)
-          .map(el => ({
-            equipo1: el.querySelectorAll('[data-testid="match-row-team-name"]')[0]?.textContent?.trim() ?? '',
-            equipo2: el.querySelectorAll('[data-testid="match-row-team-name"]')[1]?.textContent?.trim() ?? '',
-            marcador: el.querySelector('[data-testid="match-row-score"]')?.textContent?.trim() || 'EN VIVO',
-            hora: el.querySelector('[data-testid="match-row-status"]')?.textContent?.trim() ?? '',
-            fuente: 'Livescore',
-          })),
-      );
-    } catch (error) {
-      this.logger.warn(`Livescore error: ${(error as Error).message}`);
-      return [];
-    } finally {
-      if (browser) await browser.close();
-    }
-  }
-
-  async scrapearGoal(): Promise<ResultadoPartido[]> {
-    let browser: Browser | undefined;
-    try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto('https://www.goal.com/en/livescores', { waitUntil: 'networkidle2', timeout: 30000 });
-      await page.waitForSelector('.fixture', { timeout: 10000 });
-
-      return await page.evaluate(() =>
-        Array.from(document.querySelectorAll('.fixture'))
-          .slice(0, 20)
-          .map(el => ({
-            equipo1: el.querySelectorAll('.team__name')[0]?.textContent?.trim() ?? '',
-            equipo2: el.querySelectorAll('.team__name')[1]?.textContent?.trim() ?? '',
-            marcador: el.querySelector('.fixture__score')?.textContent?.trim() || 'EN VIVO',
-            hora: el.querySelector('.fixture__time')?.textContent?.trim() ?? '',
-            fuente: 'Goal',
-          })),
-      );
-    } catch (error) {
-      this.logger.warn(`Goal error: ${(error as Error).message}`);
-      return [];
-    } finally {
-      if (browser) await browser.close();
-    }
-  }
-
-  async scrapingValidado(): Promise<ResultadoValidado[]> {
-    this.logger.log('Iniciando scraping multi-fuente...');
-
-    const resultados = await Promise.allSettled([
-      this.scrapearFlashScore(),
-      this.scrapearSofascore(),
-      this.scrapearESPN(),
-      this.scrapearLivescore(),
-      this.scrapearGoal(),
-    ]);
-
-    const todasFuentes = resultados
-      .filter((r): r is PromiseFulfilledResult<ResultadoPartido[]> => r.status === 'fulfilled' && r.value.length > 0)
-      .map(r => r.value);
-
-    if (todasFuentes.length === 0) {
-      throw new Error('No se pudo obtener datos de ninguna fuente');
-    }
-
-    this.logger.log(`Fuentes exitosas: ${todasFuentes.length}/5`);
-
-    const fuentePrincipal = todasFuentes[0];
-
-    return fuentePrincipal.map(partido => {
-      const fuentesQueCoinciden = [partido.fuente];
-
-      for (let i = 1; i < todasFuentes.length; i++) {
-        const match = todasFuentes[i].find(p =>
-          this.equiposCoinciden(p.equipo1, partido.equipo1) &&
-          this.equiposCoinciden(p.equipo2, partido.equipo2),
-        );
-        if (match && match.marcador === partido.marcador) {
-          fuentesQueCoinciden.push(match.fuente);
-        }
+      if (!res.ok) {
+        this.logger.warn(`ESPN API ${res.status}`);
+        return [];
       }
 
-      const confianza = fuentesQueCoinciden.length / todasFuentes.length;
+      const data = await res.json();
+      const eventos = data?.events || [];
 
-      return {
-        ...partido,
-        validado: confianza >= 0.5,
-        confianza: Math.round(confianza * 100) / 100,
-        fuentesQueCoinciden,
-      };
-    });
-  }
+      return eventos.map((ev: any) => {
+        const comp = ev.competitions?.[0];
+        const eq1 = comp?.competitors?.find((c: any) => c.homeAway === 'home');
+        const eq2 = comp?.competitors?.find((c: any) => c.homeAway === 'away');
+        const status = comp?.status?.type?.name || '';
+        const finalizado = status === 'STATUS_FINAL' || comp?.status?.type?.completed === true;
+        const marcador = finalizado
+          ? `${eq1?.score ?? 0}-${eq2?.score ?? 0}`
+          : 'EN VIVO';
 
-  async scrapingDinamico() {
-    return this.scrapingValidado();
-  }
-
-  private async buscarEnFlashScore(equipo1: string, equipo2: string): Promise<ResultadoPartido | null> {
-    let browser: Browser | undefined;
-    try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto(`https://www.flashscore.com/search/?q=${encodeURIComponent(equipo1)}`, {
-        waitUntil: 'networkidle2',
-        timeout: 30000,
-      });
-      await page.waitForSelector('div.event__match, .search-result', { timeout: 10000 });
-
-      const resultado = await page.evaluate((e1: string, e2: string) => {
-        const partidos = Array.from(document.querySelectorAll('div.event__match'));
-        for (const el of partidos) {
-          const eq1 = el.querySelectorAll('span.event__participant')[0]?.textContent?.trim() ?? '';
-          const eq2 = el.querySelectorAll('span.event__participant')[1]?.textContent?.trim() ?? '';
-          const norm = (s: string) => s.toLowerCase().trim();
-          if (norm(eq1).includes(norm(e1)) || norm(eq2).includes(norm(e2))) {
-            return {
-              equipo1: eq1,
-              equipo2: eq2,
-              marcador: el.querySelector('span.event__score')?.textContent?.trim() || 'EN VIVO',
-              hora: el.querySelector('span.event__time')?.textContent?.trim() ?? '',
-              fuente: 'FlashScore',
-            };
-          }
-        }
-        return null;
-      }, equipo1, equipo2);
-
-      return resultado;
-    } catch (error) {
-      this.logger.warn(`FlashScore búsqueda error: ${(error as Error).message}`);
-      return null;
-    } finally {
-      if (browser) await browser.close();
+        return {
+          equipo1: eq1?.team?.displayName || '',
+          equipo2: eq2?.team?.displayName || '',
+          marcador,
+          estado: finalizado ? 'finalizado' : status,
+          fuente: 'ESPN',
+        };
+      }).filter((p: ResultadoPartido) => p.equipo1 && p.equipo2);
+    } catch (err) {
+      this.logger.warn(`ESPN error: ${(err as Error).message}`);
+      return [];
     }
   }
 
-  private async buscarEnSofascore(equipo1: string, equipo2: string): Promise<ResultadoPartido | null> {
-    let browser: Browser | undefined;
+  // ── Sofascore API pública ─────────────────────────────────────────────────
+  async scrapearSofascore(fecha?: string): Promise<ResultadoPartido[]> {
     try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto(`https://www.sofascore.com/search/teams/${encodeURIComponent(equipo1)}`, {
-        waitUntil: 'networkidle2',
-        timeout: 30000,
+      const dia = fecha || new Date().toISOString().slice(0, 10);
+      const url = `https://api.sofascore.com/api/v1/sport/football/scheduled-events/${dia}`;
+
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json',
+          'Referer': 'https://www.sofascore.com/',
+        },
       });
-      await page.waitForSelector('[data-testid="event_cell"]', { timeout: 10000 });
 
-      const resultado = await page.evaluate((e1: string, e2: string) => {
-        const partidos = Array.from(document.querySelectorAll('[data-testid="event_cell"]'));
-        for (const el of partidos) {
-          const eq1 = el.querySelector('[data-testid="event_cell_home_team_name"]')?.textContent?.trim() ?? '';
-          const eq2 = el.querySelector('[data-testid="event_cell_away_team_name"]')?.textContent?.trim() ?? '';
-          const norm = (s: string) => s.toLowerCase().trim();
-          if (norm(eq1).includes(norm(e1)) || norm(eq2).includes(norm(e2))) {
-            return {
-              equipo1: eq1,
-              equipo2: eq2,
-              marcador: el.querySelector('[data-testid="event_cell_score"]')?.textContent?.trim() || 'EN VIVO',
-              hora: el.querySelector('[data-testid="event_cell_start_time"]')?.textContent?.trim() ?? '',
-              fuente: 'Sofascore',
-            };
-          }
-        }
-        return null;
-      }, equipo1, equipo2);
+      if (!res.ok) {
+        this.logger.warn(`Sofascore API ${res.status}`);
+        return [];
+      }
 
-      return resultado;
-    } catch (error) {
-      this.logger.warn(`Sofascore búsqueda error: ${(error as Error).message}`);
-      return null;
-    } finally {
-      if (browser) await browser.close();
+      const data = await res.json();
+      const eventos = (data?.events || []) as any[];
+
+      // Filtrar solo partidos del Mundial FIFA
+      const mundial = eventos.filter((ev: any) =>
+        ev.tournament?.uniqueTournament?.id === 16 || // FIFA World Cup id
+        (ev.tournament?.name || '').toLowerCase().includes('world cup') ||
+        (ev.tournament?.name || '').toLowerCase().includes('mundial'),
+      );
+
+      return mundial.map((ev: any) => {
+        const finalizado = ev.status?.type === 'finished';
+        const marcador = finalizado
+          ? `${ev.homeScore?.current ?? 0}-${ev.awayScore?.current ?? 0}`
+          : 'EN VIVO';
+
+        return {
+          equipo1: ev.homeTeam?.name || '',
+          equipo2: ev.awayTeam?.name || '',
+          marcador,
+          estado: ev.status?.type || '',
+          fuente: 'Sofascore',
+        };
+      }).filter((p: ResultadoPartido) => p.equipo1 && p.equipo2);
+    } catch (err) {
+      this.logger.warn(`Sofascore error: ${(err as Error).message}`);
+      return [];
     }
   }
 
-  private async buscarEnLivescore(equipo1: string, equipo2: string): Promise<ResultadoPartido | null> {
-    let browser: Browser | undefined;
-    try {
-      browser = await this.crearBrowser();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-      await page.goto(`https://www.livescore.com/en/search/?q=${encodeURIComponent(equipo1)}`, {
-        waitUntil: 'networkidle2',
-        timeout: 30000,
-      });
-      await page.waitForSelector('[data-testid="match-row"]', { timeout: 10000 });
-
-      const resultado = await page.evaluate((e1: string, e2: string) => {
-        const partidos = Array.from(document.querySelectorAll('[data-testid="match-row"]'));
-        for (const el of partidos) {
-          const eq1 = el.querySelectorAll('[data-testid="match-row-team-name"]')[0]?.textContent?.trim() ?? '';
-          const eq2 = el.querySelectorAll('[data-testid="match-row-team-name"]')[1]?.textContent?.trim() ?? '';
-          const norm = (s: string) => s.toLowerCase().trim();
-          if (norm(eq1).includes(norm(e1)) || norm(eq2).includes(norm(e2))) {
-            return {
-              equipo1: eq1,
-              equipo2: eq2,
-              marcador: el.querySelector('[data-testid="match-row-score"]')?.textContent?.trim() || 'EN VIVO',
-              hora: el.querySelector('[data-testid="match-row-status"]')?.textContent?.trim() ?? '',
-              fuente: 'Livescore',
-            };
-          }
-        }
-        return null;
-      }, equipo1, equipo2);
-
-      return resultado;
-    } catch (error) {
-      this.logger.warn(`Livescore búsqueda error: ${(error as Error).message}`);
-      return null;
-    } finally {
-      if (browser) await browser.close();
-    }
-  }
-
-  async buscarPartido(equipo1: string, equipo2: string): Promise<{
+  // ── Método principal: buscar un partido específico ────────────────────────
+  async buscarPartido(equipo1: string, equipo2: string, fecha?: string): Promise<{
     encontrado: boolean;
-    fuentes: ResultadoPartido[];
-    validado: boolean;
+    marcador: string | null;
+    finalizado: boolean;
+    fuente: string;
     confianza: number;
-    resumen: string;
   }> {
-    this.logger.log(`Buscando partido: ${equipo1} vs ${equipo2}`);
+    this.logger.log(`Buscando: ${equipo1} vs ${equipo2}`);
 
-    const resultados = await Promise.allSettled([
-      this.buscarEnFlashScore(equipo1, equipo2),
-      this.buscarEnSofascore(equipo1, equipo2),
-      this.buscarEnLivescore(equipo1, equipo2),
+    const [resESPN, resSofa] = await Promise.allSettled([
+      this.scrapearESPN(fecha),
+      this.scrapearSofascore(fecha),
     ]);
 
-    const fuentes = resultados
-      .filter((r): r is PromiseFulfilledResult<ResultadoPartido> => r.status === 'fulfilled' && r.value !== null)
-      .map(r => r.value);
+    const fuentes = [
+      ...(resESPN.status === 'fulfilled' ? resESPN.value : []),
+      ...(resSofa.status === 'fulfilled' ? resSofa.value : []),
+    ];
 
-    const encontrado = fuentes.length > 0;
-    const confianza = Math.round((fuentes.length / 3) * 100) / 100;
-    const validado = fuentes.length >= 2;
+    this.logger.log(`Partidos encontrados en fuentes: ${fuentes.length}`);
 
-    const marcadores = [...new Set(fuentes.map(f => f.marcador))];
-    const marcadorConcordante = marcadores.length === 1 ? marcadores[0] : null;
+    // Buscar el partido en las fuentes
+    const coincidencias = fuentes.filter(p =>
+      (this.equiposCoinciden(p.equipo1, equipo1) && this.equiposCoinciden(p.equipo2, equipo2)) ||
+      (this.equiposCoinciden(p.equipo1, equipo2) && this.equiposCoinciden(p.equipo2, equipo1)),
+    );
 
-    let resumen: string;
-    if (!encontrado) {
-      resumen = `Partido ${equipo1} vs ${equipo2} NO encontrado en ninguna fuente.`;
-    } else if (validado && marcadorConcordante) {
-      resumen = `Partido VALIDADO en ${fuentes.length}/3 fuentes. Marcador confirmado: ${marcadorConcordante}`;
-    } else if (encontrado && !validado) {
-      resumen = `Partido encontrado solo en ${fuentes.length}/3 fuente(s). Verificación insuficiente.`;
-    } else {
-      resumen = `Partido encontrado en ${fuentes.length}/3 fuentes pero marcadores discrepan: ${marcadores.join(' / ')}`;
+    if (coincidencias.length === 0) {
+      return { encontrado: false, marcador: null, finalizado: false, fuente: '', confianza: 0 };
     }
 
-    return { encontrado, fuentes, validado, confianza, resumen };
+    // Tomar resultados finalizados primero
+    const finalizados = coincidencias.filter(p => p.marcador !== 'EN VIVO' && p.estado === 'finalizado');
+    const mejor = finalizados[0] || coincidencias[0];
+    const finalizado = mejor.estado === 'finalizado';
+
+    // Confianza: cuántas fuentes coinciden en el mismo marcador
+    const marcadores = coincidencias.map(p => p.marcador).filter(m => m !== 'EN VIVO');
+    const conteoPorMarcador: Record<string, number> = {};
+    for (const m of marcadores) conteoPorMarcador[m] = (conteoPorMarcador[m] || 0) + 1;
+    const marcadorFinal = Object.entries(conteoPorMarcador).sort((a, b) => b[1] - a[1])[0]?.[0] || mejor.marcador;
+    const confianza = Math.min(coincidencias.length / 2, 1);
+
+    return {
+      encontrado: true,
+      marcador: finalizado ? marcadorFinal : null,
+      finalizado,
+      fuente: coincidencias.map(c => c.fuente).join(', '),
+      confianza,
+    };
+  }
+
+  // ── Método legacy para el endpoint /partidos/scraping ─────────────────────
+  async scrapingValidado() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const [resESPN, resSofa] = await Promise.allSettled([
+      this.scrapearESPN(),
+      this.scrapearSofascore(hoy),
+    ]);
+
+    const todos = [
+      ...(resESPN.status === 'fulfilled' ? resESPN.value : []),
+      ...(resSofa.status === 'fulfilled' ? resSofa.value : []),
+    ];
+
+    return todos;
   }
 }
