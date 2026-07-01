@@ -84,6 +84,15 @@ export class PartidosController {
     return this.resultadosAutoService.actualizarResultados();
   }
 
+  // Endpoint público para Cloud Scheduler (sin auth, protegido por token secreto)
+  @Get('cron/tick')
+  cronTick(@Query('token') token: string) {
+    if (token !== 'mundial2026cron') {
+      return { ok: false };
+    }
+    return this.resultadosAutoService.actualizarResultados();
+  }
+
   @Put('playoff')
   @UseGuards(AdminGuard)
   actualizarEquipoPlayoff(
