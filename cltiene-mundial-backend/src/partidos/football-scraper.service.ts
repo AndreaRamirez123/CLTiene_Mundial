@@ -98,44 +98,56 @@ export class FootballScraperService {
 
   // ── ESPN API pública (sin auth, sin navegador) ────────────────────────────
   async scrapearESPN(fecha?: string): Promise<ResultadoPartido[]> {
-    try {
-      const dia = fecha || new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dia}`;
+    const dia = fecha || new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    // Intentar múltiples slugs por si ESPN cambia el identificador del torneo
+    const slugs = ['fifa.world', 'fifa.worldcup', 'fifa.worldcup.2026', 'soccer'];
 
-      const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-      });
+    for (const slug of slugs) {
+      try {
+        const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${dia}`;
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+        });
 
-      if (!res.ok) {
-        this.logger.warn(`ESPN API ${res.status}`);
-        return [];
+        if (!res.ok) {
+          this.logger.warn(`ESPN [${slug}] ${res.status}`);
+          continue;
+        }
+
+        const data = await res.json();
+        const eventos = data?.events || [];
+
+        if (eventos.length === 0) {
+          this.logger.log(`ESPN [${slug}] sin eventos para ${dia}, probando siguiente slug...`);
+          continue;
+        }
+
+        this.logger.log(`ESPN [${slug}] encontró ${eventos.length} evento(s) para ${dia}`);
+
+        return eventos.map((ev: any) => {
+          const comp = ev.competitions?.[0];
+          const eq1 = comp?.competitors?.find((c: any) => c.homeAway === 'home');
+          const eq2 = comp?.competitors?.find((c: any) => c.homeAway === 'away');
+          const status = comp?.status?.type?.name || '';
+          const finalizado = status === 'STATUS_FINAL' || comp?.status?.type?.completed === true;
+          const marcador = finalizado
+            ? `${eq1?.score ?? 0}-${eq2?.score ?? 0}`
+            : 'EN VIVO';
+
+          return {
+            equipo1: eq1?.team?.displayName || '',
+            equipo2: eq2?.team?.displayName || '',
+            marcador,
+            estado: finalizado ? 'finalizado' : status,
+            fuente: `ESPN:${slug}`,
+          };
+        }).filter((p: ResultadoPartido) => p.equipo1 && p.equipo2);
+      } catch (err) {
+        this.logger.warn(`ESPN [${slug}] error: ${(err as Error).message}`);
       }
-
-      const data = await res.json();
-      const eventos = data?.events || [];
-
-      return eventos.map((ev: any) => {
-        const comp = ev.competitions?.[0];
-        const eq1 = comp?.competitors?.find((c: any) => c.homeAway === 'home');
-        const eq2 = comp?.competitors?.find((c: any) => c.homeAway === 'away');
-        const status = comp?.status?.type?.name || '';
-        const finalizado = status === 'STATUS_FINAL' || comp?.status?.type?.completed === true;
-        const marcador = finalizado
-          ? `${eq1?.score ?? 0}-${eq2?.score ?? 0}`
-          : 'EN VIVO';
-
-        return {
-          equipo1: eq1?.team?.displayName || '',
-          equipo2: eq2?.team?.displayName || '',
-          marcador,
-          estado: finalizado ? 'finalizado' : status,
-          fuente: 'ESPN',
-        };
-      }).filter((p: ResultadoPartido) => p.equipo1 && p.equipo2);
-    } catch (err) {
-      this.logger.warn(`ESPN error: ${(err as Error).message}`);
-      return [];
     }
+
+    return [];
   }
 
   // ── Sofascore API pública ─────────────────────────────────────────────────
@@ -160,14 +172,11 @@ export class FootballScraperService {
       const data = await res.json();
       const eventos = (data?.events || []) as any[];
 
-      // Filtrar solo partidos del Mundial FIFA
-      const mundial = eventos.filter((ev: any) =>
-        ev.tournament?.uniqueTournament?.id === 16 || // FIFA World Cup id
-        (ev.tournament?.name || '').toLowerCase().includes('world cup') ||
-        (ev.tournament?.name || '').toLowerCase().includes('mundial'),
-      );
+      // No filtrar por tournament ID fijo — el ID puede cambiar entre ediciones.
+      // El método buscarPartido usa matching de nombres para filtrar correctamente.
+      this.logger.log(`Sofascore: ${eventos.length} eventos totales para ${dia}`);
 
-      return mundial.map((ev: any) => {
+      return eventos.map((ev: any) => {
         const finalizado = ev.status?.type === 'finished';
         const marcador = finalizado
           ? `${ev.homeScore?.current ?? 0}-${ev.awayScore?.current ?? 0}`
