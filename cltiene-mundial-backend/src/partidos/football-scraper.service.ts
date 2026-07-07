@@ -6,13 +6,15 @@ export interface ResultadoPartido {
   marcador: string;
   estado: string;
   fuente: string;
+  penales?: string | null;
+  penalesGanador?: string | null;
 }
 
 @Injectable()
 export class FootballScraperService {
   private readonly logger = new Logger(FootballScraperService.name);
 
-  // Mapeo español → variantes en inglés/francés usadas por ESPN y Sofascore
+  // Mapeo español → variantes en inglés/francés usadas por ESPN, Sofascore y API-Football
   private readonly ALIASES: Record<string, string[]> = {
     'costa de marfil': ['ivory coast', "cote d'ivoire", 'côte d\'ivoire'],
     'paises bajos': ['netherlands', 'holland'],
@@ -64,7 +66,6 @@ export class FootballScraperService {
     'indonesia': ['indonesia'],
     'cabo verde': ['cape verde'],
     'austria': ['austria'],
-    'croacia': ['croatia'],
     'rep. democratica del congo': ['dr congo', 'congo dr', 'democratic republic of congo'],
     'rd congo': ['dr congo', 'congo dr', 'democratic republic of congo'],
     'bosnia y herzegovina': ['bosnia', 'bosnia & herzegovina', 'bosnia and herzegovina'],
@@ -96,10 +97,73 @@ export class FootballScraperService {
     return false;
   }
 
-  // ── ESPN API pública (sin auth, sin navegador) ────────────────────────────
+  // ── API-Football (fuente principal) ──────────────────────────────────────
+  async scrapearAPIFootball(fecha?: string): Promise<ResultadoPartido[]> {
+    const apiKey = process.env.API_FOOTBALL_KEY;
+    if (!apiKey) {
+      this.logger.warn('API_FOOTBALL_KEY no configurada');
+      return [];
+    }
+
+    const dia = fecha || new Date().toISOString().slice(0, 10);
+
+    try {
+      const url = `https://v3.football.api-sports.io/fixtures?date=${dia}&league=1&season=2026`;
+      const res = await fetch(url, {
+        headers: {
+          'x-apisports-key': apiKey,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        this.logger.warn(`API-Football ${res.status}`);
+        return [];
+      }
+
+      const data = await res.json();
+      const fixtures = (data?.response || []) as any[];
+
+      this.logger.log(`API-Football: ${fixtures.length} partido(s) para ${dia}`);
+
+      return fixtures.map((f: any) => {
+        const statusShort = f.fixture?.status?.short;
+        // FT=tiempo reglamentario, AET=tiempo extra, PEN=penales
+        const finalizado = ['FT', 'AET', 'PEN'].includes(statusShort);
+
+        const golesLocal = f.goals?.home ?? 0;
+        const golesVisitante = f.goals?.away ?? 0;
+
+        // Penales: api-football retorna el marcador de la tanda
+        const penLocal = f.score?.penalty?.home;
+        const penVisitante = f.score?.penalty?.away;
+        const huboPenales = penLocal !== null && penLocal !== undefined &&
+                            penVisitante !== null && penVisitante !== undefined;
+
+        const penales = huboPenales ? `${penLocal}-${penVisitante}` : null;
+        const penalesGanador = huboPenales
+          ? (penLocal > penVisitante ? 'local' : 'visitante')
+          : null;
+
+        return {
+          equipo1: f.teams?.home?.name || '',
+          equipo2: f.teams?.away?.name || '',
+          marcador: finalizado ? `${golesLocal}-${golesVisitante}` : 'EN VIVO',
+          estado: finalizado ? 'finalizado' : (statusShort || ''),
+          fuente: 'API-Football',
+          penales,
+          penalesGanador,
+        };
+      }).filter((p: ResultadoPartido) => p.equipo1 && p.equipo2);
+    } catch (err) {
+      this.logger.warn(`API-Football error: ${(err as Error).message}`);
+      return [];
+    }
+  }
+
+  // ── ESPN API (fallback) ───────────────────────────────────────────────────
   async scrapearESPN(fecha?: string): Promise<ResultadoPartido[]> {
     const dia = fecha || new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    // Intentar múltiples slugs por si ESPN cambia el identificador del torneo
     const slugs = ['fifa.world', 'fifa.worldcup', 'fifa.worldcup.2026', 'soccer'];
 
     for (const slug of slugs) {
@@ -109,16 +173,13 @@ export class FootballScraperService {
           headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
         });
 
-        if (!res.ok) {
-          this.logger.warn(`ESPN [${slug}] ${res.status}`);
-          continue;
-        }
+        if (!res.ok) { this.logger.warn(`ESPN [${slug}] ${res.status}`); continue; }
 
         const data = await res.json();
         const eventos = data?.events || [];
 
         if (eventos.length === 0) {
-          this.logger.log(`ESPN [${slug}] sin eventos para ${dia}, probando siguiente slug...`);
+          this.logger.log(`ESPN [${slug}] sin eventos para ${dia}`);
           continue;
         }
 
@@ -130,14 +191,10 @@ export class FootballScraperService {
           const eq2 = comp?.competitors?.find((c: any) => c.homeAway === 'away');
           const status = comp?.status?.type?.name || '';
           const finalizado = status === 'STATUS_FINAL' || comp?.status?.type?.completed === true;
-          const marcador = finalizado
-            ? `${eq1?.score ?? 0}-${eq2?.score ?? 0}`
-            : 'EN VIVO';
-
           return {
             equipo1: eq1?.team?.displayName || '',
             equipo2: eq2?.team?.displayName || '',
-            marcador,
+            marcador: finalizado ? `${eq1?.score ?? 0}-${eq2?.score ?? 0}` : 'EN VIVO',
             estado: finalizado ? 'finalizado' : status,
             fuente: `ESPN:${slug}`,
           };
@@ -146,16 +203,14 @@ export class FootballScraperService {
         this.logger.warn(`ESPN [${slug}] error: ${(err as Error).message}`);
       }
     }
-
     return [];
   }
 
-  // ── Sofascore API pública ─────────────────────────────────────────────────
+  // ── Sofascore API (fallback) ──────────────────────────────────────────────
   async scrapearSofascore(fecha?: string): Promise<ResultadoPartido[]> {
     try {
       const dia = fecha || new Date().toISOString().slice(0, 10);
       const url = `https://api.sofascore.com/api/v1/sport/football/scheduled-events/${dia}`;
-
       const res = await fetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -164,28 +219,18 @@ export class FootballScraperService {
         },
       });
 
-      if (!res.ok) {
-        this.logger.warn(`Sofascore API ${res.status}`);
-        return [];
-      }
+      if (!res.ok) { this.logger.warn(`Sofascore API ${res.status}`); return []; }
 
       const data = await res.json();
       const eventos = (data?.events || []) as any[];
-
-      // No filtrar por tournament ID fijo — el ID puede cambiar entre ediciones.
-      // El método buscarPartido usa matching de nombres para filtrar correctamente.
-      this.logger.log(`Sofascore: ${eventos.length} eventos totales para ${dia}`);
+      this.logger.log(`Sofascore: ${eventos.length} eventos para ${dia}`);
 
       return eventos.map((ev: any) => {
         const finalizado = ev.status?.type === 'finished';
-        const marcador = finalizado
-          ? `${ev.homeScore?.current ?? 0}-${ev.awayScore?.current ?? 0}`
-          : 'EN VIVO';
-
         return {
           equipo1: ev.homeTeam?.name || '',
           equipo2: ev.awayTeam?.name || '',
-          marcador,
+          marcador: finalizado ? `${ev.homeScore?.current ?? 0}-${ev.awayScore?.current ?? 0}` : 'EN VIVO',
           estado: ev.status?.type || '',
           fuente: 'Sofascore',
         };
@@ -203,9 +248,43 @@ export class FootballScraperService {
     finalizado: boolean;
     fuente: string;
     confianza: number;
+    penales: string | null;
+    ganador: string | null;
   }> {
     this.logger.log(`Buscando: ${equipo1} vs ${equipo2}`);
 
+    // API-Football primero (fuente oficial)
+    const resAPIFootball = await this.scrapearAPIFootball(fecha);
+    const coincidenciaAPI = resAPIFootball.find(p =>
+      (this.equiposCoinciden(p.equipo1, equipo1) && this.equiposCoinciden(p.equipo2, equipo2)) ||
+      (this.equiposCoinciden(p.equipo1, equipo2) && this.equiposCoinciden(p.equipo2, equipo1)),
+    );
+
+    if (coincidenciaAPI && coincidenciaAPI.marcador !== 'EN VIVO' && coincidenciaAPI.estado === 'finalizado') {
+      this.logger.log(`API-Football encontró: ${equipo1} vs ${equipo2} → ${coincidenciaAPI.marcador}${coincidenciaAPI.penales ? ' (pen: ' + coincidenciaAPI.penales + ')' : ''}`);
+
+      // Determinar ganador real (puede ser diferente al marcador si hubo penales)
+      let ganador: string | null = null;
+      if (coincidenciaAPI.penalesGanador) {
+        // Si el partido fue espejo (visitante vs local invertido en la API)
+        const esInvertido = this.equiposCoinciden(coincidenciaAPI.equipo1, equipo2);
+        ganador = esInvertido
+          ? (coincidenciaAPI.penalesGanador === 'local' ? 'visitante' : 'local')
+          : coincidenciaAPI.penalesGanador;
+      }
+
+      return {
+        encontrado: true,
+        marcador: coincidenciaAPI.marcador,
+        finalizado: true,
+        fuente: 'API-Football',
+        confianza: 1,
+        penales: coincidenciaAPI.penales || null,
+        ganador,
+      };
+    }
+
+    // Fallback: ESPN + Sofascore
     const [resESPN, resSofa] = await Promise.allSettled([
       this.scrapearESPN(fecha),
       this.scrapearSofascore(fecha),
@@ -216,52 +295,47 @@ export class FootballScraperService {
       ...(resSofa.status === 'fulfilled' ? resSofa.value : []),
     ];
 
-    this.logger.log(`Partidos encontrados en fuentes: ${fuentes.length}`);
-
-    // Buscar el partido en las fuentes
     const coincidencias = fuentes.filter(p =>
       (this.equiposCoinciden(p.equipo1, equipo1) && this.equiposCoinciden(p.equipo2, equipo2)) ||
       (this.equiposCoinciden(p.equipo1, equipo2) && this.equiposCoinciden(p.equipo2, equipo1)),
     );
 
     if (coincidencias.length === 0) {
-      return { encontrado: false, marcador: null, finalizado: false, fuente: '', confianza: 0 };
+      return { encontrado: false, marcador: null, finalizado: false, fuente: '', confianza: 0, penales: null, ganador: null };
     }
 
-    // Tomar resultados finalizados primero
     const finalizados = coincidencias.filter(p => p.marcador !== 'EN VIVO' && p.estado === 'finalizado');
     const mejor = finalizados[0] || coincidencias[0];
     const finalizado = mejor.estado === 'finalizado';
 
-    // Confianza: cuántas fuentes coinciden en el mismo marcador
     const marcadores = coincidencias.map(p => p.marcador).filter(m => m !== 'EN VIVO');
     const conteoPorMarcador: Record<string, number> = {};
     for (const m of marcadores) conteoPorMarcador[m] = (conteoPorMarcador[m] || 0) + 1;
     const marcadorFinal = Object.entries(conteoPorMarcador).sort((a, b) => b[1] - a[1])[0]?.[0] || mejor.marcador;
-    const confianza = Math.min(coincidencias.length / 2, 1);
 
     return {
       encontrado: true,
       marcador: finalizado ? marcadorFinal : null,
       finalizado,
       fuente: coincidencias.map(c => c.fuente).join(', '),
-      confianza,
+      confianza: Math.min(coincidencias.length / 2, 1),
+      penales: null,
+      ganador: null,
     };
   }
 
   // ── Método legacy para el endpoint /partidos/scraping ─────────────────────
   async scrapingValidado() {
     const hoy = new Date().toISOString().slice(0, 10);
-    const [resESPN, resSofa] = await Promise.allSettled([
+    const [resAPI, resESPN, resSofa] = await Promise.allSettled([
+      this.scrapearAPIFootball(hoy),
       this.scrapearESPN(),
       this.scrapearSofascore(hoy),
     ]);
-
-    const todos = [
+    return [
+      ...(resAPI.status === 'fulfilled' ? resAPI.value : []),
       ...(resESPN.status === 'fulfilled' ? resESPN.value : []),
       ...(resSofa.status === 'fulfilled' ? resSofa.value : []),
     ];
-
-    return todos;
   }
 }

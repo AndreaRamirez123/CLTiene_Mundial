@@ -202,11 +202,16 @@ export class PrediccionesService {
         });
         if (!jugador) return;
 
+        const fasesEliminatorias = ['Dieciseisavos', 'Octavos', 'Cuartos', 'Semifinales', 'Tercer puesto', 'Final'];
+        const esEliminatoria = fasesEliminatorias.includes(partido.fase);
+
         const aciertoSimple = pred.resultado === partido.resultado;
-        const aciertoEspecial =
-          aciertoSimple &&
-          Number(pred.goles_local) === Number(partido.goles_local) &&
-          Number(pred.goles_visitante) === Number(partido.goles_visitante);
+        // En eliminatorias acertar el ganador (o equipo que avanza por penales) = +3
+        const aciertoEspecial = aciertoSimple && (
+          esEliminatoria ||
+          (Number(pred.goles_local) === Number(partido.goles_local) &&
+           Number(pred.goles_visitante) === Number(partido.goles_visitante))
+        );
 
         let golesGanados = 0;
         let estado: string;
@@ -251,11 +256,12 @@ export class PrediccionesService {
     };
   }
 
-  async reEvaluarPrediccionesPartido(partidoId: number, goles_local: number, goles_visitante: number) {
-    const resultado =
+  async reEvaluarPrediccionesPartido(partidoId: number, goles_local: number, goles_visitante: number, ganador?: string, penales?: string) {
+    const resultado = ganador || (
       goles_local > goles_visitante ? 'local'
         : goles_visitante > goles_local ? 'visitante'
-          : 'empate';
+          : 'empate'
+    );
 
     // 1. Deshacer evaluaciones anteriores
     const predicciones = await this.prediccionRepo.find({ where: { partido_id: partidoId } });
@@ -277,7 +283,9 @@ export class PrediccionesService {
     }
 
     // 2. Actualizar resultado del partido
-    await this.partidoRepo.update(partidoId, { goles_local, goles_visitante, resultado, estado: 'finalizado' });
+    const update: any = { goles_local, goles_visitante, resultado, estado: 'finalizado' };
+    if (penales) update.penales = penales;
+    await this.partidoRepo.update(partidoId, update);
 
     // 3. Re-evaluar con el resultado correcto
     return this.resolverPrediccionesPartido(partidoId);

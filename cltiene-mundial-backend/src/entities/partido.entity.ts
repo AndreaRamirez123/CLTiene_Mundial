@@ -67,6 +67,9 @@ export class Partido {
   })
   estado: string;
 
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  penales: string | null;
+
   @Column({ type: 'tinyint', unsigned: true, nullable: true })
   goles_local: number | null;
 

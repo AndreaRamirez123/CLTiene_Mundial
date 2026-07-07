@@ -60,21 +60,23 @@ export class PartidosController {
   @UseGuards(AdminGuard)
   actualizarResultado(
     @Param('id') id: string,
-    @Body() body: { goles_local: number; goles_visitante: number },
+    @Body() body: { goles_local: number; goles_visitante: number; ganador?: string; penales?: string },
   ) {
-    return this.partidosService.actualizarResultado(id, body.goles_local, body.goles_visitante);
+    return this.partidosService.actualizarResultado(id, body.goles_local, body.goles_visitante, body.ganador, body.penales);
   }
 
   @Post(':id/re-evaluar')
   @UseGuards(AdminGuard)
   reEvaluarPredicciones(
     @Param('id') id: string,
-    @Body() body: { goles_local: number; goles_visitante: number },
+    @Body() body: { goles_local: number; goles_visitante: number; ganador?: string; penales?: string },
   ) {
     return this.prediccionesService.reEvaluarPrediccionesPartido(
       parseInt(id, 10),
       body.goles_local,
       body.goles_visitante,
+      body.ganador,
+      body.penales,
     );
   }
 

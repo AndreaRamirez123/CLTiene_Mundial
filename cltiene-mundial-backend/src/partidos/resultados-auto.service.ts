@@ -72,11 +72,14 @@ export class ResultadosAutoService {
           String(partido.id),
           parsed.goles_local,
           parsed.goles_visitante,
+          found.ganador || undefined,
+          found.penales || undefined,
         );
         await this.prediccionesService.resolverPrediccionesPartido(partido.id);
         await this.eliminatoriasService.verificarYGenerarSiguienteFase(partido.empresa_id);
 
-        const msg = `${partido.local_equipo} ${parsed.goles_local}-${parsed.goles_visitante} ${partido.visitante_equipo} [${found.fuente}]`;
+        const penInfo = found.penales ? ` (pen: ${found.penales})` : '';
+        const msg = `${partido.local_equipo} ${parsed.goles_local}-${parsed.goles_visitante} ${partido.visitante_equipo}${penInfo} [${found.fuente}]`;
         resultados.push(msg);
         this.logger.log(`✅ ${msg}`);
       } catch (err) {

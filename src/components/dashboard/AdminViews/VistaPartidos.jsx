@@ -14,7 +14,7 @@ export default function VistaPartidos({ client }) {
   const [faseActiva, setFaseActiva] = useState('Dieciseisavos');
   const [editando, setEditando] = useState(null);
   const [buscandoIA, setBuscandoIA] = useState(null); // id del partido buscando
-  const [formResult, setFormResult] = useState({ goles_local: 0, goles_visitante: 0 });
+  const [formResult, setFormResult] = useState({ goles_local: 0, goles_visitante: 0, fueAPenales: false, ganador: '', penalesScore: '' });
   const [creando, setCreando] = useState(false);
   const [formNuevo, setFormNuevo] = useState(FORM_VACIO);
   const [cargando, setCargando] = useState(false);
@@ -42,8 +42,26 @@ export default function VistaPartidos({ client }) {
 
   const abrirEditor = (p) => {
     setEditando(p);
-    setFormResult({ goles_local: p.goles_local ?? 0, goles_visitante: p.goles_visitante ?? 0 });
+    setFormResult({
+      goles_local: p.goles_local ?? 0,
+      goles_visitante: p.goles_visitante ?? 0,
+      fueAPenales: !!p.penales,
+      ganador: p.resultado || '',
+      penalesScore: p.penales || '',
+    });
     setMsg(null);
+  };
+
+  const buildPayload = () => {
+    const payload = {
+      goles_local: Number(formResult.goles_local),
+      goles_visitante: Number(formResult.goles_visitante),
+    };
+    if (formResult.fueAPenales && formResult.ganador) {
+      payload.ganador = formResult.ganador;
+      if (formResult.penalesScore) payload.penales = formResult.penalesScore;
+    }
+    return payload;
   };
 
   const guardarResultado = async () => {
@@ -51,10 +69,7 @@ export default function VistaPartidos({ client }) {
     setCargando(true);
     setMsg(null);
     try {
-      const res = await client.put(`/partidos/${editando.id}/resultado`, {
-        goles_local: Number(formResult.goles_local),
-        goles_visitante: Number(formResult.goles_visitante),
-      });
+      const res = await client.put(`/partidos/${editando.id}/resultado`, buildPayload());
       mostrarMsg('ok', `✅ ${res.data.mensaje}`);
       setEditando(null);
       cargar();
@@ -70,10 +85,7 @@ export default function VistaPartidos({ client }) {
     setCargando(true);
     setMsg(null);
     try {
-      const res = await client.post(`/partidos/${editando.id}/re-evaluar`, {
-        goles_local: Number(formResult.goles_local),
-        goles_visitante: Number(formResult.goles_visitante),
-      });
+      const res = await client.post(`/partidos/${editando.id}/re-evaluar`, buildPayload());
       mostrarMsg('ok', `✅ ${res.data.mensaje} — ${res.data.acertadas_simple} simples, ${res.data.acertadas_especial} especiales, ${res.data.fallidas} fallidas`);
       setEditando(null);
       cargar();
@@ -285,9 +297,55 @@ export default function VistaPartidos({ client }) {
                 />
               </div>
             </div>
-            <p style={{ color: 'var(--texto-ter)', fontSize: 11, marginBottom: 14 }}>
-              💡 Para penales: pon el marcador al 90'+extra, el ganador en penales se define por quién tenga más goles en la simulación. Si fue 1-1 y el visitante ganó en penales, pon 1-0 a favor del visitante para que las predicciones se evalúen correctamente.
-            </p>
+            {/* Sección penales */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'var(--texto-sec)' }}>
+                <input
+                  type="checkbox"
+                  checked={formResult.fueAPenales}
+                  onChange={e => setFormResult(f => ({ ...f, fueAPenales: e.target.checked, ganador: '', penalesScore: '' }))}
+                  style={{ width: 16, height: 16, cursor: 'pointer' }}
+                />
+                ¿El partido fue a penales?
+              </label>
+
+              {formResult.fueAPenales && (
+                <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: 11, color: 'var(--texto-ter)', marginBottom: 10 }}>
+                    Pon el marcador del 90' arriba (ej: 1-1) y luego elige quién avanzó en penales.
+                  </div>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={{ fontSize: 11, color: 'var(--texto-sec)', display: 'block', marginBottom: 6 }}>¿Quién avanzó?</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {[
+                        { val: 'local', label: editando?.local_equipo },
+                        { val: 'visitante', label: editando?.visitante_equipo },
+                      ].map(op => (
+                        <button key={op.val} onClick={() => setFormResult(f => ({ ...f, ganador: op.val }))}
+                          style={{
+                            flex: 1, padding: '8px 4px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                            border: formResult.ganador === op.val ? '2px solid #ff6b35' : '1px solid rgba(255,255,255,0.2)',
+                            background: formResult.ganador === op.val ? 'rgba(255,107,53,0.2)' : 'rgba(255,255,255,0.04)',
+                            color: formResult.ganador === op.val ? '#ff6b35' : 'var(--texto-sec)',
+                          }}>
+                          {op.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: 'var(--texto-sec)', display: 'block', marginBottom: 4 }}>Marcador en penales (ej: 4-2)</label>
+                    <input
+                      type="text"
+                      placeholder="4-2"
+                      value={formResult.penalesScore}
+                      onChange={e => setFormResult(f => ({ ...f, penalesScore: e.target.value }))}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'var(--texto)', fontSize: 14, boxSizing: 'border-box' }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
             {msg && (
               <div style={{ padding: '10px 14px', borderRadius: 8, marginBottom: 14, background: msg.tipo === 'ok' ? 'rgba(22,199,132,0.1)' : 'rgba(231,76,60,0.1)', color: msg.tipo === 'ok' ? C.verde : '#e74c3c', fontSize: 13 }}>
                 {msg.texto}

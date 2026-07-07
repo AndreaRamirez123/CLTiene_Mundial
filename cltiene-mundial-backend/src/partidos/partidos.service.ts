@@ -174,20 +174,18 @@ export class PartidosService implements OnModuleInit {
     return { mensaje: 'Partido eliminado' };
   }
 
-  async actualizarResultado(id: string, goles_local: number, goles_visitante: number) {
+  async actualizarResultado(id: string, goles_local: number, goles_visitante: number, ganador?: string, penales?: string) {
     const partidoId = parseInt(id, 10);
-    const resultado =
+    const resultado = ganador || (
       goles_local > goles_visitante ? 'local'
         : goles_visitante > goles_local ? 'visitante'
-          : 'empate';
+          : 'empate'
+    );
 
-    await this.partidoRepo.update(partidoId, {
-      goles_local,
-      goles_visitante,
-      resultado,
-      estado: 'finalizado',
-    });
+    const update: any = { goles_local, goles_visitante, resultado, estado: 'finalizado' };
+    if (penales) update.penales = penales;
 
+    await this.partidoRepo.update(partidoId, update);
     return { mensaje: 'Resultado actualizado' };
   }
 
