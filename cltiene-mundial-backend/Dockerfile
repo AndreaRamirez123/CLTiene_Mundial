@@ -19,6 +19,7 @@ RUN npm ci --legacy-peer-deps
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/uploads ./uploads
+COPY --from=builder /app/.env.production ./.env.production
 
 EXPOSE 8080
 

@@ -202,15 +202,13 @@ export class PrediccionesService {
         });
         if (!jugador) return;
 
-        const fasesEliminatorias = ['Dieciseisavos', 'Octavos', 'Cuartos', 'Semifinales', 'Tercer puesto', 'Final'];
-        const esEliminatoria = fasesEliminatorias.includes(partido.fase);
-
         const aciertoSimple = pred.resultado === partido.resultado;
-        // En eliminatorias acertar el ganador (o equipo que avanza por penales) = +3
+        const huboPenales = !!partido.penales;
+        // Especial (+3): marcador exacto en cualquier fase, O ganador correcto en partido de penales
         const aciertoEspecial = aciertoSimple && (
-          esEliminatoria ||
           (Number(pred.goles_local) === Number(partido.goles_local) &&
-           Number(pred.goles_visitante) === Number(partido.goles_visitante))
+           Number(pred.goles_visitante) === Number(partido.goles_visitante)) ||
+          huboPenales
         );
 
         let golesGanados = 0;

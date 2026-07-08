@@ -108,7 +108,8 @@ export class FootballScraperService {
     const dia = fecha || new Date().toISOString().slice(0, 10);
 
     try {
-      const url = `https://v3.football.api-sports.io/fixtures?date=${dia}&league=1&season=2026`;
+      // Sin filtro de liga — el ID puede variar por edición; el matching de nombres filtra correctamente
+      const url = `https://v3.football.api-sports.io/fixtures?date=${dia}`;
       const res = await fetch(url, {
         headers: {
           'x-apisports-key': apiKey,

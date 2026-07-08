@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(gcloud logging read \"resource.type=cloud_run_revision AND resource.labels.revision_name=cltiene-mundial-backend-00109-z79\" --limit=10 --format=\"value\\(textPayload\\)\" --project=desarrollo-investigaciones 2>&1)",
+      "PowerShell(gcloud run services describe cltiene-mundial-backend --region us-central1 --format=\"yaml\\(spec.template.spec.containers[0].env, spec.template.metadata.annotations\\)\" --project=desarrollo-investigaciones 2>&1)"
+    ]
+  }
+}
