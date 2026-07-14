@@ -467,9 +467,9 @@ export default function Polla({ usuario, cargarPerfil, partidos }) {
                       ) : (
                         <div style={{ color: info.color, fontWeight: 700, fontSize: 13 }}>
                           {pred.estado === "acertada_especial"
-                            ? (partido.penales ? "¡Ganador en penales! +3 ⚽" : "¡Marcador exacto! +3 ⚽")
+                            ? "¡Marcador exacto! +3 ⚽"
                             : pred.estado === "acertada_simple"
-                              ? "¡Ganador correcto! +1 ⚽"
+                              ? (partido.penales ? "¡Ganador en penales! +1 ⚽" : "¡Ganador correcto! +1 ⚽")
                               : info.texto}
                         </div>
                       )}

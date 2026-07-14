@@ -174,17 +174,6 @@ export class MonedasService {
   }
 
   getBonoPorFecha(): number {
-    const fecha = fechaColombiaISO();
-
-    if (fecha >= '2026-06-11' && fecha <= '2026-06-23') return 10;
-    if (fecha >= '2026-06-24' && fecha <= '2026-06-27') return 60;
-    if (fecha >= '2026-06-28' && fecha <= '2026-07-03') return 20;
-    if (fecha >= '2026-07-04' && fecha <= '2026-07-07') return 30;
-    if (fecha >= '2026-07-09' && fecha <= '2026-07-11') return 40;
-    if (fecha >= '2026-07-14' && fecha <= '2026-07-15') return 50;
-    if (fecha === '2026-07-18') return 60;
-    if (fecha === '2026-07-19') return 70;
-
-    return 10;
+    return 40;
   }
 }

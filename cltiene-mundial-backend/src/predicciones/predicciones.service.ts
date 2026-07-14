@@ -203,13 +203,10 @@ export class PrediccionesService {
         if (!jugador) return;
 
         const aciertoSimple = pred.resultado === partido.resultado;
-        const huboPenales = !!partido.penales;
-        // Especial (+3): marcador exacto en cualquier fase, O ganador correcto en partido de penales
-        const aciertoEspecial = aciertoSimple && (
-          (Number(pred.goles_local) === Number(partido.goles_local) &&
-           Number(pred.goles_visitante) === Number(partido.goles_visitante)) ||
-          huboPenales
-        );
+        // Especial (+3): solo marcador exacto. Penales da +1 igual que ganador correcto.
+        const aciertoEspecial = aciertoSimple &&
+          Number(pred.goles_local) === Number(partido.goles_local) &&
+          Number(pred.goles_visitante) === Number(partido.goles_visitante);
 
         let golesGanados = 0;
         let estado: string;
