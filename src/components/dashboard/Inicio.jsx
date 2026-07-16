@@ -3,8 +3,9 @@ import { obtenerInicioMundial } from "../../api/noticias";
 import { useCountdown } from "../../hooks/useCountdown";
 import { getLogoMarca, getNombreMarca, getPublicidadMarca } from "../../utils/marca";
 import { useTheme } from "../../store/useTheme";
+import CampeonBanner from "./CampeonBanner";
 
-export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
+export default function Inicio({ setTab, reclamarBono, partidos, usuario, ranking }) {
   useTheme();
   const [inicioMundial, setInicioMundial] = useState({
     targetDate: "2026-06-11T00:00:00-05:00",
@@ -152,6 +153,7 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario }) {
 
   return (
     <div>
+      <CampeonBanner partidos={partidos} ranking={ranking} />
       <div
         style={{
           background: `linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))`,

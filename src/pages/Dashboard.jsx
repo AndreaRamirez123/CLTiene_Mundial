@@ -190,7 +190,7 @@ export default function Dashboard({ usuario, onCerrarSesion, onAbrirTutorial }) 
       </div>
 
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "20px 14px" }}>
-        {tab === "inicio" && <Inicio setTab={setTab} reclamarBono={reclamarBono} partidos={partidos} usuario={usuario} />}
+        {tab === "inicio" && <Inicio setTab={setTab} reclamarBono={reclamarBono} partidos={partidos} usuario={usuario} ranking={ranking} />}
         {tab === "polla" && <Polla usuario={usuario} cargarPerfil={cargarPerfil} partidos={partidos} />}
         {tab === "ranking" && <Ranking ranking={ranking} />}
         {tab === "misiones" && <Misiones usuario={usuario} cargarPerfil={cargarPerfil} />}
