@@ -62,6 +62,15 @@ export class MonedasService {
     uid: string,
   ): Promise<{ monedas: number; mensaje: string }> {
     const hoy = fechaColombiaISO();
+
+    if (hoy > '2026-07-19') {
+      return {
+        monedas: 0,
+        mensaje:
+          '¡El Mundial 2026 ha finalizado! Gracias por participar. Los canjes siguen disponibles.',
+      };
+    }
+
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
 
     if (!jugador) {

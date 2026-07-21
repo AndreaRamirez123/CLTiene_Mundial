@@ -611,6 +611,13 @@ export class MisionesService {
 
   async jugarTrivia(uid: string, correctas: number) {
     const hoy = fechaColombia();
+
+    if (hoy > '2026-07-19') {
+      throw new BadRequestException(
+        '¡El Mundial 2026 ha finalizado! Ya no es posible ganar monedas.',
+      );
+    }
+
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
 
     if (!jugador) {
@@ -697,6 +704,15 @@ export class MisionesService {
 
   async jugarRunner(uid: string) {
     const hoy = fechaColombia();
+
+    if (hoy > '2026-07-19') {
+      return {
+        mensaje: '¡El Mundial 2026 ha finalizado! Ya no es posible ganar monedas.',
+        monedas_ganadas: 0,
+        ya_jugado: true,
+      };
+    }
+
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
     if (!jugador) throw new BadRequestException('Jugador no encontrado');
 
@@ -808,6 +824,15 @@ export class MisionesService {
 
   async verVideo(uid: string) {
     const hoy = fechaColombia();
+
+    if (hoy > '2026-07-19') {
+      return {
+        mensaje: '¡El Mundial 2026 ha finalizado! Ya no es posible ganar monedas.',
+        monedas_ganadas: 0,
+        ya_visto: true,
+      };
+    }
+
     const jugador = await this.jugadorRepo.findOne({ where: { uid } });
     if (!jugador) throw new BadRequestException('Jugador no encontrado');
 

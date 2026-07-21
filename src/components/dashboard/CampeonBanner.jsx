@@ -56,7 +56,7 @@ export default function CampeonBanner({ partidos, ranking }) {
         background: "linear-gradient(135deg, #1a1200 0%, #2d1f00 40%, #1a0d00 100%)",
         border: "2px solid rgba(255,215,0,0.5)",
         boxShadow: "0 0 40px rgba(255,215,0,0.25)",
-        padding: "24px 20px 20px",
+        padding: "28px 20px 20px",
         textAlign: "center",
       }}>
         {/* Confetti */}

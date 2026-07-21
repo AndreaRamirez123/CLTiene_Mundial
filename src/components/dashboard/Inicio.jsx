@@ -6,6 +6,9 @@ import { useTheme } from "../../store/useTheme";
 import CampeonBanner from "./CampeonBanner";
 
 export default function Inicio({ setTab, reclamarBono, partidos, usuario, ranking }) {
+  const torneoFinalizado = (partidos || []).some(
+    (p) => p.fase === "Final" && p.estado === "finalizado"
+  );
   useTheme();
   const [inicioMundial, setInicioMundial] = useState({
     targetDate: "2026-06-11T00:00:00-05:00",
@@ -257,51 +260,63 @@ export default function Inicio({ setTab, reclamarBono, partidos, usuario, rankin
         <TablaGrupos grupos={grupos} />
       )}
 
-      <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.1))", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 14, padding: "16px", marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.3s", position: "relative", overflow: "hidden" }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 8px 20px rgba(236,168,45,0.2)";
-          e.currentTarget.style.borderColor = "rgba(236,168,45,0.6)";
-          e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,168,45,0.3), rgba(253,119,81,0.15))";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
-          e.currentTarget.style.borderColor = "rgba(236,168,45,0.4)";
-          e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.1))";
-        }}
-      >
-        <div>
-          <div style={{ color: "#ECA82D", fontWeight: 800, fontSize: 15 }}>🪙 Bono diario</div>
-          <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 3 }}>Tienes monedas esperándote</div>
+      {torneoFinalizado ? (
+        <div style={{ background: "linear-gradient(135deg, rgba(22,199,132,0.12), rgba(64,141,255,0.08))", border: "1px solid rgba(22,199,132,0.3)", borderRadius: 14, padding: "16px 18px", marginTop: 6, display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{ fontSize: 32, flexShrink: 0 }}>🏆</span>
+          <div>
+            <div style={{ color: "#16C784", fontWeight: 800, fontSize: 15 }}>¡El Mundial 2026 ha terminado!</div>
+            <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 3, lineHeight: 1.5 }}>
+              Ya no es posible ganar monedas. Puedes canjear tu saldo en la sección de Beneficios.
+            </div>
+          </div>
         </div>
-        <button 
-          className="anim-pulse" 
-          onClick={reclamarBono} 
-          style={{ 
-            background: "linear-gradient(135deg, #ECA82D, #c9891a)", 
-            border: "none", 
-            borderRadius: 10, 
-            color: "#231F20", 
-            fontWeight: 800, 
-            fontSize: 14, 
-            padding: "10px 18px", 
-            cursor: "pointer", 
-            boxShadow: "0 4px 16px rgba(236,168,45,0.4)",
-            transition: "all 0.3s",
-          }}
+      ) : (
+        <div style={{ background: "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.1))", border: "1px solid rgba(236,168,45,0.4)", borderRadius: 14, padding: "16px", marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", transition: "all 0.3s", position: "relative", overflow: "hidden" }}
           onMouseEnter={(e) => {
-            e.target.style.transform = "scale(1.08)";
-            e.target.style.boxShadow = "0 6px 24px rgba(236,168,45,0.6)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 8px 20px rgba(236,168,45,0.2)";
+            e.currentTarget.style.borderColor = "rgba(236,168,45,0.6)";
+            e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,168,45,0.3), rgba(253,119,81,0.15))";
           }}
           onMouseLeave={(e) => {
-            e.target.style.transform = "scale(1)";
-            e.target.style.boxShadow = "0 4px 16px rgba(236,168,45,0.4)";
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+            e.currentTarget.style.borderColor = "rgba(236,168,45,0.4)";
+            e.currentTarget.style.background = "linear-gradient(135deg, rgba(236,168,45,0.2), rgba(253,119,81,0.1))";
           }}
         >
-          Reclamar
-        </button>
-      </div>
+          <div>
+            <div style={{ color: "#ECA82D", fontWeight: 800, fontSize: 15 }}>🪙 Bono diario</div>
+            <div style={{ color: "var(--texto-sec)", fontSize: 12, marginTop: 3 }}>Tienes monedas esperándote</div>
+          </div>
+          <button
+            className="anim-pulse"
+            onClick={reclamarBono}
+            style={{
+              background: "linear-gradient(135deg, #ECA82D, #c9891a)",
+              border: "none",
+              borderRadius: 10,
+              color: "#231F20",
+              fontWeight: 800,
+              fontSize: 14,
+              padding: "10px 18px",
+              cursor: "pointer",
+              boxShadow: "0 4px 16px rgba(236,168,45,0.4)",
+              transition: "all 0.3s",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = "scale(1.08)";
+              e.target.style.boxShadow = "0 6px 24px rgba(236,168,45,0.6)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = "scale(1)";
+              e.target.style.boxShadow = "0 4px 16px rgba(236,168,45,0.4)";
+            }}
+          >
+            Reclamar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
