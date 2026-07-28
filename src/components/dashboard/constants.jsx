@@ -31,19 +31,22 @@ export const formatearFecha = (fecha) => {
   return `${dia} ${meses[parseInt(mes) - 1]}`;
 };
 
-export const Bandera = ({ codigo, nombre, size = 36 }) => (
-  <img
-    src={`https://flagcdn.com/${size === 36 ? "48x36" : "32x24"}/${codigo}.png`}
-    alt={nombre}
-    title={nombre}
-    style={{
-      width: size === 36 ? 48 : 32,
-      height: size,
-      borderRadius: 4,
-      objectFit: "cover",
-    }}
-    onError={(e) => {
-      e.target.style.display = "none";
-    }}
-  />
-);
+export const Bandera = ({ codigo, nombre, size = 36 }) => {
+  // flagcdn usa ratio 4:3; tamaños disponibles: 24x18, 32x24, 48x36, 64x48, 96x72, 160x120
+  const h = size;
+  const w = Math.round(size * 4 / 3);
+  const cdnSizes = [
+    [18, "24x18"], [24, "32x24"], [36, "48x36"],
+    [48, "64x48"], [72, "96x72"], [120, "160x120"],
+  ];
+  const cdn = cdnSizes.find(([s]) => s >= h)?.[1] ?? "96x72";
+  return (
+    <img
+      src={`https://flagcdn.com/${cdn}/${codigo}.png`}
+      alt={nombre}
+      title={nombre}
+      style={{ width: w, height: h, borderRadius: 4, objectFit: "cover", display: "block" }}
+      onError={(e) => { e.target.style.display = "none"; }}
+    />
+  );
+};

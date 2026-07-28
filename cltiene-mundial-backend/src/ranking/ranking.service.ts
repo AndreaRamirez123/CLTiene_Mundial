@@ -39,6 +39,7 @@ export class RankingService {
       id: j.id,
       uid: j.uid,
       nombre: j.nombre || 'Jugador anónimo',
+      nick: j.nick || '',
       goles: j.goles,
       monedas: j.monedas,
       nivel: j.nivel,

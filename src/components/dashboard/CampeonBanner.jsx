@@ -1,4 +1,3 @@
-import { Bandera } from "./constants";
 
 const CONFETTI_ITEMS = [
   { left: "5%", delay: "0s", color: "#FFD700", size: 10, shape: "rect" },
@@ -50,7 +49,6 @@ export default function CampeonBanner({ partidos, ranking }) {
 
       <div style={{
         position: "relative",
-        overflow: "hidden",
         borderRadius: 18,
         marginBottom: 16,
         background: "linear-gradient(135deg, #1a1200 0%, #2d1f00 40%, #1a0d00 100%)",
@@ -59,21 +57,22 @@ export default function CampeonBanner({ partidos, ranking }) {
         padding: "28px 20px 20px",
         textAlign: "center",
       }}>
-        {/* Confetti */}
-        {CONFETTI_ITEMS.map((c, i) => (
-          <div key={i} style={{
-            position: "absolute",
-            top: -16,
-            left: c.left,
-            width: c.shape === "circle" ? c.size : c.size * 1.2,
-            height: c.shape === "circle" ? c.size : c.size * 0.6,
-            borderRadius: c.shape === "circle" ? "50%" : 2,
-            background: c.color,
-            animation: `confettiFall 2.8s ease-in ${c.delay} infinite`,
-            opacity: 0.85,
-            zIndex: 1,
-          }} />
-        ))}
+        {/* Confetti — en su propio contenedor con overflow:hidden para no cortar el contenido */}
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 18, zIndex: 1, pointerEvents: "none" }}>
+          {CONFETTI_ITEMS.map((c, i) => (
+            <div key={i} style={{
+              position: "absolute",
+              top: -16,
+              left: c.left,
+              width: c.shape === "circle" ? c.size : c.size * 1.2,
+              height: c.shape === "circle" ? c.size : c.size * 0.6,
+              borderRadius: c.shape === "circle" ? "50%" : 2,
+              background: c.color,
+              animation: `confettiFall 2.8s ease-in ${c.delay} infinite`,
+              opacity: 0.85,
+            }} />
+          ))}
+        </div>
 
         {/* Copa */}
         <div style={{
@@ -114,7 +113,16 @@ export default function CampeonBanner({ partidos, ranking }) {
           position: "relative",
           zIndex: 2,
         }}>
-          <Bandera codigo={bandera} nombre={campeon} size={72} />
+          <div style={{
+            width: 120,
+            height: 80,
+            backgroundImage: `url(https://flagcdn.com/${bandera}.svg)`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            borderRadius: 6,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+            flexShrink: 0,
+          }} />
           <div style={{
             color: "#FFFFFF",
             fontSize: 30,
